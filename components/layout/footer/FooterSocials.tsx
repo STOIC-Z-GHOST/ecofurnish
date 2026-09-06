@@ -20,7 +20,7 @@ export default function FooterSocials() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={label}
-          className="rounded-full border border-border p-2 text-foreground transition-colors hover:border-emerald-700 hover:text-emerald-700"
+          className="rounded-full border border-border p-2 text-foreground transition-colors hover:border-primary hover:text-primary"
         >
           <Icon size={18} />
         </Link>

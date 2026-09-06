@@ -16,7 +16,7 @@ export default function Logo() {
       <div className="leading-tight">
         <h1 className="text-lg font-bold tracking-tight sm:text-xl">
           <span className="text-foreground">{siteConfig.brand.first}</span>
-          <span className="text-emerald-700">{siteConfig.brand.second}</span>
+          <span className="text-primary">{siteConfig.brand.second}</span>
         </h1>
 
         <p className="hidden text-xs text-muted-foreground sm:block">

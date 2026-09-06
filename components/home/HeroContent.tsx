@@ -10,7 +10,7 @@ export default function HeroContent() {
 
       <h1 className="mt-6 text-5xl font-bold leading-tight text-foreground">
         Furniture Built to{" "}
-        <span className="text-emerald-700">
+        <span className="text-primary">
           Last Generations
         </span>
       </h1>

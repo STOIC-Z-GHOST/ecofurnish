@@ -5,16 +5,16 @@ export default function FooterLinks() {
   return (
     <div className="grid grid-cols-2 gap-10">
       <div>
-        <h3 className="mb-4 font-semibold text-foreground">
+        <h2 className="mb-4 font-semibold text-foreground">
           Shop
-        </h3>
+        </h2>
 
         <div className="space-y-2">
           {FOOTER_LINKS.shop.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block text-sm text-muted-foreground transition-colors hover:text-emerald-700"
+              className="block text-sm text-muted-foreground transition-colors hover:text-primary"
             >
               {link.title}
             </Link>
@@ -23,16 +23,16 @@ export default function FooterLinks() {
       </div>
 
       <div>
-        <h3 className="mb-4 font-semibold text-foreground">
+        <h2 className="mb-4 font-semibold text-foreground">
           Company
-        </h3>
+        </h2>
 
         <div className="space-y-2">
           {FOOTER_LINKS.company.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block text-sm text-muted-foreground transition-colors hover:text-emerald-700"
+              className="block text-sm text-muted-foreground transition-colors hover:text-primary"
             >
               {link.title}
             </Link>

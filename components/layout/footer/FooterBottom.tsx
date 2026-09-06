@@ -10,11 +10,11 @@ export default function FooterBottom() {
         href={siteConfig.developer.github}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs text-muted-foreground/70 transition-colors hover:text-foreground"
+        className="text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         Designed &amp; built by {siteConfig.developer.name}
       </Link>
-      <span className="text-xs text-muted-foreground/50">v{APP_VERSION}</span>
+      <span className="text-xs text-muted-foreground">v{APP_VERSION}</span>
     </div>
   );
 }
