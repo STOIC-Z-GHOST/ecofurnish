@@ -7,8 +7,7 @@ export default function ReturnsPage() {
       </p>
 
       <div className="mt-8 rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
-        This is a template starting point — it isn&apos;t legal advice. Have it
-        reviewed before relying on it for a real business.
+        This is a template starting point — it isn&apos;t legal advice.
       </div>
 
       <div className="prose prose-sm mt-8 max-w-none space-y-6 text-foreground [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-semibold [&_p]:text-muted-foreground">
