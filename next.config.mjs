@@ -86,11 +86,11 @@ const nextConfig = {
     const isPreview = process.env.VERCEL_ENV === "preview";
     const csp = [
       `default-src 'self'`,
-      `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isPreview ? " https://vercel.live" : ""}`,
+      `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com${isPreview ? " https://vercel.live" : ""}`,
       `style-src 'self' 'unsafe-inline'${isPreview ? " https://vercel.live" : ""}`,
       `img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://cdn.discordapp.com https://*.tile.openstreetmap.org${isPreview ? " https://vercel.live https://vercel.com" : ""}`,
       `font-src 'self' data:${isPreview ? " https://vercel.live https://assets.vercel.com" : ""}`,
-      `connect-src 'self' https://challenges.cloudflare.com https://vitals.vercel-insights.com${isPreview ? " https://vercel.live wss://ws-us3.pusher.com" : ""}`,
+      `connect-src 'self' https://challenges.cloudflare.com https://vitals.vercel-insights.com https://static.cloudflareinsights.com${isPreview ? " https://vercel.live wss://ws-us3.pusher.com" : ""}`,
       `frame-src https://challenges.cloudflare.com${isPreview ? " https://vercel.live" : ""}`,
       `object-src 'none'`,
       `base-uri 'self'`,

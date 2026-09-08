@@ -39,6 +39,7 @@ Thumbs.db
 dist/
 #files
 DEPLOY.md
+telegram-bot.md
 SETUP.md
 SETUP-CAPTCHA.md
 SETUP-IMAGES.md

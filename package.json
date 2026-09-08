@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "browserslist": [
-    "defaults",
+    "last 2 years",
+    "not dead",
     "not IE 11",
     "not op_mini all"
   ],
@@ -24,7 +25,7 @@
     "@teispace/next-themes": "^2.0.4",
     "@vercel/analytics": "1.6.1",
     "@vercel/blob": "^2.6.1",
-    "better-auth": "^1.7.3",
+    "better-auth": "^1.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
