@@ -9,6 +9,7 @@ interface ProductMetaProps {
   reviewCount?: number;
   discountPercent?: number | null;
   discountReason?: string | null;
+  dealEndsAt?: Date | string | null;
 }
 
 export default function ProductMeta({
@@ -18,6 +19,7 @@ export default function ProductMeta({
   reviewCount,
   discountPercent,
   discountReason,
+  dealEndsAt,
 }: ProductMetaProps) {
   return (
     <div className="space-y-4">
@@ -26,6 +28,7 @@ export default function ProductMeta({
         currency={currency}
         discountPercent={discountPercent}
         discountReason={discountReason}
+        dealEndsAt={dealEndsAt}
       />
       {avgRating != null && reviewCount ? (
         <ProductRating rating={avgRating} count={reviewCount} />

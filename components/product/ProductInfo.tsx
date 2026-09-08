@@ -3,6 +3,8 @@ import { formatPrice, type Currency } from "@/lib/currency";
 import { getEffectivePrice, hasActiveDiscount } from "@/lib/pricing";
 import { Product } from "@/types/product";
 import ProductRating from "./ProductRating";
+import CountdownTimer from "./CountdownTimer";
+import StockBadge from "./StockBadge";
 
 export default function ProductInfo({
   product,
@@ -36,9 +38,12 @@ export default function ProductInfo({
           )}
         </div>
         {discounted && (
-          <span className="mt-1 inline-block w-fit rounded-full bg-emerald-700 px-2 py-0.5 text-xs font-semibold text-white">
-            {product.discountPercent}% off
-          </span>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="inline-block w-fit rounded-full bg-emerald-700 px-2 py-0.5 text-xs font-semibold text-white">
+              {product.discountPercent}% off
+            </span>
+            {product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
+          </div>
         )}
         {/* Only rendered once a product has at least one real review —
             no reviews yet reads as "new listing," not a fake 0-star. */}
@@ -51,6 +56,7 @@ export default function ProductInfo({
         <p className="line-clamp-2 select-text text-sm text-muted-foreground">
           {product.description || "Sustainable furniture crafted from recycled materials."}
         </p>
+        <StockBadge productId={product.id} stock={product.stock} className="mt-1.5 block" />
       </CardContent>
     </>
   );

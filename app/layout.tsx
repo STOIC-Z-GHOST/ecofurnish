@@ -10,6 +10,7 @@ import Navbar from '@/components/layout/navbar/Navbar'
 import Footer from '@/components/layout/footer/Footer'
 import { CartProvider } from '@/lib/cart-context'
 import { WishlistProvider } from '@/lib/wishlist-context'
+import { RecentlyViewedProvider } from '@/lib/recently-viewed-context'
 import { CurrencyProvider } from '@/lib/currency-context'
 import { siteConfig } from '@/config/site'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
@@ -114,13 +115,15 @@ export default async function RootLayout({
           <CurrencyProvider>
             <CartProvider>
               <WishlistProvider>
-                <Navbar categories={categories} />
-                <div className="flex-1">{children}</div>
-                <Footer />
-                <Toaster />
-                <InstallAppBanner />
-                <MobileBottomNav />
-                <SupportChatWidget />
+                <RecentlyViewedProvider>
+                  <Navbar categories={categories} />
+                  <div className="flex-1">{children}</div>
+                  <Footer />
+                  <Toaster />
+                  <InstallAppBanner />
+                  <MobileBottomNav />
+                  <SupportChatWidget />
+                </RecentlyViewedProvider>
               </WishlistProvider>
             </CartProvider>
           </CurrencyProvider>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import PaymentBadge from "@/components/PaymentBadge";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
@@ -224,6 +225,8 @@ export default function CheckoutPage() {
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {submitting ? "Preparing checkout…" : `Continue to Payment — ${formatPrice(estimatedTotal, "ETB")}`}
           </Button>
+
+          <PaymentBadge className="mx-auto w-fit" />
         </form>
 
         <div className="h-fit rounded-lg border border-border/60 p-5">

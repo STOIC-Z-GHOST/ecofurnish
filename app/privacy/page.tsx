@@ -38,7 +38,11 @@ export default function PrivacyPage() {
           <p>
             Your cart, wishlist, and theme preference (light/dark) are
             stored in your browser&apos;s local storage, not on our servers.
-            Signing in sets a session cookie so you stay logged in.
+            Signing in sets a session cookie so you stay logged in. See our{" "}
+            <a href="/cookies" className="text-primary hover:underline">
+              Cookie Notice
+            </a>{" "}
+            for the full list.
           </p>
         </div>
 

@@ -8,6 +8,8 @@ import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
 import Testimonials from "@/components/home/Testimonials";
+import ContinueBrowsing from "@/components/home/ContinueBrowsing";
+import RecentFinds from "@/components/home/RecentFinds";
 import { CatalogView } from "@/components/catalog-view";
 
 // Both are the very last things on the page, and neither affects LCP or
@@ -38,7 +40,11 @@ export default async function Home() {
     <main>
       <Hero />
 
+      <ContinueBrowsing />
+
       <FeaturedProducts products={featured} />
+
+      <RecentFinds />
 
       <Categories />
 

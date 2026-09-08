@@ -13,6 +13,8 @@ import { getEffectivePrice, hasActiveDiscount } from "@/lib/pricing";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
+import CountdownTimer from "./CountdownTimer";
+import StockBadge from "./StockBadge";
 
 export default function ProductHoverDetail({
   product,
@@ -165,6 +167,15 @@ export default function ProductHoverDetail({
             )}
           </div>
 
+          {discounted && (
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <span className="inline-block w-fit rounded-full bg-emerald-700 px-2 py-0.5 text-[0.65rem] font-semibold text-white">
+                {product.discountPercent}% off
+              </span>
+              {product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
+            </div>
+          )}
+
           {product.avgRating != null && product.reviewCount ? (
             <div className="mt-1 flex items-center gap-1">
               <Star className="size-3.5 fill-yellow-400 text-yellow-400" />
@@ -186,15 +197,7 @@ export default function ProductHoverDetail({
                 {room}
               </Badge>
             ))}
-            <span
-              className={
-                effectiveStock > 0
-                  ? "text-xs text-muted-foreground"
-                  : "text-xs font-medium text-destructive"
-              }
-            >
-              {effectiveStock > 0 ? `${effectiveStock} in stock` : "Out of stock"}
-            </span>
+            <StockBadge productId={product.id} stock={product.stock} />
           </div>
         </div>
       </Link>

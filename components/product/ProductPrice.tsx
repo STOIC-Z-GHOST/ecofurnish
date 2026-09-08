@@ -1,11 +1,13 @@
 import { formatPrice, type Currency } from "@/lib/currency";
 import { getEffectivePrice, hasActiveDiscount } from "@/lib/pricing";
+import CountdownTimer from "./CountdownTimer";
 
 interface ProductPriceProps {
   price: string; // matches the DB's numeric-as-string price field
   currency?: Currency;
   discountPercent?: number | null;
   discountReason?: string | null;
+  dealEndsAt?: Date | string | null;
 }
 
 export default function ProductPrice({
@@ -13,8 +15,9 @@ export default function ProductPrice({
   currency = "ETB",
   discountPercent,
   discountReason,
+  dealEndsAt,
 }: ProductPriceProps) {
-  const discounted = hasActiveDiscount({ discountPercent });
+  const discounted = hasActiveDiscount({ discountPercent, dealEndsAt });
 
   if (!discounted) {
     return <p className="text-2xl font-bold text-emerald-700">{formatPrice(price, currency)}</p>;
@@ -31,6 +34,7 @@ export default function ProductPrice({
         <span className="rounded-full bg-emerald-700 px-2 py-0.5 text-xs font-semibold text-white">
           {discountPercent}% off
         </span>
+        {dealEndsAt && <CountdownTimer endsAt={dealEndsAt} />}
       </div>
       {discountReason && <p className="text-sm text-muted-foreground">{discountReason}</p>}
     </div>

@@ -14,6 +14,7 @@ import ProductGallery from "@/components/product/details/ProductGallery";
 import ProductSummary from "@/components/product/details/ProductSummary";
 import ProductReviews from "@/components/product/ProductReviews";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import { RecordProductView } from "@/components/product/RecordProductView";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -108,6 +109,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <ProductGallery product={productWithRating} />
         <ProductSummary product={productWithRating} />
       </div>
+
+      <RecordProductView product={productWithRating} />
 
       <ProductReviews
         productId={id}

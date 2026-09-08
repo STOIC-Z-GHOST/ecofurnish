@@ -24,10 +24,13 @@ export const products = pgTable("products", {
   // Tracking the environmental impact
   plasticWeightKg: numeric("plastic_weight_kg", { precision: 5, scale: 2 }).default('0.00').notNull(),
   // Optional site-run discount (e.g. a launch promo). 0 = no discount.
-  // Manually controlled from the admin product form — no auto-expiry, it
-  // runs until whoever's managing the store clears it.
+  // Manually controlled from the admin product form. By default it runs
+  // until whoever's managing the store clears it — but if dealEndsAt is
+  // set, the storefront treats it as a flash sale and shows a countdown
+  // timer next to the discount until that moment passes.
   discountPercent: integer("discount_percent").default(0).notNull(),
   discountReason: text("discount_reason"),
+  dealEndsAt: timestamp("deal_ends_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

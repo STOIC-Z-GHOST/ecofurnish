@@ -6,10 +6,25 @@
 interface DiscountableProduct {
   price: string;
   discountPercent?: number | null;
+  dealEndsAt?: Date | string | null;
 }
 
-export function hasActiveDiscount(product: { discountPercent?: number | null }): boolean {
-  return !!product.discountPercent && product.discountPercent > 0;
+/** True only while a discount is both set and, if it's a scheduled flash
+ * sale (dealEndsAt present), still within its window. This runs at
+ * checkout too (see app/actions/orders.ts) — so once the countdown hits
+ * zero, the discount stops applying to what's actually charged, not just
+ * what's displayed. An admin still has to clear discountPercent itself to
+ * fully retire an un-timed discount; dealEndsAt only auto-expires timed
+ * ones. */
+export function hasActiveDiscount(product: {
+  discountPercent?: number | null;
+  dealEndsAt?: Date | string | null;
+}): boolean {
+  if (!product.discountPercent || product.discountPercent <= 0) return false;
+  if (product.dealEndsAt && new Date(product.dealEndsAt).getTime() <= Date.now()) {
+    return false;
+  }
+  return true;
 }
 
 /** The price a customer actually pays, as a decimal string (2dp), same

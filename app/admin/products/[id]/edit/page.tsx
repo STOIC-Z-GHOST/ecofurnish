@@ -34,6 +34,7 @@ export default async function EditProductPage({ params }: Props) {
           plasticWeightKg: product.plasticWeightKg,
           discountPercent: product.discountPercent,
           discountReason: product.discountReason ?? "",
+          dealEndsAt: product.dealEndsAt ? product.dealEndsAt.toISOString() : null,
         }}
       />
     </div>

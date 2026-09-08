@@ -59,7 +59,22 @@ export default function TermsPage() {
             <a href="/privacy" className="text-primary hover:underline">
               Privacy Policy
             </a>{" "}
-            for what we collect and how it&apos;s used.
+            for what we collect and how it&apos;s used, and our{" "}
+            <a href="/cookies" className="text-primary hover:underline">
+              Cookie Notice
+            </a>{" "}
+            for what&apos;s stored in your browser.
+          </p>
+        </div>
+
+        <div>
+          <h2>Disputes</h2>
+          <p>
+            If something goes wrong with an order or charge, see our{" "}
+            <a href="/dispute-resolution" className="text-primary hover:underline">
+              Dispute Resolution Policy
+            </a>{" "}
+            for how we handle it.
           </p>
         </div>
 

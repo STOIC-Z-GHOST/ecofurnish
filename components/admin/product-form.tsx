@@ -19,6 +19,17 @@ import {
 } from "@/app/admin/actions";
 import { toast } from "sonner";
 
+// `<input type="datetime-local">` wants "YYYY-MM-DDTHH:mm" in local time,
+// not an ISO string — this bridges what we store (ISO, UTC) to what the
+// input can display, and back again on change (see the onChange above).
+function toDatetimeLocalValue(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 interface ProductFormProps {
   productId?: string;
   initial?: ProductInput;
@@ -37,6 +48,7 @@ const emptyProduct: ProductInput = {
   plasticWeightKg: "0.00",
   discountPercent: 0,
   discountReason: "",
+  dealEndsAt: null,
 };
 
 export function ProductForm({ productId, initial, existingCategories = [] }: ProductFormProps) {
@@ -501,8 +513,8 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
           Discount <span className="font-normal text-muted-foreground">(optional)</span>
         </Label>
         <p className="text-xs text-muted-foreground">
-          Leave at 0% for no discount. Runs until you change it back — there&apos;s no
-          automatic expiry.
+          Leave at 0% for no discount. By default it runs until you change it back —
+          set an end time below to turn it into a flash sale with a countdown.
         </p>
         <div className="grid grid-cols-2 gap-4 pt-1">
           <div className="space-y-1.5">
@@ -525,6 +537,24 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
               placeholder="Launch week discount"
             />
           </div>
+        </div>
+        <div className="space-y-1.5 pt-1">
+          <Label htmlFor="dealEndsAt">
+            Flash sale ends{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="dealEndsAt"
+            type="datetime-local"
+            value={toDatetimeLocalValue(values.dealEndsAt)}
+            onChange={(e) =>
+              update("dealEndsAt", e.target.value ? new Date(e.target.value).toISOString() : null)
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            Leave blank to run with no scheduled end. Set a time and the storefront
+            shows a live countdown next to the discount until it passes.
+          </p>
         </div>
       </div>
 

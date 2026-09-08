@@ -14,6 +14,7 @@ import ProductMeta from "./ProductMeta";
 import QuantitySelector from "./QuantitySelector";
 import AddToCartButton from "../AddToCartButton";
 import WishlistButton from "../WishlistButton";
+import StockBadge from "../StockBadge";
 
 interface ProductSummaryProps {
   product: Product;
@@ -59,7 +60,10 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
         reviewCount={product.reviewCount}
         discountPercent={product.discountPercent}
         discountReason={product.discountReason}
+        dealEndsAt={product.dealEndsAt}
       />
+
+      <StockBadge productId={product.id} stock={product.stock} />
 
       <p className="text-muted-foreground">
         {product.description || "Sustainable furniture crafted from recycled materials."}
