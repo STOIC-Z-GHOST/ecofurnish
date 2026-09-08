@@ -416,39 +416,28 @@ export async function sendLowStockAlertEmail(productName: string, stock: number)
   }
 }
 
+// Deliberately lean. "processing," "ready_for_delivery," and
+// "on_the_road"/"near_destination" all used to have their own email here,
+// but that's up to 6 emails for one order on top of the confirmation —
+// genuinely excessive. Driver assignment already sends its own email
+// with the PIN (see sendDeliveryAssignedEmail, called directly from the
+// dispatcher assignment flow) — that one's actionable, so it stays
+// outside this map entirely. What's left here is just the two moments
+// that actually warrant a written record: the order showing up, and the
+// order going away. Anything in between is what the order-tracking
+// page's live status + map is for.
 const STATUS_EMAIL_COPY = {
-  processing: {
-    subject: "Your order is confirmed",
-    heading: "Your order is confirmed",
-    body: () => "We've started getting your order ready.",
-  },
-  ready_for_delivery: {
-    subject: "Your order is ready for delivery",
-    heading: "Ready for delivery",
-    body: () => "Your order is packed and waiting for a driver to pick it up.",
-  },
-  on_the_road: {
-    subject: "Your order is on the way",
-    heading: "On the way",
-    body: (trackingNote?: string | null) =>
-      trackingNote
-        ? `Your driver is on the road. Tracking: ${trackingNote}`
-        : "Your driver is on the road.",
-  },
-  near_destination: {
-    subject: "Your order is almost there",
-    heading: "Almost there",
-    body: () => "Your driver is nearly at your delivery address — have your delivery PIN ready.",
-  },
   delivered: {
-    subject: "Your order has been delivered",
-    heading: "Delivered!",
-    body: () => "Your order has been marked as delivered. We hope you love it.",
+    subject: "Delivered! Thanks for shopping with EcoFurnish",
+    heading: "Delivered! 🎉",
+    body: (_trackingNote?: string | null) =>
+      "Your order has arrived — we hope you love it. Thank you for shopping with EcoFurnish, and for choosing sustainable furniture over something new and disposable. If anything's off, just reply to this email.",
   },
   cancelled: {
     subject: "Your order has been cancelled",
     heading: "Order cancelled",
-    body: () => "Your order has been cancelled. If this wasn't expected, just reply to this email.",
+    body: (_trackingNote?: string | null) =>
+      "Your order has been cancelled. If this wasn't expected, just reply to this email.",
   },
 } as const;
 

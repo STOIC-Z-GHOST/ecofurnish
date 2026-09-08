@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Leaf, Recycle, Users } from "lucide-react";
+import { siteConfig } from "@/config/site";
+import { APP_VERSION } from "@/lib/version";
 
 export default function AboutPage() {
   return (
@@ -92,6 +94,23 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* Deliberately set apart from the brand story above — this is a
+          demo/portfolio project, and the credit line belongs here as a
+          footnote for anyone curious, not in the storefront's own
+          footer where it read like part of the EcoFurnish brand. */}
+      <div className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
+        This is a demo storefront — designed &amp; built by{" "}
+        <a
+          href={siteConfig.developer.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline-offset-2 hover:underline"
+        >
+          {siteConfig.developer.name}
+        </a>
+        . v{APP_VERSION}
+      </div>
     </div>
   );
 }
