@@ -9,8 +9,7 @@ export default function CookiesPage() {
       <div className="mt-8 rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
         This is a template covering what EcoFurnish&apos;s own code actually
         stores in your browser — it&apos;s a reasonable starting point, but isn&apos;t
-        legal advice. Have it reviewed before relying on it for a real
-        business.
+        legal advice.
       </div>
 
       <div className="prose prose-sm mt-8 max-w-none space-y-6 text-foreground [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-semibold [&_p]:text-muted-foreground [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_ul]:text-muted-foreground">
