@@ -20,7 +20,7 @@ export default function DisputeResolutionPage() {
             <a href="/contact" className="text-primary hover:underline">
               contact page
             </a>{" "}
-            with your order number and we&apos;ll look into it.
+            with your order number and we will look into it.
           </p>
         </div>
 
