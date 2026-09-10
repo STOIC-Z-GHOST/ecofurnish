@@ -42,7 +42,7 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="bg-emerald-700 py-20">
+    <section className="bg-emerald-700 py-14">
       <div className="container mx-auto max-w-3xl px-4 text-center">
         <h2 className="text-4xl font-bold text-white">Join Our Newsletter</h2>
         <p className="mt-4 text-emerald-100">

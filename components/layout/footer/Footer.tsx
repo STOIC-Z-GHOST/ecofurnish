@@ -8,7 +8,7 @@ import { FOOTER_LINKS } from "@/data/footer-links";
 export default function Footer() {
   return (
     <footer className="bg-background border-t border-border pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 pt-16 pb-8">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <FooterBrand />

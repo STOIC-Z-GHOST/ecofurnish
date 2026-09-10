@@ -61,15 +61,26 @@ export default function ProductInfo({
             </span>
           )}
         </div>
-        {/* Only rendered once a product has at least one real review —
-            no reviews yet reads as "new listing," not a fake 0-star. */}
-        {product.avgRating != null && product.reviewCount ? (
-          <ProductRating rating={product.avgRating} count={product.reviewCount} />
-        ) : null}
+        {/* Same reasoning as the badge row above — a rated product is one
+            row taller than an unrated one, which is the other thing that
+            was still causing uneven natural heights. Rendering the same
+            ProductRating markup either way (just invisible when there's
+            no real rating yet) reserves identical space without needing
+            a hand-built placeholder. */}
+        <div
+          className={product.avgRating != null && product.reviewCount ? undefined : "invisible"}
+          aria-hidden={product.avgRating != null && product.reviewCount ? undefined : true}
+        >
+          <ProductRating rating={product.avgRating ?? 0} count={product.reviewCount ?? 0} />
+        </div>
       </CardHeader>
 
       <CardContent className="grow p-3 pt-0 sm:p-4 sm:pt-0">
-        <p className="line-clamp-2 select-text text-sm text-muted-foreground">
+        {/* min-h-10 = 2 lines at text-sm's line-height — line-clamp-2 only
+            caps the *maximum*, so a short one-line blurb was otherwise
+            leaving this card shorter than a neighbor with a wrapped
+            two-line one. */}
+        <p className="line-clamp-2 min-h-10 select-text text-sm text-muted-foreground">
           {product.description || "Sustainable furniture crafted from recycled materials."}
         </p>
         <StockBadge productId={product.id} stock={product.stock} className="mt-1.5 block" />
