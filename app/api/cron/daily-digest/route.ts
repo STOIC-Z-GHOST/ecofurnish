@@ -2,19 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeDailyDigest, formatDigestAsText } from "@/lib/insights";
 import { narrateDigest } from "@/lib/gemini";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { rejectUnlessCron } from "@/lib/cron-auth";
 
 // Vercel invokes cron routes with GET and an
-// `Authorization: Bearer ${CRON_SECRET}` header — CRON_SECRET is set
-// automatically in your Vercel project's env vars, nothing to configure.
-// Checked only in production so you can hit this manually while testing
-// locally (e.g. visiting it in a browser) without needing the header.
+// `Authorization: Bearer ${CRON_SECRET}` header — CRON_SECRET must be set
+// in your Vercel project's env vars (see lib/cron-auth.ts, which refuses
+// every request in production if it's missing). The check is skipped
+// outside production so you can hit this manually while testing locally
+// (e.g. visiting it in a browser) without needing the header.
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  const denied = rejectUnlessCron(request);
+  if (denied) return denied;
 
   const digest = await computeDailyDigest();
 

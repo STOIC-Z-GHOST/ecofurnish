@@ -9,7 +9,9 @@ export function generateMagicToken(): string {
 /** 6-digit code the buyer receives by email and the driver collects in
  * person to submit a "delivered" claim. */
 export function generateBuyerPin(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // crypto.randomInt, not Math.random(): Math.random() is predictable, and this
+  // PIN is the only thing standing between a driver and a "delivered" claim.
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 export function driverPortalUrl(token: string): string {

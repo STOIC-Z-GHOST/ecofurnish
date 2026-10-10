@@ -7,14 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitContactForm } from "@/app/actions/contact";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 import { toast } from "sonner";
 
 export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Bumped after every attempt to get a fresh token — a token is single-use.
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!captchaToken) {
+      toast.error("Please complete the captcha first.");
+      return;
+    }
     setSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
@@ -22,13 +30,20 @@ export default function ContactPage() {
       name: String(formData.get("name") || ""),
       email: String(formData.get("email") || ""),
       message: String(formData.get("message") || ""),
+      captchaToken,
     });
 
     setSubmitting(false);
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
     if (result.success) {
       setSent(true);
     } else {
-      toast.error("Couldn't send your message — please try again in a moment.");
+      toast.error(
+        "error" in result && result.error
+          ? result.error
+          : "Couldn't send your message — please try again in a moment."
+      );
     }
   }
 
@@ -83,6 +98,11 @@ export default function ContactPage() {
                 <Label htmlFor="message">Message</Label>
                 <Textarea id="message" name="message" required rows={5} />
               </div>
+              <TurnstileWidget
+                onVerify={setCaptchaToken}
+                onExpire={() => setCaptchaToken(null)}
+                resetSignal={captchaReset}
+              />
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {submitting ? "Sending…" : "Send Message"}

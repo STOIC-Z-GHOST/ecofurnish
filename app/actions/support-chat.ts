@@ -2,10 +2,12 @@
 
 import { getSupportFacts } from "@/lib/support";
 import { callAI } from "@/lib/gemini";
+import { allowRequest } from "@/lib/rate-limit";
 
 const MAX_MESSAGE_LENGTH = 500;
 
 export async function askSupportBot(message: string): Promise<string> {
+  if (typeof message !== "string") return "What would you like to know?";
   const trimmed = message.trim();
   if (!trimmed) {
     return "What would you like to know?";
@@ -15,6 +17,11 @@ export async function askSupportBot(message: string): Promise<string> {
   // rate limiter for what's a low-traffic portfolio feature.
   if (trimmed.length > MAX_MESSAGE_LENGTH) {
     return "That's a bit long for me — could you shorten your question?";
+  }
+
+  // Every call here spends paid AI quota, and this endpoint is public.
+  if (!(await allowRequest("support-chat", 30, 10 * 60 * 1000))) {
+    return "You've asked a lot of questions in a short time — please wait a few minutes and try again.";
   }
 
   const facts = await getSupportFacts();

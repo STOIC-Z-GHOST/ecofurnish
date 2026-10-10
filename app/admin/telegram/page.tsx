@@ -1,7 +1,9 @@
 import { getTelegramAdmins } from "@/app/admin/telegram/actions";
 import { TelegramAdminsList } from "@/components/admin/TelegramAdminsList";
+import { requireAdminPage } from "@/lib/require-admin";
 
 export default async function AdminTelegramPage() {
+  await requireAdminPage();
   const admins = await getTelegramAdmins();
 
   return (

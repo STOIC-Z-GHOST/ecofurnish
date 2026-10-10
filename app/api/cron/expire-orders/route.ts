@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { applyOrderStatus } from "@/lib/orders";
+import { rejectUnlessCron } from "@/lib/cron-auth";
 
 // How long an order gets to actually pay before we give up on it. Chapa
 // checkout normally completes in minutes; this is a generous buffer for
@@ -27,12 +28,8 @@ const EXPIRY_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
 // customer who just closes the tab on an unpaid checkout would otherwise
 // lose that reward forever, since nothing else ever revisits the order.
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  const denied = rejectUnlessCron(request);
+  if (denied) return denied;
 
   const cutoff = new Date(Date.now() - EXPIRY_WINDOW_MS);
   const stale = await db

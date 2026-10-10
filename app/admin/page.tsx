@@ -2,8 +2,10 @@ import { db } from "@/db";
 import { orders, products } from "@/db/schema";
 import { formatPrice } from "@/lib/currency";
 import { Package, ShoppingBag, TriangleAlert, Wallet } from "lucide-react";
+import { requireAdminPage } from "@/lib/require-admin";
 
 export default async function AdminDashboardPage() {
+  await requireAdminPage();
   const [allOrders, allProducts] = await Promise.all([
     db.select().from(orders),
     db.select().from(products),

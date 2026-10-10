@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
-import { attachRatings, getReviewsForProduct, canReviewProduct, getMyReviewForProduct } from "@/lib/reviews";
+import { attachRatings, getReviewsForProduct, canReviewProduct, getMyReviewForProduct } from "@/lib/reviews-queries";
 import ProductGallery from "@/components/product/details/ProductGallery";
 import ProductSummary from "@/components/product/details/ProductSummary";
 import ProductReviews from "@/components/product/ProductReviews";

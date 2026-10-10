@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { db } from "@/db";
 import { newsletterSubscribers, driverApplications } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
+import { unsubscribePath } from "@/lib/unsubscribe-token";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM_ADDRESS = "EcoFurnish <admin@ecofurnish.abrdns.com>";
@@ -184,7 +185,7 @@ export async function sendBroadcastEmail({
       const { error } = await resend.batch.send(
         chunk.map(({ email }) => {
           const unsubscribeUrl = unsubscribable
-            ? `${appUrl()}/api/newsletter/unsubscribe?email=${encodeURIComponent(email)}`
+            ? `${appUrl()}${unsubscribePath(email)}`
             : undefined;
           return {
             from: FROM_ADDRESS,

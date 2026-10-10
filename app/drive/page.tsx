@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { verifyCaptcha } from "@/app/actions/captcha";
 import { submitDriverApplication } from "@/app/actions/driver-application";
 import { VEHICLE_TYPES } from "@/lib/vehicle-types";
 
@@ -30,6 +29,13 @@ const EMPTY_FORM = {
 export default function DriveApplicationPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Bumped after every submit attempt to get a fresh captcha token — a token
+  // can only be used once. See TurnstileWidget's resetSignal.
+  const [captchaReset, setCaptchaReset] = useState(0);
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  }
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -47,17 +53,18 @@ export default function DriveApplicationPage() {
       return;
     }
 
-    setSubmitting(true);
-
-    const captchaResult = await verifyCaptcha(captchaToken);
-    if (!captchaResult.success) {
-      setError(captchaResult.error);
-      setSubmitting(false);
+    if (!captchaToken) {
+      setError("Please complete the captcha.");
       return;
     }
 
-    const result = await submitDriverApplication(form);
+    setSubmitting(true);
+
+    // The token goes to the server action itself, which verifies it with
+    // Cloudflare before doing anything — not in a separate earlier step.
+    const result = await submitDriverApplication({ ...form, captchaToken });
     setSubmitting(false);
+    resetCaptcha(); // a token is single-use, so get a fresh one for any retry
 
     if (result.success) {
       setSent(true);
@@ -170,7 +177,7 @@ export default function DriveApplicationPage() {
               />
             </div>
 
-            <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+            <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} resetSignal={captchaReset} />
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 

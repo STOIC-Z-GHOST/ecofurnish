@@ -49,6 +49,7 @@ const emptyProduct: ProductInput = {
   discountPercent: 0,
   discountReason: "",
   dealEndsAt: null,
+  restockAt: null,
 };
 
 export function ProductForm({ productId, initial, existingCategories = [] }: ProductFormProps) {
@@ -305,6 +306,27 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
             className={fieldErrorClass("stock")}
           />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="restockAt">
+          Restock time{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="restockAt"
+          type="datetime-local"
+          value={toDatetimeLocalValue(values.restockAt ?? null)}
+          onChange={(e) =>
+            update("restockAt", e.target.value ? new Date(e.target.value).toISOString() : null)
+          }
+        />
+        <p className="text-xs text-muted-foreground">
+          While this product is out of stock, every visitor sees a live &quot;Back in stock
+          in…&quot; countdown to this time. It&apos;s display-only — it doesn&apos;t add stock,
+          so raise the Stock number yourself when the new batch arrives. Leave blank for no
+          countdown.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

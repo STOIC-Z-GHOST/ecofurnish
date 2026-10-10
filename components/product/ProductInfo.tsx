@@ -83,7 +83,7 @@ export default function ProductInfo({
         <p className="line-clamp-2 min-h-10 select-text text-sm text-muted-foreground">
           {product.description || "Sustainable furniture crafted from recycled materials."}
         </p>
-        <StockBadge productId={product.id} stock={product.stock} className="mt-1.5 block" />
+        <StockBadge productId={product.id} stock={product.stock} restockAt={product.restockAt} className="mt-1.5 block" />
       </CardContent>
     </>
   );

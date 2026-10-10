@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { escapeHtml } from "@/lib/escape-html";
+import { unsubscribePath } from "@/lib/unsubscribe-token";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -37,7 +39,7 @@ export async function sendNewsletterWelcomeEmail(toEmail: string) {
     return { success: false as const };
   }
 
-  const unsubscribeUrl = `${appUrl()}/api/newsletter/unsubscribe?email=${encodeURIComponent(toEmail)}`;
+  const unsubscribeUrl = `${appUrl()}${unsubscribePath(toEmail)}`;
 
   try {
     await resend.emails.send({
@@ -186,7 +188,7 @@ export async function sendWelcomeEmail(toEmail: string, name: string) {
       text: `Welcome, ${name.split(" ")[0]}!\n\nYour EcoFurnish account is ready. Browse the catalog, save favorites to your wishlist, and your orders will show up in your account once you check out.${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
-          <h2 style="color:#33472e;">Welcome, ${name.split(" ")[0]}!</h2>
+          <h2 style="color:#33472e;">Welcome, ${escapeHtml(name.split(" ")[0])}!</h2>
           <p style="color:#3a3f38;">
             Your EcoFurnish account is ready. Browse the catalog, save favorites to your
             wishlist, and your orders will show up in your account once you check out.
@@ -215,7 +217,7 @@ export async function sendPasswordChangedEmail(toEmail: string, name: string) {
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Password changed</h2>
           <p style="color:#3a3f38;">
-            Hi ${name.split(" ")[0]}, this confirms your EcoFurnish account password was just changed.
+            Hi ${escapeHtml(name.split(" ")[0])}, this confirms your EcoFurnish account password was just changed.
           </p>
           <p style="color:#6b6a5c;font-size:14px;">
             If this wasn't you, contact us immediately through the site's contact page.
@@ -247,7 +249,7 @@ export async function sendExistingAccountSignUpAttemptEmail(toEmail: string, nam
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Someone tried to sign up with your email</h2>
           <p style="color:#3a3f38;">
-            Hi ${name.split(" ")[0]}, someone just tried to create a new EcoFurnish account
+            Hi ${escapeHtml(name.split(" ")[0])}, someone just tried to create a new EcoFurnish account
             using this email address — but you already have one.
           </p>
           <p style="color:#3a3f38;">
@@ -293,13 +295,13 @@ export async function sendContactMessage(input: {
       from: FROM_ADDRESS,
       to: ownerEmail,
       replyTo: input.email,
-      subject: `New contact form message from ${input.name}`,
+      subject: `New contact form message from ${input.name.replace(/[\r\n]+/g, " ")}`,
       text: `New message from your site\n\n${input.name} (${input.email}) wrote:\n\n${input.message}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">New message from your site</h2>
-          <p><strong>${input.name}</strong> (${input.email}) wrote:</p>
-          <p style="white-space:pre-wrap;color:#3a3f38;">${input.message}</p>
+          <p><strong>${escapeHtml(input.name)}</strong> (${escapeHtml(input.email)}) wrote:</p>
+          <p style="white-space:pre-wrap;color:#3a3f38;">${escapeHtml(input.message)}</p>
         </div>
       `,
     });
@@ -334,7 +336,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
     .map(
       (item) =>
         `<tr>
-          <td style="padding:8px 0;color:#3a3f38;">${item.productName} × ${item.quantity}</td>
+          <td style="padding:8px 0;color:#3a3f38;">${escapeHtml(item.productName)} × ${item.quantity}</td>
           <td style="padding:8px 0;text-align:right;color:#3a3f38;">Br${(
             parseFloat(item.unitPrice) * item.quantity
           ).toFixed(2)}</td>
@@ -348,7 +350,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
-      <h2 style="color:#33472e;">Thanks for your order, ${input.customerName.split(" ")[0]}!</h2>
+      <h2 style="color:#33472e;">Thanks for your order, ${escapeHtml(input.customerName.split(" ")[0])}!</h2>
       <p style="color:#3a3f38;">Your EcoFurnish order <strong>#${input.orderId.slice(0, 8)}</strong> is confirmed.</p>
       <table style="width:100%;border-collapse:collapse;margin-top:16px;">
         ${itemsHtml}
@@ -406,7 +408,7 @@ export async function sendLowStockAlertEmail(productName: string, stock: number)
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Low stock alert</h2>
-          <p style="color:#3a3f38;"><strong>${productName}</strong> just dropped to
+          <p style="color:#3a3f38;"><strong>${escapeHtml(productName)}</strong> just dropped to
           <strong>${stock}</strong> in stock after a purchase. Might be worth reordering soon.</p>
         </div>
       `,
@@ -473,7 +475,7 @@ export async function sendOrderStatusUpdateEmail(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">${copy.heading}</h2>
-          <p style="color:#3a3f38;">Hi ${firstName}, ${bodyText}</p>
+          <p style="color:#3a3f38;">Hi ${escapeHtml(firstName)}, ${bodyText}</p>
           <p style="color:#6b6a5c;font-size:13px;">Order #${orderId.slice(0, 8)}</p>${spamNoticeHtml()}
         </div>
       `,
@@ -536,7 +538,7 @@ export async function sendDispatcherPromotedEmail(toEmail: string, name: string)
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">You're now a dispatcher</h2>
           <p style="color:#3a3f38;">
-            Hi ${firstName}, an admin has given your account dispatcher access on EcoFurnish.
+            Hi ${escapeHtml(firstName)}, an admin has given your account dispatcher access on EcoFurnish.
             You can now review driver applications, assign deliveries, and manage the delivery
             pipeline — just sign in as usual and you'll see the dispatcher tools.
           </p>${spamNoticeHtml()}
@@ -565,7 +567,7 @@ export async function sendDispatcherRemovedEmail(toEmail: string, name: string) 
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Dispatcher access removed</h2>
           <p style="color:#3a3f38;">
-            Hi ${firstName}, your dispatcher access on EcoFurnish has been removed. Your account
+            Hi ${escapeHtml(firstName)}, your dispatcher access on EcoFurnish has been removed. Your account
             is otherwise unaffected.
           </p>${spamNoticeHtml()}
         </div>
@@ -604,7 +606,7 @@ export async function sendDriverAssignmentEmail(
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">New delivery assigned</h2>
           <p style="color:#3a3f38;">
-            Hi ${firstName}, you've been assigned order #${orderId.slice(0, 8)}. Use the link
+            Hi ${escapeHtml(firstName)}, you've been assigned order #${orderId.slice(0, 8)}. Use the link
             below to update your status as you go — no account or app needed.
           </p>
           <p style="margin:24px 0; text-align:center;">
@@ -639,7 +641,7 @@ export async function sendDriverApplicationReceivedEmail(toEmail: string, fullNa
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Application received</h2>
           <p style="color:#3a3f38;">
-            Hi ${firstName}, thanks for applying to drive for EcoFurnish. A dispatcher will
+            Hi ${escapeHtml(firstName)}, thanks for applying to drive for EcoFurnish. A dispatcher will
             review your application and email you with a decision soon.
           </p>${spamNoticeHtml()}
         </div>
@@ -675,7 +677,7 @@ export async function sendDriverApplicationDecisionEmail(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">${heading}</h2>
-          <p style="color:#3a3f38;">Hi ${firstName}, ${body}</p>${spamNoticeHtml()}
+          <p style="color:#3a3f38;">Hi ${escapeHtml(firstName)}, ${body}</p>${spamNoticeHtml()}
         </div>
       `,
     });
@@ -709,7 +711,7 @@ export async function sendDeliveryAssignedEmail(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">A driver is on the way</h2>
-          <p style="color:#3a3f38;">Hi ${firstName}, a driver has been assigned to your order.</p>
+          <p style="color:#3a3f38;">Hi ${escapeHtml(firstName)}, a driver has been assigned to your order.</p>
           <p style="margin:24px 0; text-align:center;">
             <span style="display:inline-block;background:#f0efe6;color:#33472e;font-size:28px;font-weight:700;letter-spacing:4px;padding:12px 24px;border-radius:8px;">
               ${buyerPin}

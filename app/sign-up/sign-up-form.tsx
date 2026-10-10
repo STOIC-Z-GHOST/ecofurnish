@@ -12,7 +12,6 @@ import { signUp, sendVerificationEmail } from "@/lib/auth-client";
 import { PasswordStrengthMeter } from "@/components/password-strength-meter";
 import { passesAllChecks } from "@/lib/password-strength";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { verifyCaptcha } from "@/app/actions/captcha";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { AuthSidePanel } from "@/components/auth/AuthSidePanel";
 import type { SocialProviderId } from "@/lib/social-providers";
@@ -23,6 +22,13 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Bumped after every submit attempt to get a fresh captcha token — a token
+  // can only be used once. See TurnstileWidget's resetSignal.
+  const [captchaReset, setCaptchaReset] = useState(0);
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  }
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -54,9 +60,10 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
 
     setLoading(true);
 
-    const captchaResult = await verifyCaptcha(captchaToken);
-    if (!captchaResult.success) {
-      setError(captchaResult.error);
+    // The token is sent with the sign-up request itself and checked by the
+    // server (see the captcha plugin in lib/auth.ts) — not in a separate step.
+    if (!captchaToken) {
+      setError("Please complete the captcha.");
       setLoading(false);
       return;
     }
@@ -67,6 +74,7 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
     await signUp.email(
       { name, email, password },
       {
+        headers: { "x-captcha-response": captchaToken },
         onSuccess: () => {
           setSubmittedEmail(email);
           setAwaitingVerification(true);
@@ -75,6 +83,7 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
         onError: (ctx) => {
           setError(ctx.error.message || "Couldn't create your account.");
           setLoading(false);
+          resetCaptcha();
         },
       }
     );
@@ -255,7 +264,7 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
                   </span>
                 </label>
 
-                <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+                <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} resetSignal={captchaReset} />
 
                 {error && <p className="text-sm text-destructive">{error}</p>}
 

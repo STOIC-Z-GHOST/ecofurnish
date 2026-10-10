@@ -197,7 +197,7 @@ export default function ProductHoverDetail({
                 {room}
               </Badge>
             ))}
-            <StockBadge productId={product.id} stock={product.stock} />
+            <StockBadge productId={product.id} stock={product.stock} restockAt={product.restockAt} />
           </div>
         </div>
       </Link>

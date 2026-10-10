@@ -54,6 +54,9 @@ export interface ProductInput {
   // the discount with no scheduled end. Converted to a Date right before
   // it hits the DB — see createProduct/updateProduct below.
   dealEndsAt: string | null;
+  // ISO string from the form's datetime-local input, or null/omitted for
+  // "no restock countdown". Converted to a Date before it hits the DB.
+  restockAt?: string | null;
 }
 
 function validateProductInput(input: ProductInput) {
@@ -80,6 +83,9 @@ function validateProductInput(input: ProductInput) {
   if (input.dealEndsAt && Number.isNaN(new Date(input.dealEndsAt).getTime())) {
     throw new Error("Flash sale end time isn't a valid date.");
   }
+  if (input.restockAt && Number.isNaN(new Date(input.restockAt).getTime())) {
+    throw new Error("Restock time isn't a valid date.");
+  }
   // Cover photo + up to 7 extra = 8 total, which is plenty for a product
   // gallery and keeps the admin form and hover-cycler from getting unwieldy.
   if (input.images.length > 7) {
@@ -90,10 +96,11 @@ function validateProductInput(input: ProductInput) {
 export async function createProduct(input: ProductInput) {
   await requireAdmin();
   validateProductInput(input);
-  const { dealEndsAt, ...rest } = input;
+  const { dealEndsAt, restockAt, ...rest } = input;
   await db.insert(products).values({
     ...rest,
     dealEndsAt: dealEndsAt ? new Date(dealEndsAt) : null,
+    restockAt: restockAt ? new Date(restockAt) : null,
   });
   revalidatePath("/admin/products");
   revalidatePath("/");
@@ -102,12 +109,13 @@ export async function createProduct(input: ProductInput) {
 export async function updateProduct(id: string, input: ProductInput) {
   await requireAdmin();
   validateProductInput(input);
-  const { dealEndsAt, ...rest } = input;
+  const { dealEndsAt, restockAt, ...rest } = input;
   await db
     .update(products)
     .set({
       ...rest,
       dealEndsAt: dealEndsAt ? new Date(dealEndsAt) : null,
+      restockAt: restockAt ? new Date(restockAt) : null,
       updatedAt: new Date(),
     })
     .where(eq(products.id, id));

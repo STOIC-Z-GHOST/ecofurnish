@@ -6,8 +6,10 @@ import { formatPrice } from "@/lib/currency";
 import { OrderStatusSelect } from "@/components/admin/order-status-select";
 import { TrackingNoteInput } from "@/components/admin/tracking-note-input";
 import { Badge } from "@/components/ui/badge";
+import { requireAdminPage } from "@/lib/require-admin";
 
 export default async function AdminOrdersPage() {
+  await requireAdminPage();
   const allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
 
   return (

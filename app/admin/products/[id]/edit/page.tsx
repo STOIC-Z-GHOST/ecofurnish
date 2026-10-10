@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { ProductForm } from "@/components/admin/product-form";
+import { requireAdminPage } from "@/lib/require-admin";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditProductPage({ params }: Props) {
+  await requireAdminPage();
   const { id } = await params;
   const [product] = await db.select().from(products).where(eq(products.id, id)).limit(1);
   if (!product) notFound();
@@ -35,6 +37,7 @@ export default async function EditProductPage({ params }: Props) {
           discountPercent: product.discountPercent,
           discountReason: product.discountReason ?? "",
           dealEndsAt: product.dealEndsAt ? product.dealEndsAt.toISOString() : null,
+          restockAt: product.restockAt ? product.restockAt.toISOString() : null,
         }}
       />
     </div>

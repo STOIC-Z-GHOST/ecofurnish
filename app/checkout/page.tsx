@@ -159,7 +159,16 @@ export default function CheckoutPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
+              <Input
+                key={session?.user?.email ?? "no-session"}
+                id="email"
+                name="email"
+                type="email"
+                defaultValue={session?.user?.email ?? ""}
+                readOnly
+                title="Order updates and your delivery PIN are sent to your account email"
+                autoComplete="email"
+              />
             </div>
           </div>
 

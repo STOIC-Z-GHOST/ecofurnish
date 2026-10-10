@@ -1,5 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Clock } from "lucide-react";
 import { db } from "@/db";
@@ -13,6 +13,7 @@ import { ReorderButton, type ReorderItem } from "@/components/order/ReorderButto
 import { OrderTimeline } from "@/components/order/OrderTimeline";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { canViewOrder } from "@/lib/order-access";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -23,8 +24,29 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   const { id } = await params;
   const { tx_ref } = await searchParams;
 
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  // Logged out: reveal nothing about the order. One exception to keep the
+  // payment flow robust — if this is the browser redirect back from Chapa
+  // in a window that isn't signed in, still run the server-to-server payment
+  // check (it only does anything when tx_ref matches this order AND Chapa
+  // confirms the payment), so the order gets marked paid. Then send them to
+  // sign in. The response is identical whether or not the order exists.
+  if (!session?.user) {
+    if (tx_ref) {
+      try {
+        await confirmPayment(id, tx_ref);
+      } catch (error) {
+        console.error("confirmPayment failed for a logged-out return:", error);
+      }
+    }
+    redirect("/sign-in");
+  }
+
   let [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
-  if (!order) notFound();
+  // Not found and not-yours look exactly the same, so this page can't be
+  // used to find out which order IDs exist.
+  if (!order || !canViewOrder(order, session.user)) notFound();
 
   // Just landed back from Chapa — verify with their servers before
   // trusting the redirect (the callback route may also be racing this).
@@ -60,8 +82,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
     ];
   });
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  const preferredCurrency = (session?.user?.preferredCurrency as Currency | undefined) || "ETB";
+  const preferredCurrency = (session.user.preferredCurrency as Currency | undefined) || "ETB";
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-16">
@@ -71,6 +92,8 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             <ClearCartOnSuccess />
             <RecordSimulatedPurchase
               items={items.map((item) => ({ productId: item.productId, quantity: item.quantity }))}
+              orderId={order.id}
+              purchasedAt={order.createdAt.getTime()}
             />
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Order confirmed</h1>

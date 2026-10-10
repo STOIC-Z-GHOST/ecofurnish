@@ -8,15 +8,19 @@ import { recordSimulatedPurchase } from "@/lib/simulated-stock";
  * tally instead of clearing the cart. */
 export function RecordSimulatedPurchase({
   items,
+  orderId,
+  purchasedAt,
 }: {
   items: { productId: string; quantity: number }[];
+  orderId: string;
+  purchasedAt: number;
 }) {
   const recorded = useRef(false);
 
   useEffect(() => {
     if (recorded.current) return;
     recorded.current = true;
-    recordSimulatedPurchase(items);
+    recordSimulatedPurchase(items, orderId, purchasedAt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

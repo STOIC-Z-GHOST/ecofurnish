@@ -14,7 +14,6 @@ import { TurnstileWidget } from "@/components/turnstile-widget";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { AuthSidePanel } from "@/components/auth/AuthSidePanel";
 import type { SocialProviderId } from "@/lib/social-providers";
-import { verifyCaptcha } from "@/app/actions/captcha";
 import { toast } from "sonner";
 
 export function SignInForm({ socialProviders }: { socialProviders: SocialProviderId[] }) {
@@ -22,6 +21,13 @@ export function SignInForm({ socialProviders }: { socialProviders: SocialProvide
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Bumped after every submit attempt to get a fresh captcha token — a token
+  // can only be used once. See TurnstileWidget's resetSignal.
+  const [captchaReset, setCaptchaReset] = useState(0);
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  }
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -36,9 +42,10 @@ export function SignInForm({ socialProviders }: { socialProviders: SocialProvide
     setError(null);
     setUnverifiedEmail(null);
 
-    const captchaResult = await verifyCaptcha(captchaToken);
-    if (!captchaResult.success) {
-      setError(captchaResult.error);
+    // The token is sent with the sign-in request itself and checked by the
+    // server (see the captcha plugin in lib/auth.ts) — not in a separate step.
+    if (!captchaToken) {
+      setError("Please complete the captcha.");
       setLoading(false);
       return;
     }
@@ -48,8 +55,10 @@ export function SignInForm({ socialProviders }: { socialProviders: SocialProvide
     await signIn.email(
       { email, password: String(formData.get("password") || ""), rememberMe },
       {
+        headers: { "x-captcha-response": captchaToken },
         onSuccess: () => router.push("/"),
         onError: (ctx) => {
+          resetCaptcha();
           const message = ctx.error.message || "Couldn't sign in with those details.";
           // better-auth blocks sign-in for unverified accounts (requireEmailVerification
           // is on) — detect that case so we can offer to resend the link instead of
@@ -183,7 +192,7 @@ export function SignInForm({ socialProviders }: { socialProviders: SocialProvide
                   Remember me
                 </label>
 
-                <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+                <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} resetSignal={captchaReset} />
 
                 {error && <p className="text-sm text-destructive">{error}</p>}
 

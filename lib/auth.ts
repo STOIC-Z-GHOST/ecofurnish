@@ -1,4 +1,6 @@
 import { betterAuth } from "better-auth";
+import { captcha } from "better-auth/plugins";
+import { turnstileSecretKey } from "@/lib/turnstile-keys";
 import { Pool } from "pg";
 import {
   sendVerificationEmail,
@@ -14,6 +16,20 @@ import { attributeReferral } from "./referrals";
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+// Server-side captcha for the forms that hit Better Auth. The browser sends
+// the Turnstile token in an `x-captcha-response` header and Better Auth
+// verifies it with Cloudflare BEFORE the sign-up / sign-in / password-reset
+// endpoint runs — so skipping the form and calling /api/auth/* directly no
+// longer bypasses the captcha. (Previously the form checked the captcha in
+// a separate step that these endpoints knew nothing about.)
+//
+// On when the secret key is set, and also whenever this is a production
+// build: a production deploy with no Turnstile secret key set then
+// refuses these requests instead of silently skipping the check. Local
+// development without a key still works with no captcha.
+const turnstileEnforced =
+  Boolean(turnstileSecretKey()) || process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   // FIX: Pass the pool directly instead of wrapping it in an object
@@ -38,6 +54,13 @@ export const auth = betterAuth({
       role: {
         type: "string",
         defaultValue: "user",
+        // SECURITY: without `input: false`, Better Auth lets a client set
+        // this field itself — anyone could POST /api/auth/sign-up/email
+        // with `role: "admin"` (or call update-user later) and become an
+        // admin. Roles are only ever assigned server-side: `pnpm
+        // make-admin` and the dispatcher actions in app/admin/actions.ts
+        // both write straight to the DB, so nothing legitimate needs this.
+        input: false,
       },
       preferredCurrency: {
         type: "string",
@@ -201,6 +224,15 @@ export const auth = betterAuth({
       },
     },
   },
+  plugins: turnstileEnforced
+    ? [
+        captcha({
+          provider: "cloudflare-turnstile",
+          secretKey: turnstileSecretKey() ?? "",
+          endpoints: ["/sign-up/email", "/sign-in/email", "/request-password-reset"],
+        }),
+      ]
+    : [],
   // Better Auth rate-limits auth routes by default in production, but its
   // default storage is in-memory — on a serverless host (Vercel) each
   // invocation can be a fresh instance, so that in-memory counter doesn't

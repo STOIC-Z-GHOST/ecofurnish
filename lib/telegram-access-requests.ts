@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { telegramAdmins } from "@/db/schema";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { escapeHtml } from "@/lib/escape-html";
 
 async function getRequestRow(chatId: string) {
   const [row] = await db
@@ -44,7 +45,7 @@ export async function handleUnauthorizedTextMessage(chatId: string, text: string
       chatId
     );
     await sendTelegramMessage(
-      `📋 New Telegram bot access request\nChat ID: <code>${chatId}</code>\nReason: ${reason}\n\nReview it in the admin panel under Telegram Access.`
+      `📋 New Telegram bot access request\nChat ID: <code>${chatId}</code>\nReason: ${escapeHtml(reason)}\n\nReview it in the admin panel under Telegram Access.`
     );
     return;
   }

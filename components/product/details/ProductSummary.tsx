@@ -63,7 +63,7 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
         dealEndsAt={product.dealEndsAt}
       />
 
-      <StockBadge productId={product.id} stock={product.stock} />
+      <StockBadge productId={product.id} stock={product.stock} restockAt={product.restockAt} />
 
       <p className="text-muted-foreground">
         {product.description || "Sustainable furniture crafted from recycled materials."}

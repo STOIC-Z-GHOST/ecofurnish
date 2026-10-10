@@ -5,8 +5,10 @@ import { products } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
+import { requireAdminPage } from "@/lib/require-admin";
 
 export default async function AdminProductsPage() {
+  await requireAdminPage();
   const allProducts = await db.select().from(products);
 
   return (

@@ -3,14 +3,36 @@
 import { useSyncExternalStore } from "react";
 import { getSimulatedStock } from "@/lib/simulated-stock";
 
-// Nothing in this app ever mutates the localStorage tally while a
-// product page is already open (it's only written right after a
-// checkout completes, on a different page) — so this subscription
-// never actually needs to fire a notification. useSyncExternalStore
-// still requires a subscribe function per its API; an empty one is
-// the correct no-op here, not a placeholder for something missing.
-function subscribe() {
-  return () => {};
+// Subscribers to "the stock this browser should see may have changed".
+// Two things can change it while a page is open now: another tab recording
+// a purchase (the "storage" event), and time itself — a browser's temporary
+// "bought it" tally expires after DEMO_STOCK_RESET_HOURS (see
+// lib/simulated-stock.ts), at which point the product returns to normal
+// stock with nothing else happening. useSyncExternalStore only re-renders
+// a component when the NUMBER it gets back actually changes, so the cheap
+// periodic nudge below costs nothing while the stock is steady.
+const listeners = new Set<() => void>();
+let nudgeTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Ask every stock display on the page to re-check right now. */
+export function notifyStockChanged() {
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange);
+  if (listeners.size === 1) {
+    nudgeTimer = setInterval(notifyStockChanged, 10_000);
+    window.addEventListener("storage", notifyStockChanged);
+  }
+  return () => {
+    listeners.delete(onChange);
+    if (listeners.size === 0) {
+      if (nudgeTimer) clearInterval(nudgeTimer);
+      nudgeTimer = null;
+      window.removeEventListener("storage", notifyStockChanged);
+    }
+  };
 }
 
 /**

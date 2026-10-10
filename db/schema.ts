@@ -31,6 +31,11 @@ export const products = pgTable("products", {
   discountPercent: integer("discount_percent").default(0).notNull(),
   discountReason: text("discount_reason"),
   dealEndsAt: timestamp("deal_ends_at"),
+  // Optional "back in stock" time, set from the admin product form. Only
+  // ever shown (as a live countdown) while the product is sold out for
+  // everyone; it does NOT change the stock number — whoever manages the
+  // store still raises stock themselves when the new batch arrives.
+  restockAt: timestamp("restock_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

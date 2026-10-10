@@ -8,12 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { verifyCaptcha } from "@/app/actions/captcha";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Bumped after every submit attempt to get a fresh captcha token — a token
+  // can only be used once. See TurnstileWidget's resetSignal.
+  const [captchaReset, setCaptchaReset] = useState(0);
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  }
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -26,9 +32,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const captchaResult = await verifyCaptcha(captchaToken);
-    if (!captchaResult.success) {
-      setError(captchaResult.error);
+    // The token is sent with the request itself and checked by the server
+    // (see the captcha plugin in lib/auth.ts) — not in a separate step.
+    if (!captchaToken) {
+      setError("Please complete the captcha.");
       setLoading(false);
       return;
     }
@@ -36,13 +43,17 @@ export default function ForgotPasswordPage() {
     await authClient.requestPasswordReset(
       { email, redirectTo: "/reset-password" },
       {
+        headers: { "x-captcha-response": captchaToken },
         // Better Auth responds the same way whether or not the email is
         // registered, so this doesn't need to fudge the outcome itself —
         // just don't hide a genuine failure (e.g. rate limited) behind a
         // fake "check your email" state.
         onSuccess: () => setSent(true),
         onError: (ctx) => setError(ctx.error.message || "Something went wrong — try again."),
-        onResponse: () => setLoading(false),
+        onResponse: () => {
+          setLoading(false);
+          resetCaptcha();
+        },
       }
     );
   }
@@ -73,7 +84,7 @@ export default function ForgotPasswordPage() {
             <Input id="email" name="email" type="email" required autoComplete="email" />
           </div>
 
-          <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+          <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} resetSignal={captchaReset} />
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 

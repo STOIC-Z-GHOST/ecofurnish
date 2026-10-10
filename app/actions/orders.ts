@@ -9,6 +9,7 @@ import { initializeChapaTransaction, verifyChapaTransaction } from "@/lib/chapa"
 import { sendOrderConfirmationEmail, sendLowStockAlertEmail } from "@/lib/email";
 import { applyReferralRewards, qualifyReferralIfFirstPurchase } from "@/lib/referrals";
 import { getEffectivePrice } from "@/lib/pricing";
+import { canViewOrder } from "@/lib/order-access";
 
 interface PlaceOrderInput {
   customerName: string;
@@ -31,19 +32,41 @@ interface PlaceOrderInput {
   useStoreCredit?: boolean;
 }
 
+// Sanity bounds. Real availability is enforced below against each product's
+// stock; these just stop absurd or malformed requests (a server action is a
+// public endpoint, so the cart UI's own limits can't be relied on).
+const MAX_CART_LINES = 50;
+const MAX_QUANTITY_PER_PRODUCT = 99;
+
 /**
  * Creates the order + line items as "unpaid". Stock isn't touched yet —
  * that only happens once Chapa confirms the payment actually went through,
  * so an abandoned checkout never permanently reserves inventory.
  */
 export async function createOrder(input: PlaceOrderInput) {
-  if (input.items.length === 0) {
+  if (!Array.isArray(input?.items) || input.items.length === 0) {
     return { success: false as const, error: "Your cart is empty." };
   }
+  if (input.items.length > MAX_CART_LINES) {
+    return { success: false as const, error: "That's too many different items for one order." };
+  }
   for (const item of input.items) {
-    if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+    if (typeof item?.productId !== "string" || !Number.isInteger(item.quantity) || item.quantity < 1) {
       return { success: false as const, error: "Invalid item quantity." };
     }
+    if (item.quantity > MAX_QUANTITY_PER_PRODUCT) {
+      return { success: false as const, error: `You can order up to ${MAX_QUANTITY_PER_PRODUCT} of one item at a time.` };
+    }
+  }
+  const textFields: [unknown, number][] = [
+    [input.customerName, 100],
+    [input.customerPhone, 30],
+    [input.shippingAddress, 200],
+    [input.city, 100],
+    [input.notes ?? "", 1000],
+  ];
+  if (textFields.some(([value, max]) => typeof value !== "string" || value.length > max)) {
+    return { success: false as const, error: "One of your delivery details is missing or too long." };
   }
 
   const session = await auth.api.getSession({ headers: await headers() });
@@ -64,6 +87,32 @@ export async function createOrder(input: PlaceOrderInput) {
   const productIds = [...new Set(input.items.map((i) => i.productId))];
   const dbProducts = await db.select().from(products).where(inArray(products.id, productIds));
   const productById = new Map(dbProducts.map((p) => [p.id, p]));
+
+  // Stock, checked on the TOTAL requested per product — a request that lists
+  // the same product on several lines can't slip past a per-line check.
+  // (The cart UI already caps quantities, but items added from the wishlist
+  // carry a placeholder stock of 99 there, and the UI isn't a security
+  // boundary anyway.)
+  const requestedByProduct = new Map<string, number>();
+  for (const item of input.items) {
+    requestedByProduct.set(item.productId, (requestedByProduct.get(item.productId) ?? 0) + item.quantity);
+  }
+  for (const [productId, quantity] of requestedByProduct) {
+    const product = productById.get(productId);
+    if (!product) continue; // reported as "no longer available" in the loop below
+    if (quantity > MAX_QUANTITY_PER_PRODUCT) {
+      return { success: false as const, error: `You can order up to ${MAX_QUANTITY_PER_PRODUCT} of one item at a time.` };
+    }
+    if (quantity > product.stock) {
+      return {
+        success: false as const,
+        error:
+          product.stock <= 0
+            ? `${product.name} is out of stock.`
+            : `Only ${product.stock} of ${product.name} left — please lower the quantity in your cart.`,
+      };
+    }
+  }
 
   const pricedItems: { orderId: string; productId: string; productName: string; unitPrice: string; quantity: number }[] = [];
   let subtotal = 0;
@@ -105,7 +154,10 @@ export async function createOrder(input: PlaceOrderInput) {
     .values({
       userId,
       customerName: input.customerName,
-      customerEmail: input.customerEmail,
+      // From the signed-in account, never from the request: otherwise anyone
+      // with an account could put another person's address on an order and
+      // have your confirmation / delivery-PIN emails sent to them.
+      customerEmail: session.user.email,
       customerPhone: input.customerPhone,
       shippingAddress: input.shippingAddress,
       city: input.city,
@@ -144,9 +196,26 @@ export async function createOrder(input: PlaceOrderInput) {
 
 /** Starts a Chapa transaction for an already-created order and returns its hosted checkout URL. */
 export async function createCheckoutSession(orderId: string) {
+  // Without this, anyone who knew an order's ID could start a payment for it:
+  // that overwrites the order's chapaTxRef (so the real customer's payment
+  // would no longer match and wouldn't be confirmed) and returns a Chapa
+  // checkout page that shows the customer's name, email and phone.
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return { success: false as const, error: "Please sign in to continue to payment." };
+  }
+
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-  if (!order) {
+  // Same answer whether the order doesn't exist or just isn't theirs.
+  // role is blanked so even an admin can't open a payment on a customer's behalf.
+  if (!order || !canViewOrder(order, { ...session.user, role: null })) {
     return { success: false as const, error: "Order not found." };
+  }
+  if (order.paymentStatus === "paid") {
+    return { success: false as const, error: "This order has already been paid." };
+  }
+  if (order.status === "cancelled") {
+    return { success: false as const, error: "This order was cancelled." };
   }
 
   // Chapa requires a unique tx_ref per attempt — reusing the order id alone
@@ -158,16 +227,24 @@ export async function createCheckoutSession(orderId: string) {
   const txRef = `EF-${orderId.slice(0, 8)}-${Date.now()}`;
   const [firstName, ...rest] = order.customerName.split(" ");
 
-  const result = await initializeChapaTransaction({
-    amount: parseFloat(order.totalAmount),
-    email: order.customerEmail,
-    firstName: firstName || order.customerName,
-    lastName: rest.join(" ") || firstName || order.customerName,
-    phoneNumber: order.customerPhone,
-    txRef,
-    orderId,
-    title: "EcoFurnish",
-  });
+  let result: Awaited<ReturnType<typeof initializeChapaTransaction>>;
+  try {
+    result = await initializeChapaTransaction({
+      amount: parseFloat(order.totalAmount),
+      email: order.customerEmail,
+      firstName: firstName || order.customerName,
+      lastName: rest.join(" ") || firstName || order.customerName,
+      phoneNumber: order.customerPhone,
+      txRef,
+      orderId,
+      title: "EcoFurnish",
+    });
+  } catch (error) {
+    // Chapa unreachable / timed out / returned something that isn't JSON —
+    // give the customer a clear message instead of a raw server error.
+    console.error("Chapa initialize threw:", error);
+    return { success: false as const, error: "We couldn't reach the payment provider — please try again in a moment." };
+  }
 
   if (!result.success) {
     return { success: false as const, error: result.error };
@@ -197,26 +274,51 @@ export async function confirmPayment(orderId: string, txRef: string) {
     return { paid: false as const };
   }
 
-  const { paid } = await verifyChapaTransaction(txRef);
+  const { paid, raw } = await verifyChapaTransaction(txRef);
   if (!paid) return { paid: false as const };
+
+  // Defence in depth: "Chapa says success" should also mean the right
+  // amount in the right currency. If Chapa reports either field and it
+  // doesn't line up with the order, don't release the goods. (If a field
+  // is simply absent from the response the check is skipped, so this can
+  // never block a payment on a response-shape surprise.)
+  const paidAmount = parseFloat(raw.data?.amount ?? "");
+  const currency = raw.data?.currency;
+  if (Number.isFinite(paidAmount) && paidAmount + 0.01 < parseFloat(order.totalAmount)) {
+    console.error(`Chapa amount mismatch for order ${orderId}: paid ${paidAmount}, expected ${order.totalAmount}`);
+    return { paid: false as const };
+  }
+  if (currency && currency.toUpperCase() !== "ETB") {
+    console.error(`Chapa currency mismatch for order ${orderId}: ${currency}`);
+    return { paid: false as const };
+  }
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
 
-  const LOW_STOCK_THRESHOLD = 5;
-  for (const item of items) {
-    const [product] = await db
-      .select({ stock: products.stock, name: products.name })
-      .from(products)
-      .where(eq(products.id, item.productId))
-      .limit(1);
-    if (product) {
-      const newStock = Math.max(0, product.stock - item.quantity);
-      await db.update(products).set({ stock: newStock }).where(eq(products.id, item.productId));
-      // Only fires on the crossing, not on every purchase once it's
-      // already low — e.g. 6→4 alerts, but 4→2 (already below threshold
-      // before this purchase) doesn't re-send the same warning.
-      if (newStock <= LOW_STOCK_THRESHOLD && product.stock > LOW_STOCK_THRESHOLD) {
-        await sendLowStockAlertEmail(product.name, newStock);
+  // This is a public demo: if every paid order lowered the real, shared
+  // stock number, a few test purchases would show "Out of stock" to every
+  // visitor. So by default the real number is left alone, and each browser
+  // gets its own temporary "bought it" view instead (lib/simulated-stock.ts,
+  // which resets itself every 24 hours). To run this as a real store, set
+  // DECREMENT_STOCK_ON_PAYMENT=true in the environment and paid orders will
+  // lower real stock (and send the low-stock alert) again.
+  if (process.env.DECREMENT_STOCK_ON_PAYMENT === "true") {
+    const LOW_STOCK_THRESHOLD = 5;
+    for (const item of items) {
+      const [product] = await db
+        .select({ stock: products.stock, name: products.name })
+        .from(products)
+        .where(eq(products.id, item.productId))
+        .limit(1);
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity);
+        await db.update(products).set({ stock: newStock }).where(eq(products.id, item.productId));
+        // Only fires on the crossing, not on every purchase once it's
+        // already low — e.g. 6→4 alerts, but 4→2 (already below threshold
+        // before this purchase) doesn't re-send the same warning.
+        if (newStock <= LOW_STOCK_THRESHOLD && product.stock > LOW_STOCK_THRESHOLD) {
+          await sendLowStockAlertEmail(product.name, newStock);
+        }
       }
     }
   }

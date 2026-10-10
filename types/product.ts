@@ -20,6 +20,8 @@ export interface Product {
   // valid `new Date(...)` input, so components just pass this through.
   // null/undefined if the discount has no scheduled end.
   dealEndsAt?: Date | string | null;
+  // Admin-set "back in stock" time (see db/schema.ts). null/undefined = none.
+  restockAt?: Date | string | null;
   // Only present where the fetching page ran attachRatings() (see
   // lib/reviews.ts) — optional so callers that don't need ratings (e.g.
   // the admin product form) aren't forced to supply them.

@@ -3,7 +3,7 @@ import { products } from "@/db/schema";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Leaf, Recycle, Truck } from "lucide-react";
-import { attachRatings } from "@/lib/reviews";
+import { attachRatings } from "@/lib/reviews-queries";
 import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
