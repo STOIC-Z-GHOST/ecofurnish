@@ -1,13 +1,20 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { Flame } from "lucide-react";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { cn } from "@/lib/utils";
 import RestockCountdown from "./RestockCountdown";
 
 // At or below this many units, the badge switches from a neutral "in
-// stock" note to a red warning badge.
+// stock" note to a red "selling fast" badge.
 const LOW_STOCK_THRESHOLD = 5;
+
+// The wording of that badge — change the text here and it updates on the
+// product cards, the hover preview and the product page. Keep it short: it
+// has to fit on one line inside a narrow product card.
+function lowStockMessage(left: number): string {
+  return left === 1 ? "Last one — grab it!" : `Almost gone — ${left} left`;
+}
 
 /**
  * Live stock line for a product — "22 items in stock", a red warning badge
@@ -41,18 +48,19 @@ export default function StockBadge({
   }
 
   if (effectiveStock <= LOW_STOCK_THRESHOLD) {
+    // The outer span takes whatever layout classes the caller passes (the
+    // product cards pass "block"); the inner span keeps the icon and text on
+    // ONE line no matter what the outer one is doing — without it, a narrow
+    // card could wrap the icon above the text.
     return (
-      <span
-        className={cn(
-          "inline-flex w-fit items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white",
-          className
-        )}
-      >
-        <AlertTriangle
-          className={cn("h-3 w-3 shrink-0", effectiveStock <= 2 && "animate-pulse")}
-          aria-hidden="true"
-        />
-        Only {effectiveStock} left!
+      <span className={cn("w-fit", className)}>
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+          <Flame
+            className={cn("h-3 w-3 shrink-0", effectiveStock <= 2 && "animate-pulse")}
+            aria-hidden="true"
+          />
+          {lowStockMessage(effectiveStock)}
+        </span>
       </span>
     );
   }
