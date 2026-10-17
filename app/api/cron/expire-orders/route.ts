@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { applyOrderStatus } from "@/lib/orders";
 import { rejectUnlessCron } from "@/lib/cron-auth";
+import { runAutoRestock } from "@/lib/auto-restock";
 
 // How long an order gets to actually pay before we give up on it. Chapa
 // checkout normally completes in minutes; this is a generous buffer for
@@ -57,5 +58,10 @@ export async function GET(request: NextRequest) {
     expiredCount++;
   }
 
-  return NextResponse.json({ expired: expiredCount });
+  // Backstop for the on-page check in lib/auto-restock.ts: even if nobody
+  // visited, sold-out products still get their clock started / refilled
+  // once a day.
+  const restock = await runAutoRestock({ force: true });
+
+  return NextResponse.json({ expired: expiredCount, restock });
 }

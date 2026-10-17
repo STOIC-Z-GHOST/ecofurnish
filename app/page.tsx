@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Leaf, Recycle, Truck } from "lucide-react";
 import { attachRatings } from "@/lib/reviews-queries";
+import { runAutoRestock } from "@/lib/auto-restock";
 import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
@@ -32,9 +33,12 @@ const AdBanner = dynamic(() => import("@/components/home/AdBanner"));
 export const revalidate = 300;
 
 export default async function Home() {
+  // Refill anything that's been sold out long enough BEFORE reading the
+  // catalog, so this build of the page already reflects it.
+  await runAutoRestock();
   const rawCatalog = await db.select().from(products);
   const catalog = await attachRatings(rawCatalog);
-  const featured = catalog.slice(0, 3);
+  const featured = catalog.slice(0, 4);
 
   return (
     <main>

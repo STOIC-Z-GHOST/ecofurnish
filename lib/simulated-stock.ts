@@ -1,5 +1,7 @@
 "use client";
 
+import { RESTOCK_AFTER_HOURS } from "@/lib/restock-config";
+
 const STORAGE_KEY = "ecofurnish-simulated-purchases";
 
 /**
@@ -10,9 +12,16 @@ const STORAGE_KEY = "ecofurnish-simulated-purchases";
 export const DEMO_STOCK_RESET_HOURS = 24;
 const RESET_MS = DEMO_STOCK_RESET_HOURS * 60 * 60 * 1000;
 
+// Once a visitor has bought a product's LAST unit, it refills this long
+// after that moment (see RESTOCK_AFTER_HOURS in lib/restock-config.ts) —
+// counted from when it sold out for them, not from their first purchase.
+const SOLD_OUT_MS = RESTOCK_AFTER_HOURS * 60 * 60 * 1000;
+
 // q = how many this browser has "bought"; t = when the first of them was
-// bought — that's when this product's reset clock started.
-type Tally = { q: number; t: number };
+// bought; o = when the last unit was bought (it "sold out" for this browser),
+// if that has happened. Before it sells out, a tally is forgotten
+// DEMO_STOCK_RESET_HOURS after t; once it has sold out, SOLD_OUT_MS after o.
+type Tally = { q: number; t: number; o?: number };
 type State = { v: 2; items: Record<string, Tally>; orders: Record<string, number> };
 
 function emptyState(): State {
@@ -35,8 +44,11 @@ function readState(now = Date.now()): State {
     const state = emptyState();
     for (const [id, tally] of Object.entries(parsed.items as Record<string, Tally>)) {
       const age = now - tally?.t;
-      if (Number.isFinite(tally?.q) && Number.isFinite(age) && age >= 0 && age < RESET_MS) {
-        state.items[id] = { q: tally.q, t: tally.t };
+      if (!Number.isFinite(tally?.q) || !Number.isFinite(age) || age < 0) continue;
+      const soldOut = Number.isFinite(tally.o);
+      const expiresAt = soldOut ? (tally.o as number) + SOLD_OUT_MS : tally.t + RESET_MS;
+      if (now < expiresAt) {
+        state.items[id] = soldOut ? { q: tally.q, t: tally.t, o: tally.o } : { q: tally.q, t: tally.t };
       }
     }
     for (const [orderId, t] of Object.entries(parsed.orders as Record<string, number>)) {
@@ -73,7 +85,8 @@ export function getSimulatedStock(productId: string, realStock: number): number 
  */
 export function getSimulatedRestockAt(productId: string): number | null {
   const tally = readState().items[productId];
-  return tally ? tally.t + RESET_MS : null;
+  if (!tally) return null;
+  return tally.o !== undefined ? tally.o + SOLD_OUT_MS : tally.t + RESET_MS;
 }
 
 /**
@@ -89,7 +102,9 @@ export function getSimulatedRestockAt(productId: string): number | null {
  * count, so it's skipped.
  */
 export function recordSimulatedPurchase(
-  items: { productId: string; quantity: number }[],
+  // stock = the product's real stock, when known — it's how this works out
+  // that THIS purchase took the last unit, which starts the refill clock.
+  items: { productId: string; quantity: number; stock?: number }[],
   orderId?: string,
   purchasedAt: number = Date.now()
 ) {
@@ -104,9 +119,13 @@ export function recordSimulatedPurchase(
   }
   for (const item of items) {
     const current = state.items[item.productId];
+    const q = (current?.q ?? 0) + item.quantity;
+    const soldOutAt =
+      current?.o ?? (typeof item.stock === "number" && q >= item.stock ? purchasedAt : undefined);
     state.items[item.productId] = {
-      q: (current?.q ?? 0) + item.quantity,
+      q,
       t: Math.min(current?.t ?? purchasedAt, purchasedAt),
+      ...(soldOutAt !== undefined ? { o: soldOutAt } : {}),
     };
   }
   try {

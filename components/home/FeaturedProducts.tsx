@@ -14,14 +14,14 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
   if (products.length === 0) return null;
 
   return (
-    <section id="shop" className="py-20">
-      <div className="container mx-auto px-4">
+    <section id="shop" className="py-12 sm:py-16">
+      <div className="container mx-auto max-w-7xl px-4">
         <SectionHeading
           title="Featured Products"
           subtitle="Carefully crafted furniture designed for modern living."
         />
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {products.map((product, index) => (
             <div
               key={product.id}

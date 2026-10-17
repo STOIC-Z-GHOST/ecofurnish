@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
+import { runAutoRestock } from "@/lib/auto-restock";
 import { attachRatings, getReviewsForProduct, canReviewProduct, getMyReviewForProduct } from "@/lib/reviews-queries";
 import ProductGallery from "@/components/product/details/ProductGallery";
 import ProductSummary from "@/components/product/details/ProductSummary";
@@ -58,6 +59,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
 
+  // Refill anything that's been sold out long enough before reading it.
+  await runAutoRestock();
   const product = await getProductForPage(id);
   if (!product) notFound();
 

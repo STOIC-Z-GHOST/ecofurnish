@@ -18,6 +18,7 @@ import {
   type ProductInput,
 } from "@/app/admin/actions";
 import { toast } from "sonner";
+import { RESTOCK_AFTER_HOURS, RESTOCK_QUANTITY } from "@/lib/restock-config";
 
 // `<input type="datetime-local">` wants "YYYY-MM-DDTHH:mm" in local time,
 // not an ISO string — this bridges what we store (ISO, UTC) to what the
@@ -323,9 +324,9 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
         />
         <p className="text-xs text-muted-foreground">
           While this product is out of stock, every visitor sees a live &quot;Back in stock
-          in…&quot; countdown to this time. It&apos;s display-only — it doesn&apos;t add stock,
-          so raise the Stock number yourself when the new batch arrives. Leave blank for no
-          countdown.
+          in…&quot; countdown to this time, and when it arrives the product is refilled
+          automatically (to {RESTOCK_QUANTITY}). Leave it blank and a sold-out product still
+          refills by itself {RESTOCK_AFTER_HOURS} hours after it runs out.
         </p>
       </div>
 

@@ -49,11 +49,15 @@ export default function RestockCountdown({
   stock,
   restockAt,
   className,
+  compact = false,
 }: {
   productId: string;
   stock: number; // the real, admin-set stock
   restockAt?: Date | string | null;
   className?: string;
+  // compact = "Back in 02:14:09" on light-on-dark colours, for sitting on top
+  // of a product picture where there's less room.
+  compact?: boolean;
 }) {
   const effectiveStock = useEffectiveStock(productId, stock);
   const nowSeconds = useNowSeconds();
@@ -84,12 +88,13 @@ export default function RestockCountdown({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-xs font-medium tabular-nums text-amber-700 dark:text-amber-400",
+        "inline-flex items-center gap-1 text-xs font-medium tabular-nums",
+        compact ? "text-amber-200" : "text-amber-700 dark:text-amber-400",
         className
       )}
     >
       <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
-      Back in stock in {formatRemaining(remaining)}
+      {compact ? "Back in" : "Back in stock in"} {formatRemaining(remaining)}
     </span>
   );
 }

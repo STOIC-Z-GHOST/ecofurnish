@@ -11,7 +11,7 @@ export function RecordSimulatedPurchase({
   orderId,
   purchasedAt,
 }: {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; quantity: number; stock?: number }[];
   orderId: string;
   purchasedAt: number;
 }) {

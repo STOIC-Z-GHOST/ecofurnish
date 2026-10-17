@@ -91,7 +91,11 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           <>
             <ClearCartOnSuccess />
             <RecordSimulatedPurchase
-              items={items.map((item) => ({ productId: item.productId, quantity: item.quantity }))}
+              items={items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                stock: productById.get(item.productId)?.stock,
+              }))}
               orderId={order.id}
               purchasedAt={order.createdAt.getTime()}
             />
