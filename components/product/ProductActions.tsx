@@ -29,7 +29,7 @@ export default function ProductActions({ product }: { product: Product }) {
   }
 
   return (
-    <CardFooter className="mt-auto flex gap-1.5 bg-transparent p-3 pt-0 sm:gap-2 sm:p-4 sm:pt-0">
+    <CardFooter className="mt-auto flex gap-1.5 bg-transparent p-3 sm:gap-2 sm:p-4 sm:py-3">
       <Button
         size="lg"
         className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm"

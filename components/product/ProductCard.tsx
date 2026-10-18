@@ -50,7 +50,7 @@ export default function ProductCard({ product, currency = "ETB" }: ProductCardPr
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
       }}
     >
-      <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
+      <Card className="flex h-full flex-col gap-0 overflow-hidden py-0 transition-all hover:shadow-lg">
         {/* Clicking the image or text takes you to the product details page */}
         <Link href={`/products/${product.id}`} className="contents">
           <ProductImage product={product} />

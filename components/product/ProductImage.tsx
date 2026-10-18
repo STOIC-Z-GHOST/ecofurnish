@@ -1,15 +1,11 @@
 import Image from "next/image";
 import { Leaf } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { hasActiveDiscount } from "@/lib/pricing";
 import { Product } from "@/types/product";
-import CountdownTimer from "./CountdownTimer";
-import StockBadge from "./StockBadge";
-import RatingBadge from "./RatingBadge";
+import ImageOverlay from "./ImageOverlay";
 
 export default function ProductImage({ product }: { product: Product }) {
   const displayImage = product.imageUrl || "/placeholder.jpg"; // Fallback image
-  const discounted = hasActiveDiscount(product);
 
   return (
     <div className="relative aspect-square overflow-hidden bg-muted">
@@ -26,32 +22,8 @@ export default function ProductImage({ product }: { product: Product }) {
         {product.plasticWeightKg}kg Diverted
       </Badge>
 
-      {/* Stock + discount badges sit on the picture instead of taking up
-          rows of their own under it — that's what used to leave a blank
-          gap in every card that had neither. Anchored to the bottom and
-          allowed to wrap, so on a narrow phone card they stack upward
-          rather than running into the eco badge above. Cards with nothing
-          to flag render nothing here. */}
-      <div className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end gap-1 sm:inset-x-3 sm:bottom-3">
-        <StockBadge
-          productId={product.id}
-          stock={product.stock}
-          restockAt={product.restockAt}
-          variant="overlay"
-        />
-        {discounted && (
-          <>
-            <span className="inline-block w-fit rounded-full bg-emerald-700 px-2 py-0.5 text-xs font-semibold text-white shadow-sm">
-              {product.discountPercent}% off
-            </span>
-            {product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
-          </>
-        )}
-        {/* Rating pill: bottom-right, opposite the eco pill. ml-auto pushes
-            it to the right edge; if the badges on the left fill the row
-            it wraps onto its own line, still at the bottom right. */}
-        <RatingBadge rating={product.avgRating} count={product.reviewCount} className="ml-auto" />
-      </div>
+      {/* Stock warning, "% off" and star rating — see ImageOverlay. */}
+      <ImageOverlay product={product} />
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default function ProductInfo({
 
   return (
     <>
-      <CardHeader className="p-3 pb-2 sm:p-4">
+      <CardHeader className="p-3 pb-1.5 sm:p-4 sm:pb-1.5">
         <div className="flex items-start justify-between gap-2 sm:gap-4">
           <CardTitle className="line-clamp-1 select-text text-base sm:text-lg">
             {product.name}
@@ -42,7 +42,7 @@ export default function ProductInfo({
             and the card stretches to fill its grid row. */}
       </CardHeader>
 
-      <CardContent className="grow p-3 pt-0 sm:p-4 sm:pt-0">
+      <CardContent className="grow p-3 pt-0 sm:p-4 sm:pb-3 sm:pt-0">
         {/* min-h-10 = 2 lines at text-sm's line-height — line-clamp-2 only
             caps the *maximum*, so a short one-line blurb was otherwise
             leaving this card shorter than a neighbor with a wrapped
