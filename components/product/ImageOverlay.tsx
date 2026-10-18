@@ -6,8 +6,8 @@ import RatingBadge from "./RatingBadge";
 import StockBadge from "./StockBadge";
 
 /**
- * The badges that sit ON the product picture — stock warning, "% off"
- * (with its countdown) and the star-rating pill. One component so the
+ * The badges that sit ON the product picture — stock warning, flash-sale
+ * countdown and the star-rating pill. One component so the
  * catalog card and its hover preview show them in exactly the same place:
  * hovering a card used to move the stock warning down into the text, which
  * made the whole card jump. They only appear as plain inline text on the
@@ -39,14 +39,9 @@ export default function ImageOverlay({
         restockAt={product.restockAt}
         variant="overlay"
       />
-      {discounted && (
-        <>
-          <span className="inline-block w-fit rounded-full bg-emerald-700 px-2 py-0.5 text-xs font-semibold text-white shadow-sm">
-            {product.discountPercent}% off
-          </span>
-          {product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
-        </>
-      )}
+      {/* The "% off" pill now lives next to the old price under the card's
+          price (see DiscountLine); only a flash-sale timer stays here. */}
+      {discounted && product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
       {/* ml-auto pins the rating to the right edge, opposite the stock
           badge; if the left side fills the row it wraps onto its own line,
           still at the bottom right. */}

@@ -13,6 +13,7 @@ export default function ProductCardSkeleton() {
           <Skeleton className="h-5 w-2/3" />
           <Skeleton className="h-5 w-12 shrink-0" />
         </div>
+        <div className="h-[1.125rem]" />
       </CardHeader>
 
       <CardContent className="grow space-y-2 p-4 pb-3 pt-0">

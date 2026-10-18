@@ -50,7 +50,7 @@ export default function StockBadge({
       return (
         <span
           className={cn(
-            "inline-flex max-w-full flex-col items-start gap-0.5 rounded-lg bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow-sm",
+            "inline-flex max-w-full flex-col items-start gap-0.5 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-semibold text-white shadow-sm ring-1 ring-white/20 backdrop-blur-md",
             className
           )}
         >
@@ -76,12 +76,20 @@ export default function StockBadge({
       <span className={cn("w-fit", className)}>
         <span
           className={cn(
-            "inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-semibold text-white",
-            overlay && "shadow-sm"
+            "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
+            // On the picture: frosted dark glass instead of a solid red slab;
+            // the flame keeps the red cue. Elsewhere: the plain red badge.
+            overlay
+              ? "bg-black/55 shadow-sm ring-1 ring-white/20 backdrop-blur-md"
+              : "bg-red-600"
           )}
         >
           <Flame
-            className={cn("h-3 w-3 shrink-0", effectiveStock <= 2 && "animate-pulse")}
+            className={cn(
+              "h-3 w-3 shrink-0",
+              overlay && "text-red-400",
+              effectiveStock <= 2 && "animate-pulse"
+            )}
             aria-hidden="true"
           />
           {lowStockMessage(effectiveStock)}

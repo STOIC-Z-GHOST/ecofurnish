@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { formatPrice, type Currency } from "@/lib/currency";
-import { getEffectivePrice, hasActiveDiscount } from "@/lib/pricing";
+import { getEffectivePrice } from "@/lib/pricing";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
+import DiscountLine from "./DiscountLine";
 import ImageOverlay from "./ImageOverlay";
 
 export default function ProductHoverDetail({
@@ -22,7 +23,6 @@ export default function ProductHoverDetail({
   product: Product;
   currency: Currency;
 }) {
-  const discounted = hasActiveDiscount(product);
   const { addItem } = useCart();
   const { isWishlisted, toggleItem } = useWishlist();
   const liked = isWishlisted(product.id);
@@ -80,11 +80,12 @@ export default function ProductHoverDetail({
   }
 
   return (
-    // Grows over the card's own footprint (a few px bigger on every side)
-    // instead of pushing new content in below it — the tile expands in
-    // place, like a Store app card growing on hover.
+    // Covers the card's own footprint (a few px bigger on every side) and
+    // grows downward only if its content needs more room — it overlays
+    // what's below rather than pushing anything, and never clips the
+    // Add to Cart row off the bottom.
     <div
-      className="absolute -inset-2 z-30 flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl duration-150 animate-in fade-in-0 zoom-in-95 sm:-inset-3"
+      className="absolute -inset-x-2 -top-2 z-30 flex min-h-[calc(100%+1rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl duration-150 animate-in fade-in-0 zoom-in-95 sm:-inset-x-3 sm:-top-3 sm:min-h-[calc(100%+1.5rem)]"
       // Purely supplementary — the card underneath already exposes the
       // same name/link/actions to the keyboard & screen-reader tab order,
       // so this expanded preview doesn't need its own stop in it.
@@ -155,21 +156,11 @@ export default function ProductHoverDetail({
         <div className="flex grow flex-col p-3 pb-0 text-sm sm:p-4 sm:pb-0">
           <div className="flex items-start justify-between gap-3">
             <h3 className="font-heading text-base leading-snug font-medium">{product.name}</h3>
-            {discounted ? (
-              <div className="flex flex-col items-end whitespace-nowrap">
-                <span className="text-lg font-bold text-primary">
-                  {formatPrice(getEffectivePrice(product), currency)}
-                </span>
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatPrice(product.price, currency)}
-                </span>
-              </div>
-            ) : (
-              <span className="whitespace-nowrap text-lg font-bold text-primary">
-                {formatPrice(product.price, currency)}
-              </span>
-            )}
+            <span className="whitespace-nowrap text-lg font-bold text-primary">
+              {formatPrice(getEffectivePrice(product), currency)}
+            </span>
           </div>
+          <DiscountLine product={product} currency={currency} className="mt-0.5" />
 
           <p className="mt-2 line-clamp-3 text-muted-foreground">
             {product.description || "Sustainable furniture crafted from recycled materials."}
