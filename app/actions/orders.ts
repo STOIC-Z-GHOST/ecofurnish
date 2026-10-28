@@ -1,13 +1,17 @@
 "use server";
 
 import { headers } from "next/headers";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { orders, orderItems, products } from "@/db/schema";
+import { orders, orderItems, orderStockHolds, products } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { initializeChapaTransaction, verifyChapaTransaction } from "@/lib/chapa";
-import { sendOrderConfirmationEmail, sendLowStockAlertEmail } from "@/lib/email";
-import { applyReferralRewards, qualifyReferralIfFirstPurchase } from "@/lib/referrals";
+import { sendOrderConfirmationEmail, sendLowStockAlertEmail, sendOrderNoticeEmail } from "@/lib/email";
+import { sendTelegramMessage } from "@/lib/telegram";
+import { escapeHtml } from "@/lib/escape-html";
+import { issueStoreCredit, refundOrder } from "@/lib/refunds";
+import { restockExpectedFor, sweepWaitingOrders, takeStock } from "@/lib/stock";
+import { applyReferralRewards, qualifyReferralIfFirstPurchase, reverseOrderRewardUsages } from "@/lib/referrals";
 import { getEffectivePrice } from "@/lib/pricing";
 import { canViewOrder } from "@/lib/order-access";
 
@@ -108,7 +112,7 @@ export async function createOrder(input: PlaceOrderInput) {
         success: false as const,
         error:
           product.stock <= 0
-            ? `${product.name} is out of stock.`
+            ? `Sorry — ${product.name} just sold out. Please remove it from your cart to continue.`
             : `Only ${product.stock} of ${product.name} left — please lower the quantity in your cart.`,
       };
     }
@@ -256,6 +260,46 @@ export async function createCheckoutSession(orderId: string) {
 }
 
 /**
+ * The customer's payment went through but the item is gone — someone
+ * else's payment took the last unit first. Rather than just refunding,
+ * the order is parked and the customer is asked what they'd like:
+ * refund, wait for the restock, or turn the money into store credit (see
+ * resolveSoldOutOrder). If parking fails for any reason (e.g. the
+ * order_stock_holds table hasn't been created yet) they're refunded
+ * automatically so a paid customer is never left stuck.
+ */
+async function holdOrderForChoice(order: typeof orders.$inferSelect, soldOutName: string) {
+  try {
+    await db.update(orders).set({ status: "pending" }).where(eq(orders.id, order.id));
+    await db
+      .insert(orderStockHolds)
+      .values({ orderId: order.id, state: "choose", note: soldOutName })
+      .onConflictDoNothing();
+  } catch (error) {
+    console.error("Couldn't hold the sold-out order, refunding instead:", error);
+    await refundOrder(order, soldOutName);
+    return;
+  }
+
+  const shortId = order.id.slice(0, 8);
+  await sendOrderNoticeEmail({
+    toEmail: order.customerEmail,
+    subject: "Action needed: your EcoFurnish item just sold out",
+    paragraphs: [
+      `Hi ${order.customerName.split(" ")[0] || "there"},`,
+      `Your payment for order ${shortId} went through, but ${soldOutName} sold out a moment before we could confirm it. You haven't lost anything — please choose what you'd like us to do:`,
+      "1. Refund — the full amount goes back to your original payment method.",
+      "2. Wait for the restock — we keep your order and confirm it automatically when the item is back. The price you paid is locked, so you never pay more, even if the price goes up.",
+      "3. Store credit — the full amount becomes credit you can spend on anything else in the shop.",
+    ],
+    cta: { label: "Choose an option", path: `/order-confirmation/${order.id}` },
+  });
+  await sendTelegramMessage(
+    `⏳ <b>Sold out at payment</b> — order <code>${shortId}</code> (${escapeHtml(order.totalAmount)} ETB): ${escapeHtml(soldOutName)}. Customer was emailed to choose refund / wait / store credit.`
+  );
+}
+
+/**
  * Called from the order-confirmation page (and from the Chapa callback
  * route) to confirm — server-to-server, not just via the browser redirect —
  * that a transaction actually succeeded, before doing anything irreversible
@@ -266,8 +310,10 @@ export async function confirmPayment(orderId: string, txRef: string) {
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!order) return { paid: false as const };
 
-  if (order.paymentStatus === "paid") {
-    return { paid: true as const };
+  // Anything other than "unpaid" is already settled — paid, or cancelled
+  // and refunded because the item sold out — so there's nothing to redo.
+  if (order.paymentStatus !== "unpaid") {
+    return { paid: order.paymentStatus === "paid" } as { paid: boolean; outOfStock?: true };
   }
 
   if (order.chapaTxRef !== txRef) {
@@ -295,6 +341,24 @@ export async function confirmPayment(orderId: string, txRef: string) {
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
 
+  // Claim the order in one atomic step. The Chapa callback and the browser
+  // redirect often arrive together, and both used to run everything below
+  // (double stock decrement, double confirmation email); now only the call
+  // that actually flips unpaid -> paid carries on.
+  const claimed = await db
+    .update(orders)
+    .set({ paymentStatus: "paid", status: "processing" })
+    .where(and(eq(orders.id, orderId), eq(orders.paymentStatus, "unpaid")))
+    .returning({ id: orders.id });
+  if (claimed.length === 0) {
+    const [fresh] = await db
+      .select({ paymentStatus: orders.paymentStatus })
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    return { paid: fresh?.paymentStatus === "paid" } as { paid: boolean; outOfStock?: true };
+  }
+
   // This is a public demo: if every paid order lowered the real, shared
   // stock number, a few test purchases would show "Out of stock" to every
   // visitor. So by default the real number is left alone, and each browser
@@ -302,31 +366,22 @@ export async function confirmPayment(orderId: string, txRef: string) {
   // which resets itself every 24 hours). To run this as a real store, set
   // DECREMENT_STOCK_ON_PAYMENT=true in the environment and paid orders will
   // lower real stock (and send the low-stock alert) again.
+  //
+  // In that real-store mode, two people can pay for the last unit at the
+  // same moment. takeStock lets the database pick the winner; whoever loses
+  // is asked what they'd like — refund, wait for the restock, or store
+  // credit (see holdOrderForChoice) — instead of being sold something that
+  // no longer exists.
   if (process.env.DECREMENT_STOCK_ON_PAYMENT === "true") {
-    const LOW_STOCK_THRESHOLD = 5;
-    for (const item of items) {
-      const [product] = await db
-        .select({ stock: products.stock, name: products.name })
-        .from(products)
-        .where(eq(products.id, item.productId))
-        .limit(1);
-      if (product) {
-        const newStock = Math.max(0, product.stock - item.quantity);
-        await db.update(products).set({ stock: newStock }).where(eq(products.id, item.productId));
-        // Only fires on the crossing, not on every purchase once it's
-        // already low — e.g. 6→4 alerts, but 4→2 (already below threshold
-        // before this purchase) doesn't re-send the same warning.
-        if (newStock <= LOW_STOCK_THRESHOLD && product.stock > LOW_STOCK_THRESHOLD) {
-          await sendLowStockAlertEmail(product.name, newStock);
-        }
-      }
+    const taken = await takeStock(items);
+    if (!taken.ok) {
+      await holdOrderForChoice(order, taken.productName);
+      return { paid: false, outOfStock: true } as { paid: boolean; outOfStock?: true };
+    }
+    for (const alert of taken.lowStock) {
+      await sendLowStockAlertEmail(alert.name, alert.stock);
     }
   }
-
-  await db
-    .update(orders)
-    .set({ paymentStatus: "paid", status: "processing" })
-    .where(eq(orders.id, orderId));
 
   // orders.userId can be null on legacy/guest orders — nothing to
   // qualify in that case.
@@ -346,5 +401,169 @@ export async function confirmPayment(orderId: string, txRef: string) {
     })),
   });
 
-  return { paid: true as const };
+  return { paid: true } as { paid: boolean; outOfStock?: true };
+}
+
+/**
+ * The customer's answer to a sold-out order: "refund", "wait" for the
+ * restock, or "credit" (store credit for what they paid). Only the order's
+ * own customer can answer. Each answer first claims the hold with a single
+ * conditional update, so a double-click or two open tabs can't refund twice
+ * or refund an order that was just restocked and fulfilled.
+ */
+export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "wait" | "credit") {
+  if (choice !== "refund" && choice !== "wait" && choice !== "credit") {
+    return { success: false as const, error: "Unknown option." };
+  }
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { success: false as const, error: "Please sign in first." };
+
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!order || !canViewOrder(order, { ...session.user, role: null })) {
+    return { success: false as const, error: "Order not found." };
+  }
+
+  const [hold] = await db
+    .select()
+    .from(orderStockHolds)
+    .where(eq(orderStockHolds.orderId, orderId))
+    .limit(1);
+  const allowedFrom = choice === "wait" ? ["choose"] : ["choose", "waiting"];
+  if (!hold || !allowedFrom.includes(hold.state)) {
+    return {
+      success: false as const,
+      error: "This order has already been taken care of — refresh the page to see where it stands.",
+    };
+  }
+  const soldOutName = hold.note ?? "the item";
+
+  if (choice === "credit" && !order.userId) {
+    return { success: false as const, error: "Store credit needs a signed-in account — please choose a refund." };
+  }
+
+  if (choice === "wait") {
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+    const restock = await restockExpectedFor(items.map((i) => i.productId));
+    if (!restock.expected) {
+      return {
+        success: false as const,
+        error: "We don't have a restock date for this item yet — please choose a refund or store credit.",
+      };
+    }
+  }
+
+  // Claim: only one request can move the hold out of its current state.
+  const [claimed] = await db
+    .update(orderStockHolds)
+    .set({ state: choice === "wait" ? "waiting" : "resolving" })
+    .where(and(eq(orderStockHolds.orderId, orderId), eq(orderStockHolds.state, hold.state)))
+    .returning({ orderId: orderStockHolds.orderId });
+  if (!claimed) {
+    return { success: false as const, error: "This order was just updated — refresh the page." };
+  }
+
+  const shortId = order.id.slice(0, 8);
+  try {
+    if (choice === "wait") {
+      await sendOrderNoticeEmail({
+        toEmail: order.customerEmail,
+        subject: "We're holding your EcoFurnish order until it's back in stock",
+        paragraphs: [
+          `Hi ${order.customerName.split(" ")[0] || "there"},`,
+          `Thanks — we're holding order ${shortId} until ${soldOutName} is back in stock, and we'll email you the moment it's confirmed.`,
+          `You've already paid ${order.totalAmount} ETB and that price is locked in: you won't be asked for more, even if the price goes up. You can switch to a refund or store credit any time before then.`,
+        ],
+        cta: { label: "View your order", path: `/order-confirmation/${order.id}` },
+      });
+      await sendTelegramMessage(
+        `🕒 Order <code>${shortId}</code> (${escapeHtml(order.totalAmount)} ETB) will wait for ${escapeHtml(soldOutName)} to be restocked.`
+      );
+      // If the restock already landed while they were deciding, fulfil now.
+      await sweepWaitingOrders();
+      return { success: true as const, outcome: "waiting" as const };
+    }
+
+    if (choice === "refund") {
+      const result = await refundOrder(order, soldOutName);
+      await db.delete(orderStockHolds).where(eq(orderStockHolds.orderId, orderId));
+      return {
+        success: true as const,
+        outcome: (result.refunded ? "refunded" : "refund_pending") as "refunded" | "refund_pending",
+      };
+    }
+
+    // choice === "credit"
+    await issueStoreCredit(order.userId as string, order.totalAmount);
+    await db
+      .update(orders)
+      .set({ status: "cancelled", paymentStatus: "credited" })
+      .where(eq(orders.id, orderId));
+    await reverseOrderRewardUsages(orderId);
+    await db.delete(orderStockHolds).where(eq(orderStockHolds.orderId, orderId));
+    await sendOrderNoticeEmail({
+      toEmail: order.customerEmail,
+      subject: "Your EcoFurnish store credit is ready",
+      paragraphs: [
+        `Hi ${order.customerName.split(" ")[0] || "there"},`,
+        `We've turned the ${order.totalAmount} ETB you paid for order ${shortId} into store credit. It's on your account now — tick "use store credit" at checkout to spend it on anything in the shop.`,
+      ],
+      cta: { label: "Browse the shop", path: "/" },
+    });
+    await sendTelegramMessage(
+      `🎟️ Order <code>${shortId}</code> (${escapeHtml(order.totalAmount)} ETB) converted to store credit (${escapeHtml(soldOutName)} sold out).`
+    );
+    return { success: true as const, outcome: "credited" as const };
+  } catch (error) {
+    console.error("Resolving the sold-out order failed:", error);
+    // Put the hold back so the customer can try again.
+    await db
+      .update(orderStockHolds)
+      .set({ state: hold.state })
+      .where(eq(orderStockHolds.orderId, orderId));
+    return { success: false as const, error: "Something went wrong — please try again." };
+  }
+}
+
+/**
+ * Items on the signed-in customer's paid orders that are waiting on a
+ * sold-out product, for the "Waiting for restock" section of the cart page.
+ * Returns [] for guests and if anything goes wrong — it's a nice-to-have.
+ */
+export async function getWaitingOrderItems() {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) return [];
+    const rows = await db
+      .select({
+        orderId: orders.id,
+        state: orderStockHolds.state,
+        name: orderItems.productName,
+        quantity: orderItems.quantity,
+        productId: orderItems.productId,
+        imageUrl: products.imageUrl,
+        restockAt: products.restockAt,
+      })
+      .from(orderStockHolds)
+      .innerJoin(orders, eq(orders.id, orderStockHolds.orderId))
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+      .leftJoin(products, eq(products.id, orderItems.productId))
+      .where(
+        and(
+          eq(orders.userId, session.user.id),
+          inArray(orderStockHolds.state, ["choose", "waiting", "fulfilling"])
+        )
+      );
+    return rows.map((r) => ({
+      orderId: r.orderId,
+      state: r.state,
+      name: r.name,
+      quantity: r.quantity,
+      productId: r.productId,
+      imageUrl: r.imageUrl,
+      restockAt: r.restockAt ? r.restockAt.toISOString() : null,
+    }));
+  } catch (error) {
+    console.error("Couldn't load items waiting for restock:", error);
+    return [];
+  }
 }

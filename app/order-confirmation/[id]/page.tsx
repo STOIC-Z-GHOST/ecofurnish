@@ -1,9 +1,9 @@
 import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Clock } from "lucide-react";
+import { CheckCircle2, Clock, PackageX } from "lucide-react";
 import { db } from "@/db";
-import { orders, orderItems, products } from "@/db/schema";
+import { orders, orderItems, orderStockHolds, products } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { confirmPayment } from "@/app/actions/orders";
@@ -14,6 +14,8 @@ import { OrderTimeline } from "@/components/order/OrderTimeline";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { canViewOrder } from "@/lib/order-access";
+import { restockExpectedFor } from "@/lib/stock";
+import { SoldOutChoice } from "@/components/order/SoldOutChoice";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -57,6 +59,26 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
   const isPaid = order.paymentStatus === "paid";
+  // The item sold out while this customer's payment was going through, so
+  // the order was cancelled and refunded (see refundOrder in lib/refunds.ts).
+  const wasRefunded = order.paymentStatus === "refunded" || order.paymentStatus === "refund_pending";
+  const wasCredited = order.paymentStatus === "credited";
+
+  // Paid, but the item sold out at the last moment and the customer is
+  // choosing (or has chosen to wait). Looked up defensively: the holds
+  // table is a separate optional piece and must never take this page down.
+  let hold: { state: string; note: string | null } | null = null;
+  try {
+    const [row] = await db
+      .select()
+      .from(orderStockHolds)
+      .where(eq(orderStockHolds.orderId, id))
+      .limit(1);
+    if (row) hold = { state: row.state, note: row.note };
+  } catch (error) {
+    console.error("Couldn't read the stock hold:", error);
+  }
+  const onHold = hold !== null && (hold.state === "choose" || hold.state === "waiting");
 
   // Reorder needs each product's *current* image/stock (not what was
   // snapshotted at order time) — and needs to gracefully skip any
@@ -82,12 +104,27 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
     ];
   });
 
+  const restock = onHold ? await restockExpectedFor(productIds) : { expected: false, at: null };
+
   const preferredCurrency = (session.user.preferredCurrency as Currency | undefined) || "ETB";
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-16">
       <div className="text-center">
-        {isPaid ? (
+        {onHold ? (
+          <>
+            <ClearCartOnSuccess />
+            <PackageX className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight">
+              {hold?.state === "waiting" ? "We're holding your order" : "Your item just sold out"}
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              {hold?.state === "waiting"
+                ? "Your payment is safe and your price is locked."
+                : `Your payment went through, but ${hold?.note ?? "an item"} sold out a moment before we could confirm the order.`}
+            </p>
+          </>
+        ) : isPaid ? (
           <>
             <ClearCartOnSuccess />
             <RecordSimulatedPurchase
@@ -106,6 +143,27 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
               touch at {order.customerEmail} to confirm delivery.
             </p>
           </>
+        ) : wasCredited ? (
+          <>
+            <PackageX className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Turned into store credit</h1>
+            <p className="mt-2 text-muted-foreground">
+              The item sold out, so we converted your {formatPrice(order.totalAmount, "ETB")} into store
+              credit. Tick &ldquo;use store credit&rdquo; at checkout to spend it on anything in the shop.
+            </p>
+          </>
+        ) : wasRefunded ? (
+          <>
+            <PackageX className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Sorry — it just sold out</h1>
+            <p className="mt-2 text-muted-foreground">
+              Someone else bought the last one while your payment was going through, so we couldn&apos;t
+              fulfil this order. We&apos;ve cancelled it and{" "}
+              {order.paymentStatus === "refunded"
+                ? "refunded the full amount to your original payment method — it can take a few days to show up."
+                : `are processing your full refund — we'll email ${order.customerEmail} as soon as it's sent.`}
+            </p>
+          </>
         ) : (
           <>
             <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -116,6 +174,18 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             </p>
           </>
         )}
+
+        {onHold && hold && (
+          <SoldOutChoice
+            orderId={order.id}
+            state={hold.state === "waiting" ? "waiting" : "choose"}
+            itemName={hold.note ?? "this item"}
+            amount={formatPrice(order.totalAmount, "ETB")}
+            restockExpected={restock.expected}
+            restockAt={restock.at ? restock.at.toISOString() : null}
+            canUseCredit={Boolean(order.userId)}
+          />
+        )}
       </div>
 
       <div className="mt-10 rounded-lg border border-border/60 p-6">
@@ -124,7 +194,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           <span className="font-mono">{order.id.slice(0, 8)}</span>
         </div>
 
-        {isPaid && (
+        {isPaid && !onHold && (
           <div className="mt-4 border-t border-border/60 pt-5">
             <OrderTimeline
               status={order.status}

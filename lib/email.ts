@@ -729,3 +729,43 @@ export async function sendDeliveryAssignedEmail(
     console.error("Failed to send delivery assignment email:", err);
   }
 }
+
+/** A plain customer notice with an optional button — used for sold-out /
+ * refund / back-in-stock order emails. `paragraphs` are plain text and get
+ * HTML-escaped here, so callers can pass names and amounts straight in. */
+export async function sendOrderNoticeEmail(input: {
+  toEmail: string;
+  subject: string;
+  paragraphs: string[];
+  cta?: { label: string; path: string };
+}) {
+  if (!resend) {
+    console.warn("RESEND_API_KEY is not set — order notice was not sent.");
+    return { success: false as const };
+  }
+  const ctaUrl = input.cta ? `${appUrl()}${input.cta.path}` : null;
+  const paragraphsHtml = input.paragraphs
+    .map((p) => `<p style="color:#3a3f38;margin:0 0 14px;">${escapeHtml(p)}</p>`)
+    .join("");
+  const ctaHtml =
+    input.cta && ctaUrl
+      ? `<p style="margin:22px 0;"><a href="${ctaUrl}" style="background:#1f5130;color:#ffffff;padding:11px 20px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;">${escapeHtml(input.cta.label)}</a></p>`
+      : "";
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: input.toEmail,
+      subject: input.subject,
+      text: `${input.paragraphs.join("\n\n")}${input.cta && ctaUrl ? `\n\n${input.cta.label}: ${ctaUrl}` : ""}${spamNoticeText()}`,
+      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">${paragraphsHtml}${ctaHtml}${spamNoticeHtml()}</div>`,
+    });
+    if (error) {
+      console.error("Order notice failed:", error);
+      return { success: false as const };
+    }
+    return { success: true as const };
+  } catch (err) {
+    console.error("Order notice threw:", err);
+    return { success: false as const };
+  }
+}

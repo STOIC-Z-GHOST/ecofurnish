@@ -2,6 +2,7 @@ import { and, isNull, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { RESTOCK_AFTER_HOURS, RESTOCK_QUANTITY } from "@/lib/restock-config";
+import { sweepWaitingOrders } from "@/lib/stock";
 
 // Looking is cheap, but there's no reason to do it on every single page
 // render. This is per server instance (each warm serverless instance keeps
@@ -44,6 +45,10 @@ export async function runAutoRestock(
       .set({ stock: RESTOCK_QUANTITY, restockAt: null, updatedAt: new Date() })
       .where(and(lte(products.stock, 0), lte(products.restockAt, new Date(now))))
       .returning({ id: products.id });
+
+    // Customers who chose to wait for a restock get their order confirmed
+    // now that there's stock again.
+    if (refilled.length > 0) await sweepWaitingOrders();
 
     const clocksStarted = await db
       .update(products)

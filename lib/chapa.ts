@@ -88,7 +88,7 @@ export async function initializeChapaTransaction(input: InitializeInput) {
 interface ChapaVerifyResponse {
   status: string;
   message: string;
-  data?: { status: string; tx_ref: string; amount: string; currency: string };
+  data?: { status: string; tx_ref: string; amount: string; currency: string; reference?: string };
 }
 
 /** Confirms with Chapa's servers (not just the browser redirect) that a transaction actually succeeded. */
@@ -101,4 +101,39 @@ export async function verifyChapaTransaction(txRef: string) {
   const paid = json.status === "success" && json.data?.status === "success";
 
   return { paid, raw: json };
+}
+
+/**
+ * Refunds a payment in full through Chapa (POST /v1/refund/<reference>,
+ * form-encoded; leaving `amount` out refunds the whole transaction — see
+ * developer.chapa.co/refund). Chapa's docs call the path value the
+ * transaction "reference", which in their examples is Chapa's own short
+ * code (the `reference` field of the verify response) rather than our
+ * `tx_ref`, so callers pass both and each is tried in turn.
+ *
+ * Never throws: returns { success: false } on any failure so the caller can
+ * fall back to a manual refund instead of losing track of the order. Chapa
+ * keeps its own fee on a refund; the refunded amount comes out of the
+ * store's Chapa balance.
+ */
+export async function refundChapaTransaction(refs: string[], reason: string, reference: string) {
+  for (const ref of refs) {
+    try {
+      const body = new URLSearchParams({ reason: reason.slice(0, 200), reference });
+      const res = await fetch(`${CHAPA_API_BASE}/refund/${encodeURIComponent(ref)}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      });
+      const json = (await res.json().catch(() => null)) as { status?: string } | null;
+      if (res.ok && json?.status === "success") return { success: true as const };
+      console.error(`Chapa refund via ${ref} failed:`, res.status, json);
+    } catch (error) {
+      console.error(`Chapa refund via ${ref} threw:`, error);
+    }
+  }
+  return { success: false as const };
 }

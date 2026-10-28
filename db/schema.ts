@@ -98,6 +98,21 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
 });
 
+// A paid order that couldn't be fulfilled because the item sold out while
+// the payment was going through (see confirmPayment in app/actions/
+// orders.ts). Kept in its own table on purpose: if this table were ever
+// missing, only the sold-out path is affected, never normal orders.
+//   choose    -> the customer has been asked: refund / wait / store credit
+//   waiting   -> they chose to wait; fulfilled automatically on restock
+//   resolving / fulfilling -> short-lived locks while one of the above runs
+export const orderStockHolds = pgTable("order_stock_holds", {
+  orderId: text("order_id").primaryKey().references(() => orders.id),
+  state: text("state").notNull(),
+  // Name of the product that sold out, for emails and messages.
+  note: text("note"),
+  since: timestamp("since").defaultNow().notNull(),
+});
+
 export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: text("email").notNull().unique(),

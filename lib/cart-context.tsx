@@ -21,7 +21,9 @@ export interface CartItem {
 
 interface CartContextValue {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
+  /** Returns how many units were actually added — less than asked (even
+   * 0) when the cart already holds everything that's in stock. */
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => number;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -93,16 +95,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, userId, loadedFor]);
 
   const addItem: CartContextValue["addItem"] = (item, quantity = 1) => {
+    const cap = Math.max(0, item.stock);
+    const have = items.find((i) => i.productId === item.productId)?.quantity ?? 0;
+    const added = Math.max(0, Math.min(quantity, cap - have));
+
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
       if (existing) {
-        const nextQty = Math.min(existing.quantity + quantity, existing.stock);
+        // Always refresh the stock snapshot, and never leave more in the
+        // cart than is actually in stock right now.
+        const nextQty = Math.min(existing.quantity + added, cap);
         return prev.map((i) =>
-          i.productId === item.productId ? { ...i, quantity: nextQty } : i
+          i.productId === item.productId ? { ...i, stock: cap, quantity: nextQty } : i
         );
       }
-      return [...prev, { ...item, quantity: Math.min(quantity, item.stock) }];
+      if (added <= 0) return prev;
+      return [...prev, { ...item, quantity: added }];
     });
+    return added;
   };
 
   const removeItem = (productId: string) => {
@@ -148,4 +158,16 @@ export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within a CartProvider");
   return ctx;
+}
+
+/**
+ * How much of a product can still be added: what's in stock minus what's
+ * already in this cart. Drives the Add to Cart buttons so they stop
+ * saying "add" once the whole stock is in the cart.
+ */
+export function useCartRoom(productId: string, stock: number) {
+  const { items } = useCart();
+  const inCart = items.find((i) => i.productId === productId)?.quantity ?? 0;
+  const remaining = Math.max(0, stock - inCart);
+  return { inCart, remaining, allInCart: stock > 0 && remaining === 0 };
 }

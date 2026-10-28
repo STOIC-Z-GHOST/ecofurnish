@@ -8,6 +8,7 @@ import { products, orders, inboundEmails } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
 import { sendAdminMessage, sendDispatcherPromotedEmail, sendDispatcherRemovedEmail } from "@/lib/email";
 import { applyOrderStatus } from "@/lib/orders";
+import { sweepWaitingOrders } from "@/lib/stock";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // stay comfortably under Vercel's 4.5MB server-upload cap
@@ -119,6 +120,8 @@ export async function updateProduct(id: string, input: ProductInput) {
       updatedAt: new Date(),
     })
     .where(eq(products.id, id));
+  // A manual restock should also confirm orders whose customers are waiting.
+  if (input.stock > 0) await sweepWaitingOrders();
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath(`/products/${id}`);

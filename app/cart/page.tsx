@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
 import { ExchangeRateNote } from "@/components/currency/ExchangeRateNote";
+import { WaitingForRestock } from "@/components/cart/WaitingForRestock";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
@@ -17,6 +18,9 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="container mx-auto max-w-3xl px-4 py-24 text-center">
+        <div className="mb-10 text-left">
+          <WaitingForRestock />
+        </div>
         <ShoppingBag className="mx-auto h-10 w-10 text-muted-foreground" />
         <h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1>
         <p className="mt-2 text-muted-foreground">
@@ -32,6 +36,8 @@ export default function CartPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-10">
       <h1 className="mb-8 text-3xl font-extrabold tracking-tight">Your Cart</h1>
+
+      <WaitingForRestock />
 
       <div className="space-y-4">
         {items.map((item) => (

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { orders, deliveryAssignments } from "@/db/schema";
+import { orders, deliveryAssignments, orderStockHolds } from "@/db/schema";
 import { sendOrderStatusUpdateEmail } from "@/lib/email";
 import { ORDER_STATUSES } from "@/lib/order-statuses";
 import { reverseOrderRewardUsages } from "@/lib/referrals";
@@ -49,6 +49,14 @@ export async function applyOrderStatus(orderId: string, status: string) {
   // twice (reverseOrderRewardUsages skips usages already reversed).
   if (status === "cancelled") {
     await reverseOrderRewardUsages(orderId);
+    // A cancelled order that was waiting on a sold-out item must never be
+    // fulfilled later when the restock lands. (Its own try/catch: the
+    // holds table is a separate, optional piece.)
+    try {
+      await db.delete(orderStockHolds).where(eq(orderStockHolds.orderId, orderId));
+    } catch (error) {
+      console.error("Couldn't clear the stock hold on cancel:", error);
+    }
   }
 
   // Only notify on an actual change — re-applying the same status

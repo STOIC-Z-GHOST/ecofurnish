@@ -1,10 +1,12 @@
 import { and, eq, lt, ne } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders } from "@/db/schema";
+import { orders, orderStockHolds } from "@/db/schema";
 import { applyOrderStatus } from "@/lib/orders";
 import { rejectUnlessCron } from "@/lib/cron-auth";
 import { runAutoRestock } from "@/lib/auto-restock";
+import { refundOrder } from "@/lib/refunds";
+import { sweepWaitingOrders } from "@/lib/stock";
 
 // How long an order gets to actually pay before we give up on it. Chapa
 // checkout normally completes in minutes; this is a generous buffer for
@@ -16,6 +18,11 @@ import { runAutoRestock } from "@/lib/auto-restock";
 // from a checkout nobody ever finished) — nothing here is time-critical
 // enough to need Vercel Pro's more-frequent cron scheduling.
 const EXPIRY_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// A customer who was asked to choose (refund / wait / store credit) for a
+// sold-out order and never answered gets refunded after this long, so their
+// money isn't held indefinitely.
+const SOLD_OUT_CHOICE_WINDOW_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
 
 // Same auth pattern as app/api/cron/daily-digest — Vercel calls this with
 // `Authorization: Bearer ${CRON_SECRET}`, checked only in production so
@@ -63,5 +70,39 @@ export async function GET(request: NextRequest) {
   // once a day.
   const restock = await runAutoRestock({ force: true });
 
-  return NextResponse.json({ expired: expiredCount, restock });
+  // Sold-out orders: confirm any whose item is back, and refund the ones
+  // whose customer never chose. Wrapped so this optional piece can never
+  // break the expiry above.
+  let autoRefunded = 0;
+  let fulfilled = 0;
+  try {
+    fulfilled = await sweepWaitingOrders();
+    const stale = await db
+      .select()
+      .from(orderStockHolds)
+      .where(
+        and(
+          eq(orderStockHolds.state, "choose"),
+          lt(orderStockHolds.since, new Date(Date.now() - SOLD_OUT_CHOICE_WINDOW_MS))
+        )
+      );
+    for (const hold of stale) {
+      const [claimed] = await db
+        .update(orderStockHolds)
+        .set({ state: "resolving" })
+        .where(and(eq(orderStockHolds.orderId, hold.orderId), eq(orderStockHolds.state, "choose")))
+        .returning({ orderId: orderStockHolds.orderId });
+      if (!claimed) continue;
+      const [order] = await db.select().from(orders).where(eq(orders.id, hold.orderId)).limit(1);
+      if (order) {
+        await refundOrder(order, hold.note ?? "the item");
+        autoRefunded++;
+      }
+      await db.delete(orderStockHolds).where(eq(orderStockHolds.orderId, hold.orderId));
+    }
+  } catch (error) {
+    console.error("Sold-out order housekeeping failed:", error);
+  }
+
+  return NextResponse.json({ expired: expiredCount, restock, fulfilled, autoRefunded });
 }

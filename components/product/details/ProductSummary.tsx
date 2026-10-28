@@ -5,7 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Product } from "@/types/product";
 import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/lib/cart-context";
+import { useCart, useCartRoom } from "@/lib/cart-context";
 import { useCurrency } from "@/lib/currency-context";
 import { formatPrice } from "@/lib/currency";
 import { getEffectivePrice } from "@/lib/pricing";
@@ -26,9 +26,12 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
   const [quantity, setQuantity] = useState(1);
   const effectiveStock = useEffectiveStock(product.id, product.stock);
   const outOfStock = effectiveStock <= 0;
+  const { inCart, remaining, allInCart } = useCartRoom(product.id, effectiveStock);
+  // The quantity picker can never ask for more than is still free.
+  const pickerQuantity = Math.min(quantity, Math.max(1, remaining));
 
   function handleAddToCart() {
-    addItem(
+    const added = addItem(
       {
         productId: product.id,
         name: product.name,
@@ -36,9 +39,16 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
         imageUrl: product.imageUrl,
         stock: effectiveStock,
       },
-      quantity
+      pickerQuantity
     );
-    toast.success(`${quantity} × ${product.name} added to cart`);
+    if (added <= 0) {
+      toast.info(`All ${effectiveStock} in stock are already in your cart`);
+    } else if (added < pickerQuantity) {
+      toast.success(`Added ${added} — that's all that was left (${effectiveStock} in your cart)`);
+    } else {
+      toast.success(`${added} × ${product.name} added to cart`);
+    }
+    setQuantity(1);
   }
 
   return (
@@ -87,13 +97,13 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
         </div>
       )}
 
-      {!outOfStock && (
+      {!outOfStock && !allInCart && (
         <div className="flex items-center gap-2.5">
           <QuantitySelector
-            quantity={quantity}
-            onDecrease={() => setQuantity((q) => Math.max(1, q - 1))}
-            onIncrease={() => setQuantity((q) => Math.min(effectiveStock, q + 1))}
-            max={effectiveStock}
+            quantity={pickerQuantity}
+            onDecrease={() => setQuantity(Math.max(1, pickerQuantity - 1))}
+            onIncrease={() => setQuantity(Math.min(remaining, pickerQuantity + 1))}
+            max={remaining}
           />
           {/* Same pattern as the cart page's running-total badge: keyed on
               quantity so React remounts it on every +/- click, replaying
@@ -103,18 +113,27 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
               than product.price directly, so this preview always matches
               what actually gets added. */}
           <span
-            key={quantity}
+            key={pickerQuantity}
             className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold whitespace-nowrap text-primary duration-200 animate-in fade-in-0 zoom-in-90"
           >
-            {formatPrice((parseFloat(getEffectivePrice(product)) * quantity).toFixed(2), currency)}
+            {formatPrice((parseFloat(getEffectivePrice(product)) * pickerQuantity).toFixed(2), currency)}
           </span>
         </div>
       )}
 
       <div className="flex gap-3">
-        <AddToCartButton onClick={handleAddToCart} disabled={outOfStock} />
+        <AddToCartButton onClick={handleAddToCart} disabled={outOfStock} maxed={allInCart} />
         <WishlistButton product={product} />
       </div>
+
+      {allInCart && (
+        <p className="text-sm text-muted-foreground">
+          You have all {inCart} available in your cart.{" "}
+          <Link href="/cart" className="font-medium text-primary underline-offset-4 hover:underline">
+            View cart
+          </Link>
+        </p>
+      )}
     </div>
   );
 }
