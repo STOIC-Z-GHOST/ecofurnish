@@ -26,11 +26,12 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
   const [quantity, setQuantity] = useState(1);
   const effectiveStock = useEffectiveStock(product.id, product.stock);
   const outOfStock = effectiveStock <= 0;
-  const { inCart, remaining, allInCart } = useCartRoom(product.id, effectiveStock);
+  const { inCart, remaining, allInCart, ready } = useCartRoom(product.id, effectiveStock);
   // The quantity picker can never ask for more than is still free.
   const pickerQuantity = Math.min(quantity, Math.max(1, remaining));
 
   function handleAddToCart() {
+    if (!ready) return;
     const added = addItem(
       {
         productId: product.id,
@@ -122,7 +123,7 @@ export default function ProductSummary({ product }: ProductSummaryProps) {
       )}
 
       <div className="flex gap-3">
-        <AddToCartButton onClick={handleAddToCart} disabled={outOfStock} maxed={allInCart} />
+        <AddToCartButton onClick={handleAddToCart} disabled={outOfStock} maxed={allInCart} loading={!ready} />
         <WishlistButton product={product} />
       </div>
 

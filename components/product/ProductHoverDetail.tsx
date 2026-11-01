@@ -27,7 +27,7 @@ export default function ProductHoverDetail({
   const { isWishlisted, toggleItem } = useWishlist();
   const liked = isWishlisted(product.id);
   const effectiveStock = useEffectiveStock(product.id, product.stock);
-  const { allInCart } = useCartRoom(product.id, effectiveStock);
+  const { allInCart, ready } = useCartRoom(product.id, effectiveStock);
 
   // Cover photo first, then extras — lets shoppers flip through a
   // product's other pictures right from the catalog, without opening it.
@@ -59,6 +59,7 @@ export default function ProductHoverDetail({
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (!ready) return;
     const added = addItem({
       productId: product.id,
       name: product.name,
@@ -185,7 +186,7 @@ export default function ProductHoverDetail({
         <button
           type="button"
           tabIndex={-1}
-          disabled={effectiveStock <= 0 || allInCart}
+          disabled={effectiveStock <= 0 || allInCart || !ready}
           onClick={handleAddToCart}
           className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 sm:text-sm"
         >

@@ -7,5 +7,5 @@
 //    demo purchases have sold out for THEM only.
 //
 // To change either number, edit it here and redeploy.
-export const RESTOCK_AFTER_HOURS = 6;
-export const RESTOCK_QUANTITY = 20;
+export const RESTOCK_AFTER_HOURS = 2/60;
+export const RESTOCK_QUANTITY = 15;

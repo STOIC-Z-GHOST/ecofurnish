@@ -12,6 +12,7 @@ import Testimonials from "@/components/home/Testimonials";
 import ContinueBrowsing from "@/components/home/ContinueBrowsing";
 import RecentFinds from "@/components/home/RecentFinds";
 import { CatalogView } from "@/components/catalog-view";
+import { siteConfig } from "@/config/site";
 
 // Both are the very last things on the page, and neither affects LCP or
 // anything above the fold — Newsletter is a self-contained client
@@ -40,8 +41,24 @@ export default async function Home() {
   const catalog = await attachRatings(rawCatalog);
   const featured = catalog.slice(0, 4);
 
+  // Tells Google the site's name is "EcoFurnish" (not the shared host name
+  // "de5.net" it falls back to). Google only reads this from the home page;
+  // keep `name` and the page title consistent. See Google's "site names"
+  // docs.
+  const siteNameJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteConfig.name,
+    alternateName: ["Eco Furnish"],
+    url: `${siteConfig.url}/`,
+  }).replace(/</g, "\\u003c");
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: siteNameJsonLd }}
+      />
       <Hero />
 
       <ContinueBrowsing />

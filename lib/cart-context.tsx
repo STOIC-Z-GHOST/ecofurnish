@@ -27,6 +27,9 @@ interface CartContextValue {
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  /** False until this account's saved cart has been read from the browser.
+   * Add to Cart buttons wait for it — before then the cart looks empty. */
+  ready: boolean;
   totalItems: number;
   subtotal: number;
 }
@@ -76,8 +79,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       // Syncing from localStorage (external, unreadable during SSR/render).
+      // On the very first load, anything added before the saved cart
+      // finished loading (the session check can be slow) is merged in
+      // rather than overwritten — it used to vanish, leaving a toast that
+      // said "added" and a cart that hadn't changed. Not done when the
+      // account changes: that must never carry another account's cart over.
+      const firstLoad = loadedFor === "unloaded";
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setItems(loaded);
+      setItems((early) => {
+        if (!firstLoad || early.length === 0) return loaded;
+        let merged = loaded;
+        for (const e of early) {
+          const have = merged.find((i) => i.productId === e.productId);
+          merged = have
+            ? merged.map((i) =>
+                i.productId === e.productId
+                  ? { ...i, stock: e.stock, quantity: Math.min(i.quantity + e.quantity, e.stock) }
+                  : i
+              )
+            : [...merged, e];
+        }
+        return merged;
+      });
     } catch {
       setItems([]);
     }
@@ -135,6 +158,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
+  const ready = loadedFor !== "unloaded" && loadedFor === userId;
+
   const totalItems = useMemo(
     () => items.reduce((sum, i) => sum + i.quantity, 0),
     [items]
@@ -147,7 +172,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, ready, totalItems, subtotal }}
     >
       {children}
     </CartContext.Provider>
@@ -166,8 +191,10 @@ export function useCart() {
  * saying "add" once the whole stock is in the cart.
  */
 export function useCartRoom(productId: string, stock: number) {
-  const { items } = useCart();
+  const { items, ready } = useCart();
   const inCart = items.find((i) => i.productId === productId)?.quantity ?? 0;
   const remaining = Math.max(0, stock - inCart);
-  return { inCart, remaining, allInCart: stock > 0 && remaining === 0 };
+  // `ready` matters: until the saved cart has loaded it looks empty, so
+  // "how much is left" can't be trusted yet and the buttons wait.
+  return { inCart, remaining, allInCart: ready && stock > 0 && remaining === 0, ready };
 }

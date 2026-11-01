@@ -13,11 +13,12 @@ import WishlistButton from "./WishlistButton";
 export default function ProductActions({ product }: { product: Product }) {
   const { addItem } = useCart();
   const effectiveStock = useEffectiveStock(product.id, product.stock);
-  const { allInCart } = useCartRoom(product.id, effectiveStock);
+  const { allInCart, ready } = useCartRoom(product.id, effectiveStock);
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation(); // Stops the parent click event
+    if (!ready) return;
 
     const added = addItem({
       productId: product.id,
@@ -35,7 +36,7 @@ export default function ProductActions({ product }: { product: Product }) {
       <Button
         size="lg"
         className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm"
-        disabled={effectiveStock <= 0 || allInCart}
+        disabled={effectiveStock <= 0 || allInCart || !ready}
         onClick={handleAddToCart}
       >
         {effectiveStock <= 0 ? (

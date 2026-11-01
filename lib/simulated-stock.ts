@@ -9,7 +9,7 @@ const STORAGE_KEY = "ecofurnish-simulated-purchases";
  * After this many hours the product goes back to its normal stock for that
  * browser. Set to 12 for a twice-a-day reset.
  */
-export const DEMO_STOCK_RESET_HOURS = 24;
+export const DEMO_STOCK_RESET_HOURS = 5/60;
 const RESET_MS = DEMO_STOCK_RESET_HOURS * 60 * 60 * 1000;
 
 // Once a visitor has bought a product's LAST unit, it refills this long
