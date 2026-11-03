@@ -60,4 +60,4 @@ This repo doesn't include local setup/installation instructions — the site dep
 
 ---
 
-Designed & built by **NF** — [github.com/YOUR-USERNAME](https://github.com/YOUR-USERNAME)
+Designed & built by **NF** — [github.com/STOIC-Z-GHOST](https://github.com/STOIC-Z-GHOST)
