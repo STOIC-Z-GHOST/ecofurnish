@@ -38,6 +38,7 @@ export default function ImageOverlay({
         stock={product.stock}
         restockAt={product.restockAt}
         variant="overlay"
+        showCountdown={false}
       />
       {/* The "% off" pill now lives next to the old price under the card's
           price (see DiscountLine); only a flash-sale timer stays here. */}

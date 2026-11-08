@@ -324,6 +324,8 @@ interface OrderConfirmationEmailInput {
   orderId: string;
   totalAmount: string;
   items: OrderEmailItem[];
+  /** Link to the customer's Chapa payment receipt, when we have one. */
+  receiptUrl?: string;
 }
 
 export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailInput) {
@@ -361,13 +363,18 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
           </td>
         </tr>
       </table>
+      ${
+        input.receiptUrl
+          ? `<p style="margin:22px 0 0;"><a href="${input.receiptUrl}" style="background:#1f5130;color:#ffffff;padding:10px 18px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;">View your payment receipt</a></p>`
+          : ""
+      }
       <p style="color:#6b6a5c;font-size:14px;margin-top:24px;">
         We'll be in touch about delivery. Thanks for supporting sustainable furniture.
       </p>${spamNoticeHtml()}
     </div>
   `;
 
-  const text = `Thanks for your order, ${input.customerName.split(" ")[0]}!\n\nYour EcoFurnish order #${input.orderId.slice(0, 8)} is confirmed.\n\n${itemsText}\n\nTotal: Br${parseFloat(input.totalAmount).toFixed(2)}\n\nWe'll be in touch about delivery. Thanks for supporting sustainable furniture.${spamNoticeText()}`;
+  const text = `Thanks for your order, ${input.customerName.split(" ")[0]}!\n\nYour EcoFurnish order #${input.orderId.slice(0, 8)} is confirmed.\n\n${itemsText}\n\nTotal: Br${parseFloat(input.totalAmount).toFixed(2)}${input.receiptUrl ? `\n\nPayment receipt: ${input.receiptUrl}` : ""}\n\nWe'll be in touch about delivery. Thanks for supporting sustainable furniture.${spamNoticeText()}`;
 
   try {
     await resend.emails.send({

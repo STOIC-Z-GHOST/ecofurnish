@@ -198,3 +198,13 @@
     overflow-x: hidden;
   }
 }
+
+/* Printing a receipt: only the page content, not the site chrome around it. */
+@media print {
+  header,
+  footer,
+  nav,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}

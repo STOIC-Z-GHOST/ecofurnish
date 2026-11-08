@@ -9,6 +9,7 @@ import { initializeChapaTransaction, verifyChapaTransaction } from "@/lib/chapa"
 import { sendOrderConfirmationEmail, sendLowStockAlertEmail, sendOrderNoticeEmail } from "@/lib/email";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { escapeHtml } from "@/lib/escape-html";
+import { chapaReceiptUrl, recordPayment } from "@/lib/payments";
 import { issueStoreCredit, refundOrder } from "@/lib/refunds";
 import { restockExpectedFor, sweepWaitingOrders, takeStock } from "@/lib/stock";
 import { applyReferralRewards, qualifyReferralIfFirstPurchase, reverseOrderRewardUsages } from "@/lib/referrals";
@@ -359,6 +360,12 @@ export async function confirmPayment(orderId: string, txRef: string) {
     return { paid: fresh?.paymentStatus === "paid" } as { paid: boolean; outOfStock?: true };
   }
 
+  // Save Chapa's reference for this payment so the customer can open their
+  // receipt (on the confirmation page, in Orders & Payments, and in the
+  // email below). Done before any stock handling: even an order that turns
+  // out to be sold out was paid for and has a receipt. Never throws.
+  await recordPayment(orderId, raw.data);
+
   // This is a public demo: if every paid order lowered the real, shared
   // stock number, a few test purchases would show "Out of stock" to every
   // visitor. So by default the real number is left alone, and each browser
@@ -399,6 +406,7 @@ export async function confirmPayment(orderId: string, txRef: string) {
       unitPrice: i.unitPrice,
       quantity: i.quantity,
     })),
+    receiptUrl: chapaReceiptUrl(raw.data?.reference) ?? undefined,
   });
 
   return { paid: true } as { paid: boolean; outOfStock?: true };

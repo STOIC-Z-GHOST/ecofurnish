@@ -16,6 +16,8 @@ import { headers } from "next/headers";
 import { canViewOrder } from "@/lib/order-access";
 import { restockExpectedFor } from "@/lib/stock";
 import { SoldOutChoice } from "@/components/order/SoldOutChoice";
+import { PaymentReceiptCard } from "@/components/order/PaymentReceiptCard";
+import { getPaymentForOrder } from "@/lib/payments";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -58,6 +60,9 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   }
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+  // Chapa's receipt details for this order (asks Chapa once for orders paid
+  // before receipts existed). null -> no receipt card, nothing else changes.
+  const payment = await getPaymentForOrder(order);
   const isPaid = order.paymentStatus === "paid";
   // The item sold out while this customer's payment was going through, so
   // the order was cancelled and refunded (see refundOrder in lib/refunds.ts).
@@ -187,6 +192,14 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           />
         )}
       </div>
+
+      {payment && (
+        <PaymentReceiptCard
+          payment={payment}
+          orderNumber={order.id.slice(0, 8)}
+          totalLabel={formatPrice(order.totalAmount, "ETB")}
+        />
+      )}
 
       <div className="mt-10 rounded-lg border border-border/60 p-6">
         <div className="flex items-center justify-between text-sm text-muted-foreground">

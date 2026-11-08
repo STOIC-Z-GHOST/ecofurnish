@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Leaf } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
+import RestockOverlay from "@/components/product/RestockOverlay";
 
 interface ProductGalleryProps {
   product: Product;
@@ -64,6 +65,13 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
             <Leaf className="h-3 w-3" />
             {product.plasticWeightKg}kg Plastic Diverted
           </Badge>
+          {/* Small pill, not a full cover — here people want the big photo. */}
+          <RestockOverlay
+            productId={product.id}
+            stock={product.stock}
+            restockAt={product.restockAt}
+            variant="badge"
+          />
         </div>
 
         {hasMultiple && (

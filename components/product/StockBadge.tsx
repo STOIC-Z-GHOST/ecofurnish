@@ -35,12 +35,16 @@ export default function StockBadge({
   restockAt,
   className,
   variant = "inline",
+  showCountdown = true,
 }: {
   productId: string;
   stock: number;
   restockAt?: Date | string | null;
   className?: string;
   variant?: "inline" | "overlay";
+  /** Overlay pill only: show the little "Back in …" line. Off where the
+   * full-picture RestockOverlay already shows the countdown. */
+  showCountdown?: boolean;
 }) {
   const effectiveStock = useEffectiveStock(productId, stock);
   const overlay = variant === "overlay";
@@ -55,7 +59,9 @@ export default function StockBadge({
           )}
         >
           <span>Out of stock</span>
-          <RestockCountdown productId={productId} stock={stock} restockAt={restockAt} compact />
+          {showCountdown && (
+            <RestockCountdown productId={productId} stock={stock} restockAt={restockAt} compact />
+          )}
         </span>
       );
     }

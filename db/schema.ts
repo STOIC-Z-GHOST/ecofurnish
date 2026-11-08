@@ -98,6 +98,22 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
 });
 
+// What Chapa told us about a successful payment, kept so the customer can
+// open their Chapa receipt later (chapa.link/payment-receipt/<reference>)
+// and see their payments in one place. Its own table on purpose: if it were
+// ever missing, only receipts are affected, never orders themselves.
+export const orderPayments = pgTable("order_payments", {
+  orderId: text("order_id").primaryKey().references(() => orders.id),
+  // Chapa's own reference for the payment (NOT our tx_ref).
+  chapaReference: text("chapa_reference").notNull(),
+  method: text("method"), // e.g. telebirr, card, bank
+  currency: text("currency"),
+  amount: text("amount"), // exactly as Chapa reported it
+  charge: text("charge"), // Chapa's fee, as reported
+  paidAt: timestamp("paid_at"),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+});
+
 // A paid order that couldn't be fulfilled because the item sold out while
 // the payment was going through (see confirmPayment in app/actions/
 // orders.ts). Kept in its own table on purpose: if this table were ever

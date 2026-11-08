@@ -20,7 +20,7 @@ function useNowSeconds(): number {
   );
 }
 
-function formatRemaining(ms: number): string {
+export function formatRemaining(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
   const days = Math.floor(total / 86400);
   const hours = Math.floor((total % 86400) / 3600);
@@ -30,6 +30,49 @@ function formatRemaining(ms: number): string {
   // Days when it's far off; the ticking H:MM:SS once it's within a day.
   if (days > 0) return `${days}d ${pad(hours)}h ${pad(minutes)}m`;
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+/**
+ * The timing behind every "restocking" display. Returns the browser's
+ * effective stock (what this visitor can actually buy), when the restock is
+ * due (`target`, ms since epoch, or null if there's no time to count down
+ * to), and how long is left (`remaining`, 0 once it's due).
+ *
+ *  - Out of stock for everyone (real stock is 0): counts down to the restock
+ *    time an admin set on the product, if any.
+ *  - Stock exists but THIS browser's own demo purchases used it up: counts
+ *    down to when that temporary tally resets.
+ */
+export function useRestockTarget(
+  productId: string,
+  stock: number, // the real, admin-set stock
+  restockAt?: Date | string | null
+) {
+  const effectiveStock = useEffectiveStock(productId, stock);
+  const nowSeconds = useNowSeconds();
+
+  let target: number | null = null;
+  if (effectiveStock <= 0 && nowSeconds > 0) {
+    if (stock <= 0) {
+      const adminTime = restockAt ? new Date(restockAt).getTime() : NaN;
+      target = Number.isFinite(adminTime) ? adminTime : null;
+    } else {
+      target = getSimulatedRestockAt(productId);
+    }
+  }
+
+  // When a browser's temporary sold-out period ends, tell every stock
+  // display on the page (the Add to Cart button, the badge) straight away
+  // rather than leaving them to notice on their next periodic check.
+  const resetsOnItsOwn = stock > 0;
+  useEffect(() => {
+    if (target === null || !resetsOnItsOwn) return;
+    const id = setTimeout(notifyStockChanged, Math.max(0, target - Date.now()) + 50);
+    return () => clearTimeout(id);
+  }, [target, resetsOnItsOwn]);
+
+  const remaining = target === null ? 0 : Math.max(0, target - nowSeconds * 1000);
+  return { effectiveStock, target, remaining };
 }
 
 /**
@@ -59,30 +102,7 @@ export default function RestockCountdown({
   // of a product picture where there's less room.
   compact?: boolean;
 }) {
-  const effectiveStock = useEffectiveStock(productId, stock);
-  const nowSeconds = useNowSeconds();
-
-  let target: number | null = null;
-  if (effectiveStock <= 0 && nowSeconds > 0) {
-    if (stock <= 0) {
-      const adminTime = restockAt ? new Date(restockAt).getTime() : NaN;
-      target = Number.isFinite(adminTime) ? adminTime : null;
-    } else {
-      target = getSimulatedRestockAt(productId);
-    }
-  }
-
-  // When a browser's temporary sold-out period ends, tell every stock
-  // display on the page (the Add to Cart button, the badge) straight away
-  // rather than leaving them to notice on their next periodic check.
-  const resetsOnItsOwn = stock > 0;
-  useEffect(() => {
-    if (target === null || !resetsOnItsOwn) return;
-    const id = setTimeout(notifyStockChanged, Math.max(0, target - Date.now()) + 50);
-    return () => clearTimeout(id);
-  }, [target, resetsOnItsOwn]);
-
-  const remaining = target === null ? 0 : target - nowSeconds * 1000;
+  const { target, remaining } = useRestockTarget(productId, stock, restockAt);
   if (target === null || remaining <= 0) return null;
 
   return (

@@ -15,6 +15,7 @@ import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
 import DiscountLine from "./DiscountLine";
 import ImageOverlay from "./ImageOverlay";
+import RestockOverlay from "./RestockOverlay";
 
 export default function ProductHoverDetail({
   product,
@@ -109,6 +110,7 @@ export default function ProductHoverDetail({
               className="object-contain"
               sizes="(max-width: 767px) 55vw, (max-width: 1024px) 38vw, 28vw"
             />
+            <RestockOverlay productId={product.id} stock={product.stock} restockAt={product.restockAt} />
             <Badge className="absolute left-2 top-2 flex items-center gap-1 bg-emerald-700 px-1.5 py-0.5 text-[0.65rem] text-white hover:bg-emerald-800 sm:left-3 sm:top-3 sm:px-2 sm:py-0.5 sm:text-xs">
               <Leaf className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               {product.plasticWeightKg}kg Diverted

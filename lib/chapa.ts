@@ -85,10 +85,21 @@ export async function initializeChapaTransaction(input: InitializeInput) {
   return { success: true as const, checkoutUrl: json.data.checkout_url };
 }
 
+export interface ChapaVerifyData {
+  status: string;
+  tx_ref: string;
+  amount: string;
+  currency: string;
+  reference?: string; // Chapa's own payment reference (used for receipts + refunds)
+  method?: string;
+  charge?: string;
+  created_at?: string;
+}
+
 interface ChapaVerifyResponse {
   status: string;
   message: string;
-  data?: { status: string; tx_ref: string; amount: string; currency: string; reference?: string };
+  data?: ChapaVerifyData;
 }
 
 /** Confirms with Chapa's servers (not just the browser redirect) that a transaction actually succeeded. */
