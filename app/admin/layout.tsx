@@ -1,4 +1,4 @@
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
 import { APP_VERSION } from "@/lib/version";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { GlowNav, type GlowNavLink } from "@/components/GlowNav";
@@ -11,7 +11,17 @@ const ADMIN_LINKS: GlowNavLink[] = [
   { href: "/admin/broadcast", label: "Broadcast" },
   { href: "/admin/dispatchers", label: "Dispatchers" },
   { href: "/admin/telegram", label: "Telegram Access" },
+  { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/guests", label: "Guests" },
   { href: "/dispatcher", label: "Dispatcher Panel ↗" },
+];
+
+// What a read-only guest sees in the menu. Their other admin URLs 404
+// anyway (those pages check for a real admin themselves).
+const GUEST_LINKS: GlowNavLink[] = [
+  { href: "/admin", label: "Dashboard", exact: true },
+  { href: "/admin/products", label: "Products" },
+  { href: "/admin/orders", label: "Orders" },
 ];
 
 // requireAdminPage() already calls headers(), which normally opts a route
@@ -21,7 +31,9 @@ const ADMIN_LINKS: GlowNavLink[] = [
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdminPage();
+  // Admins and active guests get the shell; each page then decides for
+  // itself who may see it (guests only reach the three read-only ones).
+  const { isGuest, guestExpiresAt } = await requireAdminViewPage();
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10">
@@ -30,8 +42,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <h1 className="mb-3 text-xl font-bold tracking-tight">
           Admin <span className="align-middle text-xs font-normal text-muted-foreground">v{APP_VERSION}</span>
         </h1>
-        <GlowNav links={ADMIN_LINKS} />
+        <GlowNav links={isGuest ? GUEST_LINKS : ADMIN_LINKS} />
       </div>
+      {isGuest && (
+        <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <strong>Guest view — read-only.</strong> Customer details are masked and nothing here can be
+          changed.
+          {guestExpiresAt && (
+            <> Your access ends {guestExpiresAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.</>
+          )}
+        </div>
+      )}
       {children}
     </div>
   );

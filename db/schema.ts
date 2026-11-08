@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, timestamp, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, numeric, integer, timestamp, boolean, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -96,6 +96,46 @@ export const orderItems = pgTable("order_items", {
   productName: text("product_name").notNull(),
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
+});
+
+// Text pages (Terms, Privacy, About …) that the admin can edit from the
+// browser. A page with no row here simply shows its built-in default text
+// (lib/site-page-defaults.ts), so nothing is lost if this table is empty or
+// missing. `body` is Markdown for the legal pages and a small JSON document
+// for About. Own table, like the others below, so a missing table can only
+// ever affect these pages.
+export const sitePages = pgTable("site_pages", {
+  slug: text("slug").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: text("updated_by"),
+});
+
+// One row per save of a page, so a bad edit to legal text can be undone.
+export const sitePageRevisions = pgTable(
+  "site_page_revisions",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    savedAt: timestamp("saved_at").defaultNow().notNull(),
+    savedBy: text("saved_by"),
+  },
+  (table) => [index("site_page_revisions_slug_idx").on(table.slug, table.savedAt)]
+);
+
+// People the owner has given temporary, read-only access to the admin area
+// (see getAdminAccess in lib/require-admin.ts). Access is decided by this
+// table on every request: it ends by itself at expires_at and can be cut
+// off early with revoked_at. The email is stored lowercase.
+export const adminGuests = pgTable("admin_guests", {
+  email: text("email").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  grantedBy: text("granted_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
 });
 
 // What Chapa told us about a successful payment, kept so the customer can

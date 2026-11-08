@@ -2,25 +2,30 @@ import Link from "next/link";
 import { Leaf, Recycle, Users } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { APP_VERSION } from "@/lib/version";
+import { getSitePage, parseAboutContent } from "@/lib/site-pages";
 
-export default function AboutPage() {
+// The wording is editable in Admin -> Pages; this re-checks it every few
+// minutes, and saving the page refreshes it immediately.
+export const revalidate = 300;
+
+const CARD_ICONS = [Recycle, Leaf, Users];
+
+export default async function AboutPage() {
+  const page = await getSitePage("about");
+  const about = parseAboutContent(page.body);
+
   return (
     <div>
       <section className="border-b border-border/60 bg-muted/30">
         <div className="container mx-auto max-w-4xl px-4 py-20 text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
             <Leaf className="h-4 w-4" />
-            Our Story
+            {about.badge}
           </span>
           <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Furniture that cleans our streets
+            {about.heading}
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground">
-            EcoFurnish started with a simple question: what if the plastic
-            waste piling up around Addis Ababa could become something you&apos;d
-            actually want in your living room? Every piece we build answers
-            that question a little further.
-          </p>
+          <p className="mt-6 text-lg text-muted-foreground">{about.intro}</p>
         </div>
       </section>
 
@@ -33,51 +38,25 @@ export default function AboutPage() {
             sighted users get for free from the layout. */}
         <h2 className="sr-only">What we stand for</h2>
         <div className="grid gap-10 sm:grid-cols-3">
-          <div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Recycle className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 font-semibold">Recycled by design</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              We source reclaimed plastic and wood locally, then work with
-              small workshops to turn it into furniture built to last —
-              not to be replaced next season.
-            </p>
-          </div>
-          <div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Leaf className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 font-semibold">Transparent impact</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Every product listing shows exactly how much plastic it
-              diverted from landfills — no vague &quot;eco-friendly&quot; claims,
-              just a real number per item.
-            </p>
-          </div>
-          <div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Users className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 font-semibold">Made close to home</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Every order ships from Addis Ababa, which keeps delivery
-              fast and transport emissions low for customers across
-              Ethiopia.
-            </p>
-          </div>
+          {about.cards.map((card, i) => {
+            const Icon = CARD_ICONS[i] ?? Leaf;
+            return (
+              <div key={i}>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-semibold">{card.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{card.text}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       <section className="border-t border-border/60 bg-muted/30">
         <div className="container mx-auto max-w-2xl px-4 py-16 text-center">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Want to see it for yourself?
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Browse the current catalog, or get in touch if you&apos;re a retailer
-            interested in stocking EcoFurnish pieces.
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">{about.ctaHeading}</h2>
+          <p className="mt-3 text-muted-foreground">{about.ctaText}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             <Link
               href="/"

@@ -2,10 +2,11 @@ import { db } from "@/db";
 import { orders, products } from "@/db/schema";
 import { formatPrice } from "@/lib/currency";
 import { Package, ShoppingBag, TriangleAlert, Wallet } from "lucide-react";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
 
 export default async function AdminDashboardPage() {
-  await requireAdminPage();
+  // Read-only for guests too — it only shows counts and totals.
+  await requireAdminViewPage();
   const [allOrders, allProducts] = await Promise.all([
     db.select().from(orders),
     db.select().from(products),

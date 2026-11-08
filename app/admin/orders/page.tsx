@@ -6,11 +6,25 @@ import { formatPrice } from "@/lib/currency";
 import { OrderStatusSelect } from "@/components/admin/order-status-select";
 import { TrackingNoteInput } from "@/components/admin/tracking-note-input";
 import { Badge } from "@/components/ui/badge";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { maskEmail, maskName } from "@/lib/mask";
 
 export default async function AdminOrdersPage() {
-  await requireAdminPage();
-  const allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
+  const { isGuest } = await requireAdminViewPage();
+  const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
+
+  // For a read-only guest the customer's name and email are masked HERE, on
+  // the server, and the tracking note (free text that can hold a phone number
+  // or address) is dropped — so the real values are never sent to their
+  // browser at all.
+  const allOrders = isGuest
+    ? rows.map((o) => ({
+        ...o,
+        customerName: maskName(o.customerName),
+        customerEmail: maskEmail(o.customerEmail),
+        trackingNote: null,
+      }))
+    : rows;
 
   return (
     <div>
@@ -36,12 +50,17 @@ export default async function AdminOrdersPage() {
               {allOrders.map((order) => (
                 <tr key={order.id} className="border-t border-border/60">
                   <td className="p-3">
-                    <Link
-                      href={`/order-confirmation/${order.id}`}
-                      className="font-mono hover:underline"
-                    >
-                      #{order.id.slice(0, 8)}
-                    </Link>
+                    {isGuest ? (
+                      // The full order page shows the whole address and phone.
+                      <span className="font-mono">#{order.id.slice(0, 8)}</span>
+                    ) : (
+                      <Link
+                        href={`/order-confirmation/${order.id}`}
+                        className="font-mono hover:underline"
+                      >
+                        #{order.id.slice(0, 8)}
+                      </Link>
+                    )}
                   </td>
                   <td className="p-3">
                     <div>{order.customerName}</div>
@@ -57,10 +76,18 @@ export default async function AdminOrdersPage() {
                     </Badge>
                   </td>
                   <td className="p-3">
-                    <OrderStatusSelect orderId={order.id} status={order.status} />
+                    {isGuest ? (
+                      <Badge variant="outline">{order.status}</Badge>
+                    ) : (
+                      <OrderStatusSelect orderId={order.id} status={order.status} />
+                    )}
                   </td>
                   <td className="p-3">
-                    <TrackingNoteInput orderId={order.id} trackingNote={order.trackingNote} />
+                    {isGuest ? (
+                      <span className="text-xs text-muted-foreground">hidden</span>
+                    ) : (
+                      <TrackingNoteInput orderId={order.id} trackingNote={order.trackingNote} />
+                    )}
                   </td>
                 </tr>
               ))}

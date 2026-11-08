@@ -1,4 +1,4 @@
--- EcoFurnish database check (updated for Batch A).
+-- EcoFurnish database check (updated for Batch B).
 -- Paste into the Neon SQL editor (same database your Vercel app uses) and run.
 --
 -- It lists every table or column the app expects but your database doesn't
@@ -7,6 +7,11 @@
 
 WITH expected(table_name, column_name) AS (VALUES
     -- the app's own tables (from db/schema.ts)
+    ('admin_guests','email'),
+    ('admin_guests','expires_at'),
+    ('admin_guests','granted_by'),
+    ('admin_guests','created_at'),
+    ('admin_guests','revoked_at'),
     ('delivery_assignments','id'),
     ('delivery_assignments','order_id'),
     ('delivery_assignments','driver_id'),
@@ -140,6 +145,17 @@ WITH expected(table_name, column_name) AS (VALUES
     ('reviews','comment'),
     ('reviews','created_at'),
     ('reviews','updated_at'),
+    ('site_page_revisions','id'),
+    ('site_page_revisions','slug'),
+    ('site_page_revisions','title'),
+    ('site_page_revisions','body'),
+    ('site_page_revisions','saved_at'),
+    ('site_page_revisions','saved_by'),
+    ('site_pages','slug'),
+    ('site_pages','title'),
+    ('site_pages','body'),
+    ('site_pages','updated_at'),
+    ('site_pages','updated_by'),
     ('telegram_admins','id'),
     ('telegram_admins','chat_id'),
     ('telegram_admins','label'),
