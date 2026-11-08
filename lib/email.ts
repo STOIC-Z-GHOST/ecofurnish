@@ -324,8 +324,9 @@ interface OrderConfirmationEmailInput {
   orderId: string;
   totalAmount: string;
   items: OrderEmailItem[];
-  /** Link to the customer's Chapa payment receipt, when we have one. */
-  receiptUrl?: string;
+  /** Chapa's own hosted receipt, when we have one and it's enabled. Shown as
+   * a small extra link; the main button always opens our own receipt. */
+  chapaReceiptUrl?: string;
 }
 
 export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailInput) {
@@ -363,9 +364,10 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
           </td>
         </tr>
       </table>
+      <p style="margin:22px 0 0;"><a href="${appUrl()}/order-confirmation/${input.orderId}#receipt" style="background:#1f5130;color:#ffffff;padding:10px 18px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;">View your order &amp; receipt</a></p>
       ${
-        input.receiptUrl
-          ? `<p style="margin:22px 0 0;"><a href="${input.receiptUrl}" style="background:#1f5130;color:#ffffff;padding:10px 18px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;">View your payment receipt</a></p>`
+        input.chapaReceiptUrl
+          ? `<p style="margin:12px 0 0;font-size:13px;"><a href="${input.chapaReceiptUrl}" style="color:#1f5130;">Open Chapa's own receipt</a></p>`
           : ""
       }
       <p style="color:#6b6a5c;font-size:14px;margin-top:24px;">
@@ -374,7 +376,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
     </div>
   `;
 
-  const text = `Thanks for your order, ${input.customerName.split(" ")[0]}!\n\nYour EcoFurnish order #${input.orderId.slice(0, 8)} is confirmed.\n\n${itemsText}\n\nTotal: Br${parseFloat(input.totalAmount).toFixed(2)}${input.receiptUrl ? `\n\nPayment receipt: ${input.receiptUrl}` : ""}\n\nWe'll be in touch about delivery. Thanks for supporting sustainable furniture.${spamNoticeText()}`;
+  const text = `Thanks for your order, ${input.customerName.split(" ")[0]}!\n\nYour EcoFurnish order #${input.orderId.slice(0, 8)} is confirmed.\n\n${itemsText}\n\nTotal: Br${parseFloat(input.totalAmount).toFixed(2)}\n\nYour order & receipt: ${appUrl()}/order-confirmation/${input.orderId}#receipt${input.chapaReceiptUrl ? `\nChapa's own receipt: ${input.chapaReceiptUrl}` : ""}\n\nWe'll be in touch about delivery. Thanks for supporting sustainable furniture.${spamNoticeText()}`;
 
   try {
     await resend.emails.send({

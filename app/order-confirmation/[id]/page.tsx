@@ -17,7 +17,7 @@ import { canViewOrder } from "@/lib/order-access";
 import { restockExpectedFor } from "@/lib/stock";
 import { SoldOutChoice } from "@/components/order/SoldOutChoice";
 import { PaymentReceiptCard } from "@/components/order/PaymentReceiptCard";
-import { getPaymentForOrder } from "@/lib/payments";
+import { chapaReceiptLinksEnabled, getPaymentForOrder, isChapaTestMode } from "@/lib/payments";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -198,6 +198,15 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           payment={payment}
           orderNumber={order.id.slice(0, 8)}
           totalLabel={formatPrice(order.totalAmount, "ETB")}
+          customerName={order.customerName}
+          customerEmail={order.customerEmail}
+          items={items.map((i) => ({
+            name: i.productName,
+            quantity: i.quantity,
+            unitLabel: formatPrice(i.unitPrice, "ETB"),
+          }))}
+          showChapaLink={chapaReceiptLinksEnabled()}
+          testMode={isChapaTestMode()}
         />
       )}
 

@@ -9,6 +9,25 @@ export type PaymentRecord = typeof orderPayments.$inferSelect;
 // a odd value can never end up inside a link we show or email.
 const REFERENCE_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
 
+/** True while the app is using Chapa TEST keys (their secret keys start CHASECK_TEST). */
+export function isChapaTestMode(): boolean {
+  return (process.env.CHAPA_SECRET_KEY ?? "").startsWith("CHASECK_TEST");
+}
+
+/**
+ * Whether to link to Chapa's own hosted receipt (chapa.link/payment-receipt/…).
+ * Off by default while on test keys, because that page was seen returning
+ * "404 Page not found" for a test-mode payment; on by default with live
+ * keys. Force it either way with CHAPA_RECEIPT_LINKS=on or =off. The
+ * receipt on our own order page never depends on this.
+ */
+export function chapaReceiptLinksEnabled(): boolean {
+  const setting = process.env.CHAPA_RECEIPT_LINKS;
+  if (setting === "on") return true;
+  if (setting === "off") return false;
+  return !isChapaTestMode();
+}
+
 /** The link to Chapa's own receipt page, or null if the reference looks wrong. */
 export function chapaReceiptUrl(reference: string | null | undefined): string | null {
   if (!reference || !REFERENCE_PATTERN.test(reference)) return null;

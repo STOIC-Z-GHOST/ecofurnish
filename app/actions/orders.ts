@@ -9,7 +9,7 @@ import { initializeChapaTransaction, verifyChapaTransaction } from "@/lib/chapa"
 import { sendOrderConfirmationEmail, sendLowStockAlertEmail, sendOrderNoticeEmail } from "@/lib/email";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { escapeHtml } from "@/lib/escape-html";
-import { chapaReceiptUrl, recordPayment } from "@/lib/payments";
+import { chapaReceiptLinksEnabled, chapaReceiptUrl, recordPayment } from "@/lib/payments";
 import { issueStoreCredit, refundOrder } from "@/lib/refunds";
 import { restockExpectedFor, sweepWaitingOrders, takeStock } from "@/lib/stock";
 import { applyReferralRewards, qualifyReferralIfFirstPurchase, reverseOrderRewardUsages } from "@/lib/referrals";
@@ -406,7 +406,7 @@ export async function confirmPayment(orderId: string, txRef: string) {
       unitPrice: i.unitPrice,
       quantity: i.quantity,
     })),
-    receiptUrl: chapaReceiptUrl(raw.data?.reference) ?? undefined,
+    chapaReceiptUrl: chapaReceiptLinksEnabled() ? (chapaReceiptUrl(raw.data?.reference) ?? undefined) : undefined,
   });
 
   return { paid: true } as { paid: boolean; outOfStock?: true };

@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { PackageSearch } from "lucide-react";
 import { db } from "@/db";
 import { orderPayments, orders } from "@/db/schema";
-import { chapaReceiptUrl } from "@/lib/payments";
+import { chapaReceiptLinksEnabled, chapaReceiptUrl } from "@/lib/payments";
 import { auth } from "@/lib/auth";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { getFreshRates } from "@/lib/fx-rates";
@@ -75,7 +75,7 @@ export default async function OrderHistoryPage() {
         <div className="space-y-3">
           {myOrders.map((order) => {
             const payment = paymentByOrder.get(order.id);
-            const receiptUrl = payment ? chapaReceiptUrl(payment.reference) : null;
+            const receiptUrl = payment && chapaReceiptLinksEnabled() ? chapaReceiptUrl(payment.reference) : null;
             const wasPaid = ["paid", "refunded", "refund_pending", "credited"].includes(order.paymentStatus);
             return (
               <div
