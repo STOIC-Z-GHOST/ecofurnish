@@ -1,4 +1,5 @@
-import { requireAdminViewPage } from "@/lib/require-admin";
+import { requireAdminShell } from "@/lib/require-admin";
+import { SandboxBanner } from "@/components/admin/sandbox/SandboxBanner";
 import { APP_VERSION } from "@/lib/version";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { GlowNav, type GlowNavLink } from "@/components/GlowNav";
@@ -24,6 +25,9 @@ const GUEST_LINKS: GlowNavLink[] = [
   { href: "/admin/orders", label: "Orders" },
 ];
 
+// An access manager (someone allowed to invite guests) sees only this.
+const GUESTS_LINK: GlowNavLink = { href: "/admin/guests", label: "Guests" };
+
 // requireAdminPage() already calls headers(), which normally opts a route
 // out of static caching automatically — this makes that explicit and
 // unconditional, so nothing (Vercel's edge cache, the Next.js Data
@@ -31,9 +35,18 @@ const GUEST_LINKS: GlowNavLink[] = [
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Admins and active guests get the shell; each page then decides for
-  // itself who may see it (guests only reach the three read-only ones).
-  const { isGuest, guestExpiresAt } = await requireAdminViewPage();
+  // Admins, active guests and access managers get the shell; each page then
+  // decides for itself who may see it (guests only reach the read-only
+  // ones, managers only the Guests page).
+  const { level, isGuest, guestExpiresAt, delegate } = await requireAdminShell();
+  const links =
+    level === "admin"
+      ? ADMIN_LINKS
+      : level === "guest"
+        ? delegate
+          ? [...GUEST_LINKS, GUESTS_LINK]
+          : GUEST_LINKS
+        : [GUESTS_LINK];
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10">
@@ -42,17 +55,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <h1 className="mb-3 text-xl font-bold tracking-tight">
           Admin <span className="align-middle text-xs font-normal text-muted-foreground">v{APP_VERSION}</span>
         </h1>
-        <GlowNav links={isGuest ? GUEST_LINKS : ADMIN_LINKS} />
+        <GlowNav links={links} />
       </div>
-      {isGuest && (
-        <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-          <strong>Guest view — read-only.</strong> Customer details are masked and nothing here can be
-          changed.
-          {guestExpiresAt && (
-            <> Your access ends {guestExpiresAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.</>
-          )}
-        </div>
-      )}
+      {isGuest && <SandboxBanner expiresAtIso={guestExpiresAt ? guestExpiresAt.toISOString() : null} />}
       {children}
     </div>
   );

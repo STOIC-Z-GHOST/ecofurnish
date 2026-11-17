@@ -1,4 +1,4 @@
--- EcoFurnish database check (updated for Batch B).
+-- EcoFurnish database check (updated for Batch C).
 -- Paste into the Neon SQL editor (same database your Vercel app uses) and run.
 --
 -- It lists every table or column the app expects but your database doesn't
@@ -7,6 +7,12 @@
 
 WITH expected(table_name, column_name) AS (VALUES
     -- the app's own tables (from db/schema.ts)
+    ('admin_delegates','email'),
+    ('admin_delegates','max_days'),
+    ('admin_delegates','max_active'),
+    ('admin_delegates','created_by'),
+    ('admin_delegates','created_at'),
+    ('admin_delegates','revoked_at'),
     ('admin_guests','email'),
     ('admin_guests','expires_at'),
     ('admin_guests','granted_by'),

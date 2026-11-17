@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { adminGuests } from "@/db/schema";
+import { adminDelegates, adminGuests } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 // One session lookup per request, shared by the admin layout and the page
@@ -60,7 +60,7 @@ export async function requireAdmin() {
 const getGuestGrant = cache(async (email: string) => {
   try {
     const [grant] = await db
-      .select()
+      .select({ email: adminGuests.email, expiresAt: adminGuests.expiresAt })
       .from(adminGuests)
       .where(
         and(
@@ -77,19 +77,79 @@ const getGuestGrant = cache(async (email: string) => {
   }
 });
 
+/**
+ * An "access manager": someone the owner trusts to invite temporary
+ * read-only guests, with limits the owner chose. Same rules as guests —
+ * checked on every request, verified email, fails closed.
+ */
+const getDelegateGrant = cache(async (email: string) => {
+  try {
+    const [grant] = await db
+      .select({ maxDays: adminDelegates.maxDays, maxActive: adminDelegates.maxActive })
+      .from(adminDelegates)
+      .where(and(eq(adminDelegates.email, email.toLowerCase()), isNull(adminDelegates.revokedAt)))
+      .limit(1);
+    return grant ?? null;
+  } catch (error) {
+    console.error("Couldn't check access-manager status:", error);
+    return null;
+  }
+});
+
+export type DelegateLimits = { maxDays: number; maxActive: number };
+
+/**
+ * Who is this, as far as the admin area is concerned?
+ *   level "admin"     — a real admin, full access.
+ *   level "guest"     — read-only (dashboard, products, orders; masked).
+ *   level "delegate"  — an access manager with no guest grant: can ONLY use
+ *                       the Guests page, sees nothing else.
+ * `delegate` is set whenever the person is an access manager (even if they
+ * also hold a guest grant), so they can manage guests either way.
+ */
 export const getAdminAccess = cache(async () => {
   const session = await getSessionOncePerRequest();
   if (!session?.user) return null;
   if (session.user.role === "admin") {
-    return { level: "admin" as const, session, guestExpiresAt: null as Date | null };
+    return {
+      level: "admin" as const,
+      session,
+      guestExpiresAt: null as Date | null,
+      delegate: null as DelegateLimits | null,
+    };
   }
   // Sign-in already requires a verified email; checked again here so a
-  // guest grant can never be claimed by someone who merely typed the address.
+  // grant can never be claimed by someone who merely typed the address.
   if (session.user.emailVerified !== true) return null;
-  const grant = await getGuestGrant(session.user.email);
-  if (!grant) return null;
-  return { level: "guest" as const, session, guestExpiresAt: grant.expiresAt as Date | null };
+  const [grant, delegate] = await Promise.all([
+    getGuestGrant(session.user.email),
+    getDelegateGrant(session.user.email),
+  ]);
+  if (!grant && !delegate) return null;
+  return {
+    level: (grant ? "guest" : "delegate") as "guest" | "delegate",
+    session,
+    guestExpiresAt: (grant?.expiresAt ?? null) as Date | null,
+    delegate: delegate as DelegateLimits | null,
+  };
 });
+
+/**
+ * For the admin LAYOUT only: lets in admins, active guests and access
+ * managers, because all three need the shell. It says who they are; each
+ * page then decides for itself whether they may see it.
+ */
+export async function requireAdminShell() {
+  const access = await getAdminAccess();
+  if (!access) notFound();
+  return {
+    session: access.session,
+    level: access.level,
+    isGuest: access.level === "guest",
+    guestExpiresAt: access.guestExpiresAt,
+    delegate: access.delegate,
+  };
+}
 
 /**
  * Like requireAdminPage, but ALSO lets an active guest in. Use it only on
@@ -100,10 +160,41 @@ export const getAdminAccess = cache(async () => {
  */
 export async function requireAdminViewPage() {
   const access = await getAdminAccess();
-  if (!access) notFound();
+  // An access manager with no guest grant is NOT a viewer.
+  if (!access || access.level === "delegate") notFound();
   return {
     session: access.session,
     isGuest: access.level === "guest",
     guestExpiresAt: access.guestExpiresAt,
+  };
+}
+
+/**
+ * The Guests page: admins, and access managers. (Page version: "not found"
+ * for everyone else.)
+ */
+export async function requireGuestManagerPage() {
+  const access = await getAdminAccess();
+  if (!access || (access.level !== "admin" && !access.delegate)) notFound();
+  return {
+    session: access.session,
+    isAdmin: access.level === "admin",
+    delegate: access.delegate,
+  };
+}
+
+/**
+ * The same for server actions: admins, and access managers. Anyone else is
+ * turned away the way requireAdmin turns people away. Returns who is acting
+ * and, for a manager, the limits the owner set for them.
+ */
+export async function requireGuestManager() {
+  const access = await getAdminAccess();
+  if (!access) redirect("/");
+  if (access.level !== "admin" && !access.delegate) redirect("/");
+  return {
+    session: access.session,
+    isAdmin: access.level === "admin",
+    delegate: access.delegate,
   };
 }

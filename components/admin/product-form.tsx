@@ -19,6 +19,7 @@ import {
 } from "@/app/admin/actions";
 import { toast } from "sonner";
 import { RESTOCK_AFTER_HOURS, RESTOCK_QUANTITY } from "@/lib/restock-config";
+import { saveSandboxProduct } from "@/lib/sandbox-store";
 
 // `<input type="datetime-local">` wants "YYYY-MM-DDTHH:mm" in local time,
 // not an ISO string — this bridges what we store (ISO, UTC) to what the
@@ -35,6 +36,11 @@ interface ProductFormProps {
   productId?: string;
   initial?: ProductInput;
   existingCategories?: string[];
+  /** Read-only guest mode: saving only changes THIS browser (see
+   * lib/sandbox-store.ts) — no server action is called, no photo is uploaded. */
+  sandbox?: boolean;
+  /** Sandbox only: the id of a product the guest created, when re-editing it. */
+  localId?: string;
 }
 
 const emptyProduct: ProductInput = {
@@ -53,7 +59,13 @@ const emptyProduct: ProductInput = {
   restockAt: null,
 };
 
-export function ProductForm({ productId, initial, existingCategories = [] }: ProductFormProps) {
+export function ProductForm({
+  productId,
+  initial,
+  existingCategories = [],
+  sandbox = false,
+  localId,
+}: ProductFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<ProductInput>(initial ?? emptyProduct);
   const [submitting, setSubmitting] = useState(false);
@@ -91,6 +103,11 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (sandbox) {
+      toast.info("Photo uploads are turned off in the guest sandbox.");
+      e.target.value = "";
+      return;
+    }
 
     // Instant local preview while the real upload is still in flight —
     // swapped for the real blob URL once that resolves below.
@@ -139,6 +156,11 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
   async function handleAddPhotos(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
+    if (sandbox) {
+      toast.info("Photo uploads are turned off in the guest sandbox.");
+      e.target.value = "";
+      return;
+    }
 
     const remainingSlots = MAX_EXTRA_PHOTOS - values.images.length;
     if (remainingSlots <= 0) {
@@ -236,6 +258,14 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
       rooms: values.rooms.length > 0 ? values.rooms : ["all"],
     };
 
+    // Guest sandbox: keep the change in this browser only, never the server.
+    if (sandbox) {
+      saveSandboxProduct(productId ?? localId ?? `local-${Date.now()}`, payload);
+      toast.success("Saved — in this browser only");
+      router.push("/admin/products");
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (productId) {
@@ -254,6 +284,12 @@ export function ProductForm({ productId, initial, existingCategories = [] }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="max-w-xl space-y-4">
+      {sandbox && (
+        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <strong>Sandbox.</strong> Saving only changes what <em>you</em> see, in this browser. Photo
+          uploads are turned off.
+        </p>
+      )}
       <div className="space-y-1.5">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>

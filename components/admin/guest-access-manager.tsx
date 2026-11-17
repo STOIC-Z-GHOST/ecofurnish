@@ -17,6 +17,7 @@ export type GuestRow = {
   expiresAt: string; // ISO
   revoked: boolean;
   active: boolean;
+  grantedBy: string | null;
 };
 
 const DURATIONS = [
@@ -27,11 +28,25 @@ const DURATIONS = [
   { days: 30, label: "30 days" },
 ];
 
-export function GuestAccessManager({ guests }: { guests: GuestRow[] }) {
+export function GuestAccessManager({
+  guests,
+  maxDays = 30,
+  showInvitedBy = false,
+  limitsNote,
+}: {
+  guests: GuestRow[];
+  /** The longest stay this person may grant (the owner: 30; a manager: their cap). */
+  maxDays?: number;
+  /** The owner sees who invited each guest. */
+  showInvitedBy?: boolean;
+  /** For an access manager: a line spelling out their limits. */
+  limitsNote?: string;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
-  const [days, setDays] = useState(7);
+  const options = DURATIONS.filter((d) => d.days <= maxDays);
+  const [days, setDays] = useState(options.filter((d) => d.days <= 7).pop()?.days ?? options[0]?.days ?? 1);
 
   function run(task: () => Promise<{ success: boolean; error?: string }>, okMessage: string) {
     startTransition(async () => {
@@ -55,8 +70,9 @@ export function GuestAccessManager({ guests }: { guests: GuestRow[] }) {
         <h2 className="font-semibold">Give read-only access</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           They can look at the dashboard, products and orders. Customer names and emails are masked,
-          and they can&apos;t change anything. Access ends by itself.
+          and anything they try to change stays in their own browser. Access ends by itself.
         </p>
+        {limitsNote && <p className="mt-1 text-sm text-muted-foreground">{limitsNote}</p>}
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div className="min-w-[240px] flex-1">
             <label className="mb-1 block text-xs text-muted-foreground" htmlFor="guest-email">
@@ -80,7 +96,7 @@ export function GuestAccessManager({ guests }: { guests: GuestRow[] }) {
               onChange={(e) => setDays(Number(e.target.value))}
               className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
             >
-              {DURATIONS.map((d) => (
+              {options.map((d) => (
                 <option key={d.days} value={d.days}>
                   {d.label}
                 </option>
@@ -114,6 +130,7 @@ export function GuestAccessManager({ guests }: { guests: GuestRow[] }) {
                   <th className="p-3">Email</th>
                   <th className="p-3">Status</th>
                   <th className="p-3">Access ends</th>
+                  {showInvitedBy && <th className="p-3">Invited by</th>}
                   <th className="p-3" />
                 </tr>
               </thead>
@@ -132,6 +149,9 @@ export function GuestAccessManager({ guests }: { guests: GuestRow[] }) {
                         timeStyle: "short",
                       })}
                     </td>
+                    {showInvitedBy && (
+                      <td className="p-3 text-muted-foreground">{g.grantedBy ?? "—"}</td>
+                    )}
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-2">
                         {g.active && (

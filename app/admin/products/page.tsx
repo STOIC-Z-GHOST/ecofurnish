@@ -6,21 +6,36 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
 import { requireAdminViewPage } from "@/lib/require-admin";
+import { SandboxProductsTable } from "@/components/admin/sandbox/SandboxProductsTable";
 
 export default async function AdminProductsPage() {
   const { isGuest } = await requireAdminViewPage();
   const allProducts = await db.select().from(products);
 
+  // A read-only guest gets the same list with a browser-only sandbox laid
+  // over it: Edit / New / Delete work for them, but only on their own screen.
+  if (isGuest) {
+    return (
+      <SandboxProductsTable
+        rows={allProducts.map((p) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          price: p.price,
+          stock: p.stock,
+        }))}
+      />
+    );
+  }
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Products ({allProducts.length})</h2>
-        {!isGuest && (
-          <Button render={<Link href="/admin/products/new" />} nativeButton={false}>
-            <Plus className="h-4 w-4" />
-            New product
-          </Button>
-        )}
+        <Button render={<Link href="/admin/products/new" />} nativeButton={false}>
+          <Plus className="h-4 w-4" />
+          New product
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border/60">
@@ -44,19 +59,17 @@ export default async function AdminProductsPage() {
                   <span className={p.stock <= 3 ? "text-destructive" : ""}>{p.stock}</span>
                 </td>
                 <td className="p-3 text-right">
-                  {!isGuest && (
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        render={<Link href={`/admin/products/${p.id}/edit`} />}
-                        nativeButton={false}
-                      >
-                        Edit
-                      </Button>
-                      <DeleteProductButton productId={p.id} productName={p.name} />
-                    </div>
-                  )}
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      render={<Link href={`/admin/products/${p.id}/edit`} />}
+                      nativeButton={false}
+                    >
+                      Edit
+                    </Button>
+                    <DeleteProductButton productId={p.id} productName={p.name} />
+                  </div>
                 </td>
               </tr>
             ))}

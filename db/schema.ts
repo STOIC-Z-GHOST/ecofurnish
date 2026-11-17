@@ -138,6 +138,21 @@ export const adminGuests = pgTable("admin_guests", {
   revokedAt: timestamp("revoked_at"),
 });
 
+// People the owner has made "access managers": they can invite and revoke
+// temporary read-only guests (see admin_guests) and nothing else — no orders,
+// no products, no pages. The owner sets how long each guest they invite may
+// last (max_days) and how many can be live at once (max_active). Which guests
+// a manager invited is recorded in admin_guests.granted_by. Own table so a
+// missing one can only ever affect this.
+export const adminDelegates = pgTable("admin_delegates", {
+  email: text("email").primaryKey(),
+  maxDays: integer("max_days").notNull().default(7),
+  maxActive: integer("max_active").notNull().default(5),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
+});
+
 // What Chapa told us about a successful payment, kept so the customer can
 // open their Chapa receipt later (chapa.link/payment-receipt/<reference>)
 // and see their payments in one place. Its own table on purpose: if it were

@@ -10,6 +10,8 @@ __v0_jsx-dev-runtime.ts
 node_modules
 .next/
 .DS_Store
+audit-bundle.zip
+file-tree.txt
 
 # dependencies
 node_modules/
