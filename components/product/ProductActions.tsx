@@ -3,6 +3,7 @@
 import { CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 import { useCart, useCartRoom } from "@/lib/cart-context";
 import { getEffectivePrice } from "@/lib/pricing";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
@@ -29,6 +30,31 @@ export default function ProductActions({ product }: { product: Product }) {
     });
     if (added > 0) toast.success(`${product.name} added to cart`);
     else toast.info(`All ${effectiveStock} in stock are already in your cart`);
+  }
+
+  // A product that comes in colors/sizes can't be added from the card — the
+  // buyer has to choose on its page, so the card sends them there.
+  if (product.hasVariants) {
+    return (
+      <CardFooter className="mt-auto flex gap-1.5 bg-transparent p-3 sm:gap-2 sm:p-4 sm:py-3">
+        {product.stock <= 0 ? (
+          <Button size="lg" className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm" disabled>
+            Out of Stock
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm"
+            render={<Link href={`/products/${product.id}`} />}
+            nativeButton={false}
+          >
+            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Choose options
+          </Button>
+        )}
+        <WishlistButton product={product} />
+      </CardFooter>
+    );
   }
 
   return (

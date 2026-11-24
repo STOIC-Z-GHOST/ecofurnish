@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, Heart, Leaf, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ export default function ProductHoverDetail({
   const liked = isWishlisted(product.id);
   const effectiveStock = useEffectiveStock(product.id, product.stock);
   const { allInCart, ready } = useCartRoom(product.id, effectiveStock);
+  const router = useRouter();
 
   // Cover photo first, then extras — lets shoppers flip through a
   // product's other pictures right from the catalog, without opening it.
@@ -60,6 +62,11 @@ export default function ProductHoverDetail({
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    // Colors/sizes get chosen on the product page, never from the card.
+    if (product.hasVariants) {
+      router.push(`/products/${product.id}`);
+      return;
+    }
     if (!ready) return;
     const added = addItem({
       productId: product.id,
@@ -80,6 +87,7 @@ export default function ProductHoverDetail({
       name: product.name,
       price: getEffectivePrice(product),
       imageUrl: product.imageUrl,
+      hasVariants: product.hasVariants,
     });
   }
 
@@ -188,7 +196,7 @@ export default function ProductHoverDetail({
         <button
           type="button"
           tabIndex={-1}
-          disabled={effectiveStock <= 0 || allInCart || !ready}
+          disabled={product.hasVariants ? product.stock <= 0 : effectiveStock <= 0 || allInCart || !ready}
           onClick={handleAddToCart}
           className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 sm:text-sm"
         >
@@ -197,7 +205,15 @@ export default function ProductHoverDetail({
           ) : (
             <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
-          {effectiveStock <= 0 ? "Out of Stock" : allInCart ? "All in cart" : "Add to Cart"}
+          {product.hasVariants
+            ? product.stock <= 0
+              ? "Out of Stock"
+              : "Choose options"
+            : effectiveStock <= 0
+              ? "Out of Stock"
+              : allInCart
+                ? "All in cart"
+                : "Add to Cart"}
         </button>
         <button
           type="button"

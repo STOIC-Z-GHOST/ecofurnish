@@ -8,6 +8,8 @@ import { useCart } from "@/lib/cart-context";
 
 export interface ReorderItem {
   productId: string;
+  variantId?: string | null;
+  variantLabel?: string | null;
   name: string;
   price: string;
   imageUrl: string | null;
@@ -24,7 +26,15 @@ export function ReorderButton({ items }: { items: ReorderItem[] }) {
   function handleReorder() {
     for (const item of items) {
       addItem(
-        { productId: item.productId, name: item.name, price: item.price, imageUrl: item.imageUrl, stock: item.stock },
+        {
+          productId: item.productId,
+          variantId: item.variantId ?? null,
+          variantLabel: item.variantLabel ?? null,
+          name: item.name,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          stock: item.stock,
+        },
         item.quantity
       );
     }

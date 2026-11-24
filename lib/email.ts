@@ -314,6 +314,8 @@ export async function sendContactMessage(input: {
 
 interface OrderEmailItem {
   productName: string;
+  /** The color/size the customer chose, e.g. "Red / Large", when there is one. */
+  variantLabel?: string | null;
   unitPrice: string;
   quantity: number;
 }
@@ -339,7 +341,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
     .map(
       (item) =>
         `<tr>
-          <td style="padding:8px 0;color:#3a3f38;">${escapeHtml(item.productName)} × ${item.quantity}</td>
+          <td style="padding:8px 0;color:#3a3f38;">${escapeHtml(item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName)} × ${item.quantity}</td>
           <td style="padding:8px 0;text-align:right;color:#3a3f38;">Br${(
             parseFloat(item.unitPrice) * item.quantity
           ).toFixed(2)}</td>
@@ -348,7 +350,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
     .join("");
 
   const itemsText = input.items
-    .map((item) => `${item.productName} × ${item.quantity} — Br${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`)
+    .map((item) => `${item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName} × ${item.quantity} — Br${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`)
     .join("\n");
 
   const html = `

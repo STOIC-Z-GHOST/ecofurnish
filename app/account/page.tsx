@@ -25,6 +25,14 @@ export default async function AccountPage() {
   const adminAccess = isAdmin ? null : await getAdminAccess();
   const guestLevel = adminAccess?.level === "guest" || adminAccess?.level === "delegate" ? adminAccess.level : null;
   const divertedKg = await getUserPlasticDivertedKg(session.user.id);
+  // Signed up with Google (or another provider)? Then there's no password to
+  // "change" yet — the card offers to add one instead.
+  const linkedAccounts = await auth.api.listUserAccounts({ headers: await headers() }).catch(() => []);
+  const hasPassword = linkedAccounts.length === 0 || linkedAccounts.some((a) => a.providerId === "credential");
+  const providerNames = linkedAccounts
+    .map((a) => a.providerId)
+    .filter((id) => id !== "credential")
+    .map((id) => id.charAt(0).toUpperCase() + id.slice(1));
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10">
@@ -94,12 +102,14 @@ export default async function AccountPage() {
         </section>
 
         <section className="rounded-lg border border-border/60 p-6">
-          <h2 className="font-semibold">Change password</h2>
+          <h2 className="font-semibold">{hasPassword ? "Change password" : "Add a password"}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            You&apos;ll need your current password to set a new one.
+            {hasPassword
+              ? "You'll need your current password to set a new one."
+              : `You signed up with ${providerNames.join(" / ") || "a social account"}, so you don't have a password yet. Add one and you can also sign in with ${session.user.email} and your password next time — signing in with ${providerNames[0] ?? "that account"} keeps working too.`}
           </p>
           <div className="mt-4">
-            <PasswordForm />
+            <PasswordForm hasPassword={hasPassword} />
           </div>
         </section>
 

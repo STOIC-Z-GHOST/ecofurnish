@@ -67,6 +67,12 @@ export default function WishlistPage() {
             </div>
 
             <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-normal">
+              {item.hasVariants ? (
+                <Button variant="outline" size="sm" render={<Link href={`/products/${item.productId}`} />} nativeButton={false}>
+                  <ShoppingCart className="h-4 w-4" />
+                  Choose options
+                </Button>
+              ) : (
               <Button
                 variant="outline"
                 size="sm"
@@ -84,6 +90,7 @@ export default function WishlistPage() {
                 <ShoppingCart className="h-4 w-4" />
                 Add to Cart
               </Button>
+              )}
 
               <Button
                 variant="ghost"

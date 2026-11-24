@@ -10,9 +10,11 @@ import RestockOverlay from "@/components/product/RestockOverlay";
 
 interface ProductGalleryProps {
   product: Product;
+  /** A photo to jump to — the one belonging to the color the shopper just picked. */
+  focusImage?: string | null;
 }
 
-export default function ProductGallery({ product }: ProductGalleryProps) {
+export default function ProductGallery({ product, focusImage }: ProductGalleryProps) {
   // Cover photo first, then the extra gallery photos — one combined list
   // so the arrows/thumbnails don't need to treat the cover specially.
   // Excludes the literal placeholder path too, not just empty values —
@@ -23,8 +25,19 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
   const photos = [product.imageUrl, ...product.images].filter(
     (src): src is string => !!src && src !== "/placeholder.jpg"
   );
+  // A chosen color's photo that isn't already in the gallery (e.g. pasted in
+  // by URL) is added to the end so there's always something to show for it.
+  if (focusImage && focusImage !== "/placeholder.jpg" && !photos.includes(focusImage)) photos.push(focusImage);
   const displayPhotos = photos.length > 0 ? photos : ["/placeholder.jpg"];
   const [index, setIndex] = useState(0);
+  // Jump to the chosen color's photo when it changes ("adjusting state while
+  // rendering" — React's recommended way to react to a prop change).
+  const [shownFocus, setShownFocus] = useState(focusImage ?? null);
+  if ((focusImage ?? null) !== shownFocus) {
+    setShownFocus(focusImage ?? null);
+    const target = focusImage ? displayPhotos.indexOf(focusImage) : -1;
+    if (target >= 0) setIndex(target);
+  }
   const hasMultiple = displayPhotos.length > 1;
 
   function next() {

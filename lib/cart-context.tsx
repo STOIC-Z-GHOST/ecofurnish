@@ -9,9 +9,16 @@ import {
   type ReactNode,
 } from "react";
 import { useSession } from "@/lib/auth-client";
+import { cartLineKey } from "@/lib/variant-utils";
+
+export { cartLineKey };
 
 export interface CartItem {
   productId: string;
+  /** Set for products that come in colors/sizes — the chosen option. */
+  variantId?: string | null;
+  /** "Red / Large" — shown in the cart and on the order. */
+  variantLabel?: string | null;
   name: string;
   price: string; // snapshot at time of adding, as a decimal string
   imageUrl: string | null;
@@ -24,8 +31,9 @@ interface CartContextValue {
   /** Returns how many units were actually added — less than asked (even
    * 0) when the cart already holds everything that's in stock. */
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => number;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  /** `key` is cartLineKey(item): the product id, plus the chosen option if any. */
+  removeItem: (key: string) => void;
+  updateQuantity: (key: string, quantity: number) => void;
   clearCart: () => void;
   /** False until this account's saved cart has been read from the browser.
    * Add to Cart buttons wait for it — before then the cart looks empty. */
@@ -67,7 +75,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const guestItems: CartItem[] = guestRaw ? JSON.parse(guestRaw) : [];
         if (guestItems.length > 0) {
           for (const guestItem of guestItems) {
-            const existing = loaded.find((i) => i.productId === guestItem.productId);
+            const existing = loaded.find((i) => cartLineKey(i) === cartLineKey(guestItem));
             if (existing) {
               existing.quantity = Math.min(existing.quantity + guestItem.quantity, existing.stock);
             } else {
@@ -90,10 +98,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!firstLoad || early.length === 0) return loaded;
         let merged = loaded;
         for (const e of early) {
-          const have = merged.find((i) => i.productId === e.productId);
+          const have = merged.find((i) => cartLineKey(i) === cartLineKey(e));
           merged = have
             ? merged.map((i) =>
-                i.productId === e.productId
+                cartLineKey(i) === cartLineKey(e)
                   ? { ...i, stock: e.stock, quantity: Math.min(i.quantity + e.quantity, e.stock) }
                   : i
               )
@@ -119,17 +127,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem: CartContextValue["addItem"] = (item, quantity = 1) => {
     const cap = Math.max(0, item.stock);
-    const have = items.find((i) => i.productId === item.productId)?.quantity ?? 0;
+    const have = items.find((i) => cartLineKey(i) === cartLineKey(item))?.quantity ?? 0;
     const added = Math.max(0, Math.min(quantity, cap - have));
 
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      const existing = prev.find((i) => cartLineKey(i) === cartLineKey(item));
       if (existing) {
         // Always refresh the stock snapshot, and never leave more in the
         // cart than is actually in stock right now.
         const nextQty = Math.min(existing.quantity + added, cap);
         return prev.map((i) =>
-          i.productId === item.productId ? { ...i, stock: cap, quantity: nextQty } : i
+          cartLineKey(i) === cartLineKey(item) ? { ...i, stock: cap, quantity: nextQty } : i
         );
       }
       if (added <= 0) return prev;
@@ -138,18 +146,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return added;
   };
 
-  const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = (key: string) => {
+    setItems((prev) => prev.filter((i) => cartLineKey(i) !== key));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (key: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(productId);
+      removeItem(key);
       return;
     }
     setItems((prev) =>
       prev.map((i) =>
-        i.productId === productId
+        cartLineKey(i) === key
           ? { ...i, quantity: Math.min(quantity, i.stock) }
           : i
       )
@@ -190,9 +198,9 @@ export function useCart() {
  * already in this cart. Drives the Add to Cart buttons so they stop
  * saying "add" once the whole stock is in the cart.
  */
-export function useCartRoom(productId: string, stock: number) {
+export function useCartRoom(key: string, stock: number) {
   const { items, ready } = useCart();
-  const inCart = items.find((i) => i.productId === productId)?.quantity ?? 0;
+  const inCart = items.find((i) => cartLineKey(i) === key)?.quantity ?? 0;
   const remaining = Math.max(0, stock - inCart);
   // `ready` matters: until the saved cart has loaded it looks empty, so
   // "how much is left" can't be trusted yet and the buttons wait.

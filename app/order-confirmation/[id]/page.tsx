@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Clock, PackageX } from "lucide-react";
 import { db } from "@/db";
-import { orders, orderItems, orderStockHolds, products } from "@/db/schema";
+import { orders, orderItems, orderStockHolds, productVariants, products } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { confirmPayment } from "@/app/actions/orders";
@@ -15,6 +15,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { canViewOrder } from "@/lib/order-access";
 import { restockExpectedFor } from "@/lib/stock";
+import { variantBasePrice, variantLabel } from "@/lib/variant-utils";
 import { SoldOutChoice } from "@/components/order/SoldOutChoice";
 import { PaymentReceiptCard } from "@/components/order/PaymentReceiptCard";
 import { chapaReceiptLinksEnabled, getPaymentForOrder, isChapaTestMode } from "@/lib/payments";
@@ -94,9 +95,33 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
       ? await db.select().from(products).where(inArray(products.id, productIds))
       : [];
   const productById = new Map(currentProducts.map((p) => [p.id, p]));
+  // Items bought in a color/size: reorder and the stock tally need that
+  // option's CURRENT photo, price and stock — and skip it if it was removed.
+  const variantIds = items.map((item) => item.variantId).filter((v): v is string => !!v);
+  const currentVariants =
+    variantIds.length > 0
+      ? await db.select().from(productVariants).where(inArray(productVariants.id, variantIds))
+      : [];
+  const variantById = new Map(currentVariants.map((v) => [v.id, v]));
   const reorderItems: ReorderItem[] = items.flatMap((item) => {
     const current = productById.get(item.productId);
     if (!current) return [];
+    if (item.variantId) {
+      const variant = variantById.get(item.variantId);
+      if (!variant) return [];
+      return [
+        {
+          productId: current.id,
+          variantId: variant.id,
+          variantLabel: variantLabel(variant),
+          name: current.name,
+          price: variantBasePrice(current.price, variant.priceDelta),
+          imageUrl: variant.imageUrl ?? current.imageUrl,
+          stock: variant.stock,
+          quantity: item.quantity,
+        },
+      ];
+    }
     return [
       {
         productId: current.id,
@@ -134,9 +159,13 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             <ClearCartOnSuccess />
             <RecordSimulatedPurchase
               items={items.map((item) => ({
-                productId: item.productId,
+                // A color/size is tallied under its own id, so buying the
+                // last red one doesn't make the blue ones look sold out.
+                productId: item.variantId ?? item.productId,
                 quantity: item.quantity,
-                stock: productById.get(item.productId)?.stock,
+                stock: item.variantId
+                  ? variantById.get(item.variantId)?.stock
+                  : productById.get(item.productId)?.stock,
               }))}
               orderId={order.id}
               purchasedAt={order.createdAt.getTime()}
@@ -201,7 +230,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           customerName={order.customerName}
           customerEmail={order.customerEmail}
           items={items.map((i) => ({
-            name: i.productName,
+            name: i.variantLabel ? `${i.productName} (${i.variantLabel})` : i.productName,
             quantity: i.quantity,
             unitLabel: formatPrice(i.unitPrice, "ETB"),
           }))}
@@ -230,7 +259,8 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
           {items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span className="text-muted-foreground">
-                {item.productName} × {item.quantity}
+                {item.productName}
+                {item.variantLabel ? ` (${item.variantLabel})` : ""} × {item.quantity}
               </span>
               <span className="font-medium">
                 {formatPrice((parseFloat(item.unitPrice) * item.quantity).toFixed(2), "ETB")}

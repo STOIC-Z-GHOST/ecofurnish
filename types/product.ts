@@ -12,6 +12,9 @@ export interface Product {
   category: string;
   rooms: string[];
   stock: number;
+  // True when the product comes in colors/sizes — the buyer must choose on
+  // the product page, so cards link there instead of adding straight to cart.
+  hasVariants?: boolean;
   plasticWeightKg: string;
   discountPercent?: number | null;
   discountReason?: string | null;

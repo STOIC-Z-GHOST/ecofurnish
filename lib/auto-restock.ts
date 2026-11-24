@@ -1,6 +1,6 @@
-import { and, isNull, lte } from "drizzle-orm";
+import { and, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { products } from "@/db/schema";
+import { productVariants, products } from "@/db/schema";
 import { RESTOCK_AFTER_HOURS, RESTOCK_QUANTITY } from "@/lib/restock-config";
 import { sweepWaitingOrders } from "@/lib/stock";
 
@@ -43,8 +43,33 @@ export async function runAutoRestock(
     const refilled = await db
       .update(products)
       .set({ stock: RESTOCK_QUANTITY, restockAt: null, updatedAt: new Date() })
-      .where(and(lte(products.stock, 0), lte(products.restockAt, new Date(now))))
+      .where(
+        and(eq(products.hasVariants, false), lte(products.stock, 0), lte(products.restockAt, new Date(now)))
+      )
       .returning({ id: products.id });
+
+    // A product with colors/sizes counts as sold out only when EVERY option
+    // is gone. When it's due, each option is refilled and the product's total
+    // is set to match (RESTOCK_QUANTITY per option).
+    const dueWithOptions = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(
+        and(eq(products.hasVariants, true), lte(products.stock, 0), lte(products.restockAt, new Date(now)))
+      );
+    if (dueWithOptions.length > 0) {
+      const ids = dueWithOptions.map((p) => p.id);
+      await db.update(productVariants).set({ stock: RESTOCK_QUANTITY }).where(inArray(productVariants.productId, ids));
+      await db
+        .update(products)
+        .set({
+          stock: sql`coalesce((select sum(stock) from product_variants where product_id = ${products.id}), 0)`,
+          restockAt: null,
+          updatedAt: new Date(),
+        })
+        .where(inArray(products.id, ids));
+      refilled.push(...dueWithOptions);
+    }
 
     // Customers who chose to wait for a restock get their order confirmed
     // now that there's stock again.

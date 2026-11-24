@@ -15,6 +15,8 @@ import { restockExpectedFor, sweepWaitingOrders, takeStock } from "@/lib/stock";
 import { applyReferralRewards, qualifyReferralIfFirstPurchase, reverseOrderRewardUsages } from "@/lib/referrals";
 import { getEffectivePrice } from "@/lib/pricing";
 import { canViewOrder } from "@/lib/order-access";
+import { getVariantsForProducts } from "@/lib/variants";
+import { variantBasePrice, variantLabel, type ProductVariant } from "@/lib/variant-utils";
 
 interface PlaceOrderInput {
   customerName: string;
@@ -30,7 +32,7 @@ interface PlaceOrderInput {
   // price is intentionally NOT trusted from here — see the re-pricing
   // block below. It's only accepted in the input type because the cart
   // (a client-side context) naturally carries one; it's never read.
-  items: { productId: string; name: string; price: string; quantity: number }[];
+  items: { productId: string; variantId?: string | null; name: string; price: string; quantity: number }[];
   // A referral reward code the customer typed in at checkout, and/or a
   // flag to auto-apply any store credit they've earned from referrals.
   promoCode?: string;
@@ -56,7 +58,12 @@ export async function createOrder(input: PlaceOrderInput) {
     return { success: false as const, error: "That's too many different items for one order." };
   }
   for (const item of input.items) {
-    if (typeof item?.productId !== "string" || !Number.isInteger(item.quantity) || item.quantity < 1) {
+    if (
+      typeof item?.productId !== "string" ||
+      (item.variantId != null && typeof item.variantId !== "string") ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity < 1
+    ) {
       return { success: false as const, error: "Invalid item quantity." };
     }
     if (item.quantity > MAX_QUANTITY_PER_PRODUCT) {
@@ -93,40 +100,90 @@ export async function createOrder(input: PlaceOrderInput) {
   const dbProducts = await db.select().from(products).where(inArray(products.id, productIds));
   const productById = new Map(dbProducts.map((p) => [p.id, p]));
 
-  // Stock, checked on the TOTAL requested per product — a request that lists
-  // the same product on several lines can't slip past a per-line check.
-  // (The cart UI already caps quantities, but items added from the wishlist
-  // carry a placeholder stock of 99 there, and the UI isn't a security
-  // boundary anyway.)
-  const requestedByProduct = new Map<string, number>();
-  for (const item of input.items) {
-    requestedByProduct.set(item.productId, (requestedByProduct.get(item.productId) ?? 0) + item.quantity);
+  // Products with colors/sizes: each line must name one of THIS product's real
+  // options (looked up here, never trusted from the cart), so the company
+  // always knows exactly what was ordered.
+  const variantsByProduct = await getVariantsForProducts(productIds);
+  const variantById = new Map<string, ProductVariant>();
+  for (const list of variantsByProduct.values()) for (const v of list) variantById.set(v.id, v);
+  function variantFor(item: { productId: string; variantId?: string | null }) {
+    const product = productById.get(item.productId);
+    if (!product?.hasVariants) return undefined;
+    const variant = item.variantId ? variantById.get(item.variantId) : undefined;
+    return variant && variant.productId === product.id ? variant : undefined;
   }
-  for (const [productId, quantity] of requestedByProduct) {
-    const product = productById.get(productId);
-    if (!product) continue; // reported as "no longer available" in the loop below
-    if (quantity > MAX_QUANTITY_PER_PRODUCT) {
-      return { success: false as const, error: `You can order up to ${MAX_QUANTITY_PER_PRODUCT} of one item at a time.` };
-    }
-    if (quantity > product.stock) {
+  for (const item of input.items) {
+    const product = productById.get(item.productId);
+    if (!product?.hasVariants) continue;
+    if (!variantFor(item)) {
       return {
         success: false as const,
-        error:
-          product.stock <= 0
-            ? `Sorry — ${product.name} just sold out. Please remove it from your cart to continue.`
-            : `Only ${product.stock} of ${product.name} left — please lower the quantity in your cart.`,
+        error: item.variantId
+          ? `The option you chose for ${product.name} isn't available any more — please remove it from your cart and choose again.`
+          : `Please choose the color/size for ${product.name} on its page first — then add it to your cart.`,
       };
     }
   }
 
-  const pricedItems: { orderId: string; productId: string; productName: string; unitPrice: string; quantity: number }[] = [];
+  // Stock, checked on the TOTAL requested per product (or per chosen option,
+  // for products that have them) — a request that lists the same thing on
+  // several lines can't slip past a per-line check. (The cart UI already caps
+  // quantities, but items added from the wishlist carry a placeholder stock
+  // of 99 there, and the UI isn't a security boundary anyway.)
+  const requestedByProduct = new Map<string, number>();
+  const requestedByStock = new Map<string, { name: string; stock: number; quantity: number }>();
+  for (const item of input.items) {
+    requestedByProduct.set(item.productId, (requestedByProduct.get(item.productId) ?? 0) + item.quantity);
+    const product = productById.get(item.productId);
+    if (!product) continue; // reported as "no longer available" in the loop below
+    const variant = variantFor(item);
+    const key = variant ? `v:${variant.id}` : `p:${product.id}`;
+    const entry = requestedByStock.get(key) ?? {
+      name: variant ? `${product.name} (${variantLabel(variant)})` : product.name,
+      stock: variant ? variant.stock : product.stock,
+      quantity: 0,
+    };
+    entry.quantity += item.quantity;
+    requestedByStock.set(key, entry);
+  }
+  for (const [productId, quantity] of requestedByProduct) {
+    if (quantity > MAX_QUANTITY_PER_PRODUCT && productById.has(productId)) {
+      return { success: false as const, error: `You can order up to ${MAX_QUANTITY_PER_PRODUCT} of one item at a time.` };
+    }
+  }
+  for (const { name, stock, quantity } of requestedByStock.values()) {
+    if (quantity > stock) {
+      return {
+        success: false as const,
+        error:
+          stock <= 0
+            ? `Sorry — ${name} just sold out. Please remove it from your cart to continue.`
+            : `Only ${stock} of ${name} left — please lower the quantity in your cart.`,
+      };
+    }
+  }
+
+  const pricedItems: {
+    orderId: string;
+    productId: string;
+    productName: string;
+    unitPrice: string;
+    quantity: number;
+    variantId: string | null;
+    variantLabel: string | null;
+  }[] = [];
   let subtotal = 0;
   for (const item of input.items) {
     const product = productById.get(item.productId);
     if (!product) {
       return { success: false as const, error: "One of the items in your cart is no longer available." };
     }
-    const unitPrice = getEffectivePrice(product);
+    const variant = variantFor(item);
+    // The option's small price difference goes on the base price BEFORE any
+    // discount, so a sale applies to the whole price the customer sees.
+    const unitPrice = getEffectivePrice(
+      variant ? { ...product, price: variantBasePrice(product.price, variant.priceDelta) } : product
+    );
     subtotal += parseFloat(unitPrice) * item.quantity;
     pricedItems.push({
       orderId: "", // filled in once the order row exists, below
@@ -134,6 +191,8 @@ export async function createOrder(input: PlaceOrderInput) {
       productName: product.name,
       unitPrice,
       quantity: item.quantity,
+      variantId: variant ? variant.id : null,
+      variantLabel: variant ? variantLabel(variant) : null,
     });
   }
 
@@ -427,6 +486,7 @@ export async function confirmPayment(orderId: string, txRef: string) {
     totalAmount: order.totalAmount,
     items: items.map((i) => ({
       productName: i.productName,
+      variantLabel: i.variantLabel,
       unitPrice: i.unitPrice,
       quantity: i.quantity,
     })),
@@ -570,6 +630,7 @@ export async function getWaitingOrderItems() {
         orderId: orders.id,
         state: orderStockHolds.state,
         name: orderItems.productName,
+        variantLabel: orderItems.variantLabel,
         quantity: orderItems.quantity,
         productId: orderItems.productId,
         imageUrl: products.imageUrl,
@@ -588,7 +649,7 @@ export async function getWaitingOrderItems() {
     return rows.map((r) => ({
       orderId: r.orderId,
       state: r.state,
-      name: r.name,
+      name: r.variantLabel ? `${r.name} (${r.variantLabel})` : r.name,
       quantity: r.quantity,
       productId: r.productId,
       imageUrl: r.imageUrl,

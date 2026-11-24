@@ -22,6 +22,7 @@ export default function WishlistButton({ product }: { product: Product }) {
           name: product.name,
           price: getEffectivePrice(product),
           imageUrl: product.imageUrl,
+          hasVariants: product.hasVariants,
         });
       }}
       className={`rounded-xl border p-3 transition-colors ${

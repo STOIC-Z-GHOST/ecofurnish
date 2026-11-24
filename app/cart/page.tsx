@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/cart-context";
+import { cartLineKey, useCart } from "@/lib/cart-context";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
 import { ExchangeRateNote } from "@/components/currency/ExchangeRateNote";
@@ -42,7 +42,7 @@ export default function CartPage() {
       <div className="space-y-4">
         {items.map((item) => (
           <div
-            key={item.productId}
+            key={cartLineKey(item)}
             className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 p-4"
           >
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
@@ -62,6 +62,9 @@ export default function CartPage() {
               >
                 {item.name}
               </Link>
+              {item.variantLabel && (
+                <p className="mt-0.5 text-sm font-medium text-foreground/80">{item.variantLabel}</p>
+              )}
               <p className="mt-1 text-sm text-muted-foreground">
                 {formatPrice(item.price, currency)} each
               </p>
@@ -73,7 +76,7 @@ export default function CartPage() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    onClick={() => updateQuantity(cartLineKey(item), item.quantity - 1)}
                     aria-label="Decrease quantity"
                   >
                     <Minus className="h-3.5 w-3.5" />
@@ -82,7 +85,7 @@ export default function CartPage() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    onClick={() => updateQuantity(cartLineKey(item), item.quantity + 1)}
                     aria-label="Increase quantity"
                     disabled={item.quantity >= item.stock}
                   >
@@ -108,8 +111,8 @@ export default function CartPage() {
                 variant="ghost"
                 size="icon-sm"
                 className="text-muted-foreground hover:text-destructive"
-                onClick={() => removeItem(item.productId)}
-                aria-label={`Remove ${item.name}`}
+                onClick={() => removeItem(cartLineKey(item))}
+                aria-label={`Remove ${item.name}${item.variantLabel ? ` (${item.variantLabel})` : ""}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

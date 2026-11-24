@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import PaymentBadge from "@/components/PaymentBadge";
-import { useCart } from "@/lib/cart-context";
+import { cartLineKey, useCart } from "@/lib/cart-context";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
 import { createOrder, createCheckoutSession } from "@/app/actions/orders";
@@ -111,6 +111,7 @@ export default function CheckoutPage() {
         lng: location?.lng,
         items: items.map((i) => ({
           productId: i.productId,
+          variantId: i.variantId ?? null,
           name: i.name,
           price: i.price,
           quantity: i.quantity,
@@ -242,9 +243,10 @@ export default function CheckoutPage() {
           <h2 className="mb-4 font-semibold">Order summary</h2>
           <div className="space-y-3">
             {items.map((item) => (
-              <div key={item.productId} className="flex justify-between text-sm">
+              <div key={cartLineKey(item)} className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {item.name} × {item.quantity}
+                  {item.name}
+                  {item.variantLabel ? ` (${item.variantLabel})` : ""} × {item.quantity}
                 </span>
                 <span className="font-medium">
                   {formatPrice((parseFloat(item.price) * item.quantity).toFixed(2), "ETB")}

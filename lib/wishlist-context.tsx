@@ -15,6 +15,8 @@ export interface WishlistItem {
   name: string;
   price: string;
   imageUrl: string | null;
+  /** Comes in colors/sizes — so "add to cart" must go via the product page. */
+  hasVariants?: boolean;
 }
 
 interface WishlistContextValue {

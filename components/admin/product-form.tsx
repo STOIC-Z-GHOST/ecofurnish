@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Loader2, ImagePlus, X, Star } from "lucide-react";
+import { Loader2, ImagePlus, X, Star, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,9 @@ import {
   updateProduct,
   uploadProductImage,
   type ProductInput,
+  type VariantInput,
 } from "@/app/admin/actions";
+import { distinctValues } from "@/lib/variant-utils";
 import { toast } from "sonner";
 import { RESTOCK_AFTER_HOURS, RESTOCK_QUANTITY } from "@/lib/restock-config";
 import { saveSandboxProduct } from "@/lib/sandbox-store";
@@ -57,6 +59,7 @@ const emptyProduct: ProductInput = {
   discountReason: "",
   dealEndsAt: null,
   restockAt: null,
+  variants: [],
 };
 
 export function ProductForm({
@@ -98,6 +101,89 @@ export function ProductForm({
       ...v,
       rooms: checked ? [...v.rooms, room] : v.rooms.filter((r) => r !== room),
     }));
+  }
+
+  // ---- Colors & sizes ------------------------------------------------------
+  // Each option is one orderable combination (e.g. Red / Large) with its own
+  // stock, small price difference and photo. The product's own stock becomes
+  // the total of its options.
+  const variants: VariantInput[] = values.variants ?? [];
+  const hasVariants = variants.length > 0;
+  const totalVariantStock = variants.reduce((n, v) => n + (Number.isFinite(v.stock) ? v.stock : 0), 0);
+  const colorNames = distinctValues(variants.map((v) => v.color));
+  const sizeNames = distinctValues(variants.map((v) => v.size));
+  // The photos an option can use: the cover, then the extra gallery photos.
+  const allPhotos = [values.imageUrl, ...values.images].filter(
+    (src, i, arr): src is string => !!src && src !== "/placeholder.jpg" && arr.indexOf(src) === i
+  );
+
+  function setVariants(next: VariantInput[]) {
+    setValues((v) => ({
+      ...v,
+      variants: next,
+      // With options, the product's stock is simply their total.
+      stock: next.length > 0 ? next.reduce((n, o) => n + (Number.isFinite(o.stock) ? o.stock : 0), 0) : v.stock,
+    }));
+  }
+  function updateVariant(index: number, patch: Partial<VariantInput>) {
+    setVariants(variants.map((v, i) => (i === index ? { ...v, ...patch } : v)));
+  }
+  function addVariant() {
+    if (variants.length >= 50) {
+      toast.error("A product can have up to 50 options.");
+      return;
+    }
+    setVariants([...variants, { color: "", size: "", priceDelta: "0.00", stock: 0, imageUrl: null }]);
+  }
+  function removeVariant(index: number) {
+    setVariants(variants.filter((_, i) => i !== index));
+  }
+
+  // What a photo is FOR, worked out from which options use it: a color's
+  // picture, a size/shape's picture, or just another view of the product
+  // (which changes nothing about what gets ordered).
+  function photoTag(url: string): string {
+    const users = variants.filter((v) => v.imageUrl === url);
+    if (users.length === 0) return "view";
+    const color = distinctValues(users.map((v) => v.color))[0];
+    if (color) return `color:${color}`;
+    const size = distinctValues(users.map((v) => v.size))[0];
+    return size ? `size:${size}` : "view";
+  }
+  function setPhotoTag(url: string, tag: string) {
+    let next = variants.map((v) => (v.imageUrl === url ? { ...v, imageUrl: null } : v));
+    if (tag.startsWith("color:")) {
+      const color = tag.slice(6).toLowerCase();
+      next = next.map((v) => (v.color.trim().toLowerCase() === color ? { ...v, imageUrl: url } : v));
+    } else if (tag.startsWith("size:")) {
+      const size = tag.slice(5).toLowerCase();
+      next = next.map((v) => (v.size.trim().toLowerCase() === size ? { ...v, imageUrl: url } : v));
+    }
+    setVariants(next);
+  }
+  function renderPhotoTagSelect(url: string) {
+    if (!hasVariants) return null;
+    return (
+      <select
+        value={photoTag(url)}
+        onChange={(e) => setPhotoTag(url, e.target.value)}
+        aria-label="What this photo shows"
+        className="mt-1 h-7 w-24 rounded-md border border-input bg-background px-1 text-[0.7rem]"
+      >
+        <option value="view">Different view</option>
+        {colorNames.map((c) => (
+          <option key={`c-${c}`} value={`color:${c}`}>
+            Color: {c}
+          </option>
+        ))}
+        {colorNames.length === 0 &&
+          sizeNames.map((z) => (
+            <option key={`s-${z}`} value={`size:${z}`}>
+              Size/shape: {z}
+            </option>
+          ))}
+      </select>
+    );
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -223,7 +309,8 @@ export function ProductForm({
     if (!v.description.trim()) missing.add("description");
     if (!v.imageUrl || v.imageUrl === "/placeholder.jpg") missing.add("cover");
     if (!(parseFloat(v.price) > 0)) missing.add("price");
-    if (!Number.isInteger(v.stock) || v.stock < 0) missing.add("stock");
+    if (!(v.variants?.length) && (!Number.isInteger(v.stock) || v.stock < 0)) missing.add("stock");
+    if (v.variants?.some((o) => !o.color.trim() && !o.size.trim())) missing.add("variants");
     if (!v.category.trim()) missing.add("category");
     return missing;
   }
@@ -243,9 +330,10 @@ export function ProductForm({
       toast.error("Fill in the highlighted fields before continuing.");
       // Scroll to whichever required field is missing and comes first in
       // the form, rather than leaving the admin to hunt for it.
-      const fieldOrder = ["name", "description", "price", "stock", "category", "cover"];
+      const fieldOrder = ["name", "description", "price", "stock", "category", "cover", "variants"];
       const firstMissing = fieldOrder.find((key) => missing.has(key));
-      const elementId = firstMissing === "cover" ? "cover-photo-section" : firstMissing;
+      const elementId =
+        firstMissing === "cover" ? "cover-photo-section" : firstMissing === "variants" ? "variants-section" : firstMissing;
       document.getElementById(elementId!)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -333,15 +421,22 @@ export function ProductForm({
           <Label htmlFor="stock">
             Stock <span className="text-destructive">*</span>
           </Label>
-          <Input
-            id="stock"
-            type="number"
-            min={0}
-            required
-            value={values.stock}
-            onChange={(e) => update("stock", Number(e.target.value))}
-            className={fieldErrorClass("stock")}
-          />
+          {hasVariants ? (
+            <>
+              <Input id="stock" value={totalVariantStock} readOnly disabled />
+              <p className="text-xs text-muted-foreground">Total of the options below.</p>
+            </>
+          ) : (
+            <Input
+              id="stock"
+              type="number"
+              min={0}
+              required
+              value={values.stock}
+              onChange={(e) => update("stock", Number(e.target.value))}
+              className={fieldErrorClass("stock")}
+            />
+          )}
         </div>
       </div>
 
@@ -467,6 +562,7 @@ export function ProductForm({
               </div>
             )}
           </div>
+          {values.imageUrl && values.imageUrl !== "/placeholder.jpg" && renderPhotoTagSelect(values.imageUrl)}
           <div className="flex-1 space-y-2">
             <input
               ref={fileInputRef}
@@ -527,6 +623,7 @@ export function ProductForm({
                   <Star className="h-2.5 w-2.5" />
                   Make cover
                 </button>
+                {renderPhotoTagSelect(url)}
               </div>
             ))}
           </div>
@@ -564,6 +661,107 @@ export function ProductForm({
             {values.images.length}/{MAX_EXTRA_PHOTOS} added — select multiple files at once, or
             add them one by one.
           </p>
+        </div>
+      </div>
+
+      <div
+        id="variants-section"
+        className={`space-y-3 rounded-lg border border-border/60 p-4 ${missingFields.has("variants") ? "border-destructive ring-2 ring-destructive/30" : ""}`}
+      >
+        <div>
+          <Label>
+            Colors &amp; sizes <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Add one row for each combination customers can order — for example Red / Large and Red /
+            Small. Shoppers must choose one before they can add the product to their cart, and each row
+            has its own stock. The price difference is added to the price above (use a minus for
+            cheaper). Pick a photo to show it when that option is chosen — or tag the photos above as a
+            color. Photos tagged &quot;Different view&quot; are only for looking around and never change
+            what gets ordered. Leave this empty for a product with no options.
+          </p>
+        </div>
+
+        {variants.map((v, index) => (
+          <div key={v.id ?? `new-${index}`} className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="space-y-1">
+                <Label className="text-xs">Color</Label>
+                <Input
+                  value={v.color}
+                  onChange={(e) => updateVariant(index, { color: e.target.value })}
+                  placeholder="Red"
+                  maxLength={40}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Size / shape</Label>
+                <Input
+                  value={v.size}
+                  onChange={(e) => updateVariant(index, { size: e.target.value })}
+                  placeholder="Large"
+                  maxLength={40}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Price +/− (ETB)</Label>
+                <Input
+                  inputMode="decimal"
+                  value={v.priceDelta}
+                  onChange={(e) => updateVariant(index, { priceDelta: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Stock</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={Number.isFinite(v.stock) ? v.stock : 0}
+                  onChange={(e) => updateVariant(index, { stock: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted">
+                {v.imageUrl && <Image src={v.imageUrl} alt="" fill className="object-cover" sizes="36px" />}
+              </div>
+              <select
+                value={v.imageUrl ?? ""}
+                onChange={(e) => updateVariant(index, { imageUrl: e.target.value || null })}
+                aria-label="Photo for this option"
+                className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm"
+              >
+                <option value="">No photo for this option</option>
+                {allPhotos.map((url, i) => (
+                  <option key={url} value={url}>
+                    {url === values.imageUrl ? "Cover photo" : `Additional photo ${i}`}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-destructive"
+                onClick={() => removeVariant(index)}
+                aria-label="Remove this option"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="outline" onClick={addVariant}>
+            <Plus className="h-4 w-4" />
+            Add a color / size
+          </Button>
+          {hasVariants && (
+            <span className="text-xs text-muted-foreground">
+              {variants.length} option{variants.length === 1 ? "" : "s"} · {totalVariantStock} in stock in total
+            </span>
+          )}
         </div>
       </div>
 

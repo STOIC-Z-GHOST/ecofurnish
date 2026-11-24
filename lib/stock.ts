@@ -6,50 +6,107 @@ import { qualifyReferralIfFirstPurchase } from "@/lib/referrals";
 
 export const LOW_STOCK_THRESHOLD = 5;
 
+/** What takeStock needs to know about each ordered line. */
+export interface StockLine {
+  productId: string;
+  productName: string;
+  quantity: number;
+  /** Set when the customer chose a color/size — stock then comes off that option. */
+  variantId?: string | null;
+  variantLabel?: string | null;
+}
+
 /**
  * Takes the ordered quantities out of real stock, safely when several
- * people buy the same last item at once. Each product is ONE statement —
+ * people buy the same last item at once. Each line is ONE statement —
  * "subtract only if enough is left" — so the database itself decides who
  * gets the last unit; two buyers can never both succeed (the old
  * read-then-write could let both through). If any line falls short, the
  * lines already taken are put back and nothing is left half-done.
+ *
+ * A product with options (colors/sizes) is counted per option: the option's
+ * own stock goes down, and so does the product's total (products.stock is the
+ * sum of its options) — both in the same single statement.
  */
-export async function takeStock(items: { productId: string; productName: string; quantity: number }[]) {
-  const totals = new Map<string, { name: string; quantity: number }>();
+export async function takeStock(items: StockLine[]) {
+  const totals = new Map<
+    string,
+    { productId: string; variantId: string | null; name: string; quantity: number }
+  >();
   for (const item of items) {
-    const entry = totals.get(item.productId);
-    totals.set(item.productId, {
-      name: item.productName,
+    const variantId = item.variantId ?? null;
+    const key = variantId ? `v:${variantId}` : `p:${item.productId}`;
+    const name = item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName;
+    const entry = totals.get(key);
+    totals.set(key, {
+      productId: item.productId,
+      variantId,
+      name,
       quantity: (entry?.quantity ?? 0) + item.quantity,
     });
   }
 
-  const taken: { productId: string; quantity: number }[] = [];
+  const taken: { productId: string; variantId: string | null; quantity: number }[] = [];
   const lowStock: { name: string; stock: number }[] = [];
-  for (const [productId, { name, quantity }] of totals) {
-    const [updated] = await db
-      .update(products)
-      .set({ stock: sql`${products.stock} - ${quantity}` })
-      .where(and(eq(products.id, productId), gte(products.stock, quantity)))
-      .returning({ stock: products.stock });
+  for (const { productId, variantId, name, quantity } of totals.values()) {
+    let remainingStock: number | null = null;
 
-    if (!updated) {
-      for (const t of taken) {
-        await db
-          .update(products)
-          .set({ stock: sql`${products.stock} + ${t.quantity}` })
-          .where(eq(products.id, t.productId));
-      }
+    if (variantId) {
+      const result = await db.execute(sql`
+        with taken as (
+          update product_variants
+             set stock = stock - ${quantity}
+           where id = ${variantId} and stock >= ${quantity}
+          returning product_id, stock
+        )
+        update products p
+           set stock = greatest(p.stock - ${quantity}, 0)
+          from taken
+         where p.id = taken.product_id
+        returning taken.stock as variant_stock
+      `);
+      const row = result.rows[0] as { variant_stock: number | string } | undefined;
+      if (row) remainingStock = Number(row.variant_stock);
+    } else {
+      const [updated] = await db
+        .update(products)
+        .set({ stock: sql`${products.stock} - ${quantity}` })
+        .where(and(eq(products.id, productId), gte(products.stock, quantity)))
+        .returning({ stock: products.stock });
+      if (updated) remainingStock = updated.stock;
+    }
+
+    if (remainingStock === null) {
+      for (const t of taken) await putStockBack(t);
       return { ok: false as const, productName: name };
     }
 
-    taken.push({ productId, quantity });
+    taken.push({ productId, variantId, quantity });
     // Only on the crossing, not on every purchase once it's already low.
-    if (updated.stock <= LOW_STOCK_THRESHOLD && updated.stock + quantity > LOW_STOCK_THRESHOLD) {
-      lowStock.push({ name, stock: updated.stock });
+    if (remainingStock <= LOW_STOCK_THRESHOLD && remainingStock + quantity > LOW_STOCK_THRESHOLD) {
+      lowStock.push({ name, stock: remainingStock });
     }
   }
   return { ok: true as const, lowStock };
+}
+
+async function putStockBack(line: { productId: string; variantId: string | null; quantity: number }) {
+  if (line.variantId) {
+    await db.execute(sql`
+      with back as (
+        update product_variants set stock = stock + ${line.quantity}
+         where id = ${line.variantId}
+        returning product_id
+      )
+      update products p set stock = p.stock + ${line.quantity}
+        from back where p.id = back.product_id
+    `);
+  } else {
+    await db
+      .update(products)
+      .set({ stock: sql`${products.stock} + ${line.quantity}` })
+      .where(eq(products.id, line.productId));
+  }
 }
 
 /**

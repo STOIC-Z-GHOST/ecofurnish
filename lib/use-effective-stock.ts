@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { getSimulatedStock } from "@/lib/simulated-stock";
 
 // Subscribers to "the stock this browser should see may have changed".
@@ -49,4 +49,30 @@ export function useEffectiveStock(productId: string, rawStock: number): number {
     () => getSimulatedStock(productId, rawStock),
     () => rawStock
   );
+}
+
+/**
+ * Same as useEffectiveStock, for several ids at once (a product's colors and
+ * sizes). A hook can't be called in a loop, so this reads them all through one
+ * subscription. Returns { id: stock to show }.
+ */
+export function useEffectiveStocks(entries: { id: string; stock: number }[]): Record<string, number> {
+  const rawSnapshot = entries.map((e) => e.stock).join(",");
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    () => entries.map((e) => getSimulatedStock(e.id, e.stock)).join(","),
+    () => rawSnapshot
+  );
+  return useMemo(() => {
+    const numbers = snapshot.split(",");
+    const out: Record<string, number> = {};
+    entries.forEach((e, i) => {
+      const n = Number(numbers[i]);
+      out[e.id] = Number.isFinite(n) ? n : e.stock;
+    });
+    return out;
+    // `entries` is rebuilt by the caller each render; its content is what the
+    // snapshot string already captures.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snapshot]);
 }

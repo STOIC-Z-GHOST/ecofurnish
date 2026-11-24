@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { ProductForm } from "@/components/admin/product-form";
+import { getVariantsForProduct } from "@/lib/variants";
 import { requireAdminViewPage } from "@/lib/require-admin";
 import { SandboxProductForm } from "@/components/admin/sandbox/SandboxProductForm";
 
@@ -15,6 +16,16 @@ export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
   const [product] = await db.select().from(products).where(eq(products.id, id)).limit(1);
   if (!product) notFound();
+
+  const variants = product.hasVariants ? await getVariantsForProduct(product.id) : [];
+  const variantInputs = variants.map((v) => ({
+    id: v.id,
+    color: v.color,
+    size: v.size,
+    priceDelta: v.priceDelta,
+    stock: v.stock,
+    imageUrl: v.imageUrl,
+  }));
 
   const rows = await db.selectDistinct({ category: products.category }).from(products);
   const existingCategories = rows.map((r) => r.category).sort();
@@ -40,6 +51,7 @@ export default async function EditProductPage({ params }: Props) {
           discountReason: product.discountReason ?? "",
           dealEndsAt: product.dealEndsAt ? product.dealEndsAt.toISOString() : null,
           restockAt: product.restockAt ? product.restockAt.toISOString() : null,
+          variants: variantInputs,
         }}
         />
       ) : (
@@ -60,6 +72,7 @@ export default async function EditProductPage({ params }: Props) {
           discountReason: product.discountReason ?? "",
           dealEndsAt: product.dealEndsAt ? product.dealEndsAt.toISOString() : null,
           restockAt: product.restockAt ? product.restockAt.toISOString() : null,
+          variants: variantInputs,
         }}
         />
       )}

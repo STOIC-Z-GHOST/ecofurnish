@@ -21,6 +21,11 @@ export const products = pgTable("products", {
   // an office.
   rooms: text("rooms").array().notNull().default([]),
   stock: integer("stock").default(0).notNull(),
+  // True when this product comes in colors/sizes (rows in product_variants).
+  // For such a product, `stock` above is the TOTAL across its variants — kept
+  // in step by the admin save and by takeStock (lib/stock.ts) so the catalog,
+  // badges and the Telegram digest keep working off one number.
+  hasVariants: boolean("has_variants").notNull().default(false),
   // Tracking the environmental impact
   plasticWeightKg: numeric("plastic_weight_kg", { precision: 5, scale: 2 }).default('0.00').notNull(),
   // Optional site-run discount (e.g. a launch promo). 0 = no discount.
@@ -96,7 +101,35 @@ export const orderItems = pgTable("order_items", {
   productName: text("product_name").notNull(),
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
+  // Which color/size the customer picked, when the product has options.
+  // variantLabel is a snapshot ("Red / Large") so the order still reads
+  // correctly even if the option is later renamed or removed.
+  variantId: text("variant_id"),
+  variantLabel: text("variant_label"),
 });
+
+// One row per orderable combination of a product's options (a color, a size,
+// or both). Each has its own stock, its own small price difference from the
+// product's base price, and optionally its own photo (shown when chosen).
+export const productVariants = pgTable(
+  "product_variants",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    // Empty string (not null) when a product has no color / no size.
+    color: text("color").notNull().default(""),
+    size: text("size").notNull().default(""),
+    // Added to the product's price; can be negative.
+    priceDelta: numeric("price_delta", { precision: 10, scale: 2 }).notNull().default("0.00"),
+    stock: integer("stock").notNull().default(0),
+    imageUrl: text("image_url"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("product_variants_product_idx").on(t.productId)]
+);
 
 // Text pages (Terms, Privacy, About …) that the admin can edit from the
 // browser. A page with no row here simply shows its built-in default text

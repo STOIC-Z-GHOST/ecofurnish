@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Heart, Leaf, ShoppingCart, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ export default function ProductHoverDetail({
 }) {
   const discounted = hasActiveDiscount(product);
   const { addItem } = useCart();
+  const router = useRouter();
   const { isWishlisted, toggleItem } = useWishlist();
   const liked = isWishlisted(product.id);
 
@@ -51,6 +53,10 @@ export default function ProductHoverDetail({
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (product.hasVariants) {
+      router.push(`/products/${product.id}`); // colors/sizes are chosen on the product page
+      return;
+    }
     addItem({
       productId: product.id,
       name: product.name,

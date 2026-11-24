@@ -1,10 +1,10 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
 import { db } from "@/db";
-import { products, orders, inboundEmails } from "@/db/schema";
+import { products, productVariants, orders, inboundEmails } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
 import { sendAdminMessage, sendDispatcherPromotedEmail, sendDispatcherRemovedEmail } from "@/lib/email";
 import { applyOrderStatus } from "@/lib/orders";
@@ -58,6 +58,68 @@ export interface ProductInput {
   // ISO string from the form's datetime-local input, or null/omitted for
   // "no restock countdown". Converted to a Date before it hits the DB.
   restockAt?: string | null;
+  // The colors/sizes this product comes in, each with its own stock, small
+  // price difference and photo. Empty/omitted = a plain product.
+  variants?: VariantInput[];
+}
+
+export interface VariantInput {
+  /** Present for an option that already exists, so editing keeps its identity. */
+  id?: string;
+  color: string;
+  size: string;
+  /** Added to the product price; may be negative. A decimal string. */
+  priceDelta: string;
+  stock: number;
+  imageUrl: string | null;
+}
+
+const MAX_VARIANTS = 50;
+
+function validateVariants(input: ProductInput) {
+  const variants = input.variants ?? [];
+  if (variants.length === 0) return;
+  if (variants.length > MAX_VARIANTS) throw new Error(`A product can have up to ${MAX_VARIANTS} options.`);
+  const basePrice = parseFloat(input.price);
+  const seen = new Set<string>();
+  for (const v of variants) {
+    const color = v.color.trim();
+    const size = v.size.trim();
+    if (!color && !size) throw new Error("Every option needs a color or a size.");
+    if (color.length > 40 || size.length > 40) throw new Error("Color and size names must be 40 characters or fewer.");
+    if (!Number.isInteger(v.stock) || v.stock < 0) throw new Error(`Stock for ${[color, size].filter(Boolean).join(" / ")} must be a non-negative whole number.`);
+    const delta = parseFloat(v.priceDelta);
+    if (!Number.isFinite(delta) || Math.abs(delta) > 1_000_000) throw new Error("Each price difference must be a number (it can be negative).");
+    if (!(basePrice + delta > 0)) throw new Error(`The price for ${[color, size].filter(Boolean).join(" / ")} would be zero or negative.`);
+    if (v.imageUrl && !(v.imageUrl.startsWith("https://") || v.imageUrl.startsWith("/")) || (v.imageUrl?.length ?? 0) > 2000) {
+      throw new Error("An option's photo must be an uploaded image.");
+    }
+    const key = `${color.toLowerCase()}|${size.toLowerCase()}`;
+    if (seen.has(key)) throw new Error(`"${[color, size].filter(Boolean).join(" / ")}" is listed twice.`);
+    seen.add(key);
+  }
+  // The buyer picks each kind of option in turn, so a product must use the
+  // same kinds on every row (all with a color, or none; all with a size, or none).
+  const everyHasColor = variants.every((v) => v.color.trim());
+  const noneHasColor = variants.every((v) => !v.color.trim());
+  const everyHasSize = variants.every((v) => v.size.trim());
+  const noneHasSize = variants.every((v) => !v.size.trim());
+  if (!(everyHasColor || noneHasColor) || !(everyHasSize || noneHasSize)) {
+    throw new Error("Fill in the color on every option or on none, and the same for size.");
+  }
+}
+
+function variantRows(productId: string, input: ProductInput) {
+  return (input.variants ?? []).map((v, index) => ({
+    id: v.id || crypto.randomUUID(),
+    productId,
+    color: v.color.trim(),
+    size: v.size.trim(),
+    priceDelta: parseFloat(v.priceDelta).toFixed(2),
+    stock: v.stock,
+    imageUrl: v.imageUrl || null,
+    sortOrder: index,
+  }));
 }
 
 function validateProductInput(input: ProductInput) {
@@ -67,7 +129,9 @@ function validateProductInput(input: ProductInput) {
   if (!Number.isFinite(price) || price < 0) {
     throw new Error("Price must be a valid, non-negative number.");
   }
-  if (!Number.isInteger(input.stock) || input.stock < 0) {
+  // With colors/sizes the product's stock is the total of its options, worked
+  // out below — only a plain product's own stock figure matters here.
+  if (!input.variants?.length && (!Number.isInteger(input.stock) || input.stock < 0)) {
     throw new Error("Stock must be a non-negative whole number.");
   }
   // The HTML max=99 on the form input is a UI hint only — a request
@@ -92,17 +156,31 @@ function validateProductInput(input: ProductInput) {
   if (input.images.length > 7) {
     throw new Error("You can add up to 7 extra photos on top of the cover photo.");
   }
+  validateVariants(input);
 }
 
 export async function createProduct(input: ProductInput) {
   await requireAdmin();
   validateProductInput(input);
-  const { dealEndsAt, restockAt, ...rest } = input;
-  await db.insert(products).values({
+  const { dealEndsAt, restockAt, variants: _variants, ...rest } = input;
+  void _variants;
+  const id = crypto.randomUUID();
+  const rows = variantRows(id, input);
+  const productInsert = db.insert(products).values({
     ...rest,
+    id,
+    // A product with options sells from the options; its own stock is their total.
+    stock: rows.length > 0 ? rows.reduce((n, r) => n + r.stock, 0) : input.stock,
+    hasVariants: rows.length > 0,
     dealEndsAt: dealEndsAt ? new Date(dealEndsAt) : null,
     restockAt: restockAt ? new Date(restockAt) : null,
   });
+  // One atomic batch: the product and its options are saved together or not at all.
+  if (rows.length > 0) {
+    await db.batch([productInsert, db.insert(productVariants).values(rows)]);
+  } else {
+    await productInsert;
+  }
   revalidatePath("/admin/products");
   revalidatePath("/");
 }
@@ -110,18 +188,54 @@ export async function createProduct(input: ProductInput) {
 export async function updateProduct(id: string, input: ProductInput) {
   await requireAdmin();
   validateProductInput(input);
-  const { dealEndsAt, restockAt, ...rest } = input;
-  await db
+  const { dealEndsAt, restockAt, variants: _variants, ...rest } = input;
+  void _variants;
+  const rows = variantRows(id, input);
+  const stock = rows.length > 0 ? rows.reduce((n, r) => n + r.stock, 0) : input.stock;
+  const productUpdate = db
     .update(products)
     .set({
       ...rest,
+      stock,
+      hasVariants: rows.length > 0,
       dealEndsAt: dealEndsAt ? new Date(dealEndsAt) : null,
       restockAt: restockAt ? new Date(restockAt) : null,
       updatedAt: new Date(),
     })
     .where(eq(products.id, id));
+
+  // Options that were removed in the form go; the rest are updated in place
+  // (same ids, so carts and past orders still point at them) and new ones are
+  // added — all in one atomic batch together with the product itself.
+  const removeMissing =
+    rows.length > 0
+      ? db
+          .delete(productVariants)
+          .where(and(eq(productVariants.productId, id), notInArray(productVariants.id, rows.map((r) => r.id))))
+      : db.delete(productVariants).where(eq(productVariants.productId, id));
+  if (rows.length > 0) {
+    const upsert = db
+      .insert(productVariants)
+      .values(rows)
+      .onConflictDoUpdate({
+        target: productVariants.id,
+        set: {
+          color: sql`excluded.color`,
+          size: sql`excluded.size`,
+          priceDelta: sql`excluded.price_delta`,
+          stock: sql`excluded.stock`,
+          imageUrl: sql`excluded.image_url`,
+          sortOrder: sql`excluded.sort_order`,
+        },
+        // Never let an id that belongs to some OTHER product be overwritten.
+        setWhere: eq(productVariants.productId, id),
+      });
+    await db.batch([productUpdate, removeMissing, upsert]);
+  } else {
+    await db.batch([productUpdate, removeMissing]);
+  }
   // A manual restock should also confirm orders whose customers are waiting.
-  if (input.stock > 0) await sweepWaitingOrders();
+  if (stock > 0) await sweepWaitingOrders();
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath(`/products/${id}`);

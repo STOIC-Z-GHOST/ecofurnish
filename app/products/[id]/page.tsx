@@ -11,8 +11,8 @@ import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
 import { runAutoRestock } from "@/lib/auto-restock";
 import { attachRatings, getReviewsForProduct, canReviewProduct, getMyReviewForProduct } from "@/lib/reviews-queries";
-import ProductGallery from "@/components/product/details/ProductGallery";
-import ProductSummary from "@/components/product/details/ProductSummary";
+import ProductDetails from "@/components/product/details/ProductDetails";
+import { getVariantsForProduct } from "@/lib/variants";
 import ProductReviews from "@/components/product/ProductReviews";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import { RecordProductView } from "@/components/product/RecordProductView";
@@ -71,11 +71,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .where(and(eq(products.category, product.category), ne(products.id, product.id)))
     .limit(4);
 
-  const [[productWithRating], relatedWithRatings, productReviews, session] = await Promise.all([
+  const [[productWithRating], relatedWithRatings, productReviews, session, variants] = await Promise.all([
     attachRatings([product]),
     attachRatings(related),
     getReviewsForProduct(id),
     auth.api.getSession({ headers: await headers() }),
+    product.hasVariants ? getVariantsForProduct(id) : Promise.resolve([]),
   ]);
 
   const userId = session?.user?.id;
@@ -108,10 +109,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         Back to catalog
       </Link>
 
-      <div className="grid gap-16 lg:grid-cols-2">
-        <ProductGallery product={productWithRating} />
-        <ProductSummary product={productWithRating} />
-      </div>
+      <ProductDetails product={productWithRating} variants={variants} />
 
       <RecordProductView product={productWithRating} />
 
