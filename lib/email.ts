@@ -230,6 +230,37 @@ export async function sendPasswordChangedEmail(toEmail: string, name: string) {
   }
 }
 
+export async function sendPasswordAddedEmail(toEmail: string, name: string) {
+  if (!resend) {
+    console.warn("RESEND_API_KEY is not set — password-added email was not sent.");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: toEmail,
+      subject: "A password was added to your EcoFurnish account",
+      text: `Password added\n\nHi ${name.split(" ")[0]}, a password was just added to your EcoFurnish account. You can now sign in with this email and that password as well as with your Google (or other) account.\n\nIf this wasn't you, reset your password right away from the sign-in page and contact us through the site's contact page.${spamNoticeText()}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+          <h2 style="color:#33472e;">Password added</h2>
+          <p style="color:#3a3f38;">
+            Hi ${escapeHtml(name.split(" ")[0])}, a password was just added to your EcoFurnish account. You can now
+            sign in with this email and that password as well as with your Google (or other) account.
+          </p>
+          <p style="color:#6b6a5c;font-size:14px;">
+            If this wasn't you, reset your password right away from the sign-in page and contact us through the
+            site's contact page.
+          </p>${spamNoticeHtml()}
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send password-added email:", err);
+  }
+}
+
 export async function sendExistingAccountSignUpAttemptEmail(toEmail: string, name: string) {
   if (!resend) {
     console.warn("RESEND_API_KEY is not set — existing-account notice email was not sent.");
