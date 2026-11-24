@@ -257,6 +257,13 @@ export async function applyReferralRewards(
   let remaining = subtotal;
   const notes: string[] = [];
 
+  // Every redemption below is ONE SQL statement that both claims the reward
+  // (guarded by "still unredeemed" / "balance still covers this") and records
+  // the usage row. Reading a reward and then writing it back in a second
+  // step let two simultaneous checkouts both spend the same code or the same
+  // balance; now the database lets exactly one of them through, and a
+  // statement that matches nothing simply means "someone else got there first".
+
   if (options.promoCode) {
     const code = options.promoCode.trim().toUpperCase();
     const [reward] = await db
@@ -273,64 +280,83 @@ export async function applyReferralRewards(
 
     if (reward) {
       let off = 0;
+      let note: string | null = null;
       if (reward.type === "discount_code" && reward.percentOff) {
         off = Math.min(remaining, subtotal * (reward.percentOff / 100));
-        notes.push(`Referral reward: ${reward.percentOff}% off (code ${code})`);
+        note = `Referral reward: ${reward.percentOff}% off (code ${code})`;
       } else if (reward.type === "free_shipping" && reward.creditAmount) {
         off = Math.min(remaining, parseFloat(reward.creditAmount));
-        notes.push(`Free shipping voucher applied (code ${code})`);
+        note = `Free shipping voucher applied (code ${code})`;
       }
-      if (off > 0) {
-        remaining -= off;
-        await db
-          .update(referralRewards)
-          .set({ redeemed: true, redeemedAt: new Date() })
-          .where(eq(referralRewards.id, reward.id));
-        await db.insert(referralRewardUsages).values({
-          orderId,
-          rewardId: reward.id,
-          amountUsed: off.toFixed(2),
-        });
+      off = roundToCents(off);
+      if (off > 0 && note) {
+        const claimed = await db.execute(sql`
+          with claimed as (
+            update referral_rewards
+               set redeemed = true, redeemed_at = now()
+             where id = ${reward.id} and user_id = ${userId} and redeemed = false
+            returning id
+          )
+          insert into referral_reward_usages (id, order_id, reward_id, amount_used)
+          select ${crypto.randomUUID()}, ${orderId}, id, ${off.toFixed(2)}::numeric from claimed
+          returning id
+        `);
+        if (claimed.rows.length === 1) {
+          remaining -= off;
+          notes.push(note);
+        }
       }
     }
   }
 
-  if (options.useStoreCredit && remaining > 0) {
-    const creditRewards = await db
-      .select()
-      .from(referralRewards)
-      .where(
-        and(
-          eq(referralRewards.userId, userId),
-          eq(referralRewards.type, "store_credit"),
-          eq(referralRewards.redeemed, false)
-        )
-      );
-
+  if (options.useStoreCredit && remaining > 0.004) {
     let creditUsed = 0;
-    for (const r of creditRewards) {
-      if (remaining <= 0) break;
-      const balance = parseFloat(r.creditAmount ?? "0");
-      const use = Math.min(balance, remaining);
-      remaining -= use;
-      creditUsed += use;
-      const leftover = balance - use;
-      if (leftover <= 0) {
-        await db
-          .update(referralRewards)
-          .set({ redeemed: true, redeemedAt: new Date(), creditAmount: "0.00" })
-          .where(eq(referralRewards.id, r.id));
-      } else {
-        await db
-          .update(referralRewards)
-          .set({ creditAmount: leftover.toFixed(2) })
-          .where(eq(referralRewards.id, r.id));
+    // A few passes: if another checkout spends from the same row between our
+    // read and our write, the guarded statement below matches nothing and we
+    // simply re-read the fresh balances and carry on.
+    for (let pass = 0; pass < 3 && remaining > 0.004; pass++) {
+      const creditRewards = await db
+        .select()
+        .from(referralRewards)
+        .where(
+          and(
+            eq(referralRewards.userId, userId),
+            eq(referralRewards.type, "store_credit"),
+            eq(referralRewards.redeemed, false)
+          )
+        );
+      if (creditRewards.length === 0) break;
+
+      let conflicted = false;
+      for (const r of creditRewards) {
+        if (remaining <= 0.004) break;
+        const balance = parseFloat(r.creditAmount ?? "0");
+        const use = roundToCents(Math.min(balance, remaining));
+        if (use <= 0) continue;
+        const useStr = use.toFixed(2);
+        const spent = await db.execute(sql`
+          with claimed as (
+            update referral_rewards
+               set credit_amount = credit_amount - ${useStr}::numeric,
+                   redeemed = (credit_amount - ${useStr}::numeric) <= 0,
+                   redeemed_at = case when (credit_amount - ${useStr}::numeric) <= 0 then now() else null end
+             where id = ${r.id} and user_id = ${userId} and type = 'store_credit'
+               and redeemed = false and credit_amount >= ${useStr}::numeric
+            returning id
+          )
+          insert into referral_reward_usages (id, order_id, reward_id, amount_used)
+          select ${crypto.randomUUID()}, ${orderId}, id, ${useStr}::numeric from claimed
+          returning id
+        `);
+        if (spent.rows.length === 1) {
+          remaining = Math.max(0, remaining - use);
+          creditUsed += use;
+        } else {
+          conflicted = true;
+          break; // balances changed under us — re-read and go again
+        }
       }
-      await db.insert(referralRewardUsages).values({
-        orderId,
-        rewardId: r.id,
-        amountUsed: use.toFixed(2),
-      });
+      if (!conflicted) break;
     }
     if (creditUsed > 0) notes.push(`Store credit applied: ${creditUsed.toFixed(2)} ETB`);
   }
@@ -339,6 +365,10 @@ export async function applyReferralRewards(
     discountAmount: (subtotal - remaining).toFixed(2),
     note: notes.length ? notes.join(" · ") : null,
   };
+}
+
+function roundToCents(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 /**
@@ -353,39 +383,35 @@ export async function applyReferralRewards(
  */
 export async function reverseOrderRewardUsages(orderId: string) {
   const usages = await db
-    .select()
+    .select({ id: referralRewardUsages.id })
     .from(referralRewardUsages)
     .where(and(eq(referralRewardUsages.orderId, orderId), sql`${referralRewardUsages.reversedAt} is null`));
 
   for (const usage of usages) {
-    const [reward] = await db
-      .select()
-      .from(referralRewards)
-      .where(eq(referralRewards.id, usage.rewardId))
-      .limit(1);
-    if (!reward) continue; // shouldn't happen, but nothing to restore if it does
-
-    if (reward.type === "discount_code") {
-      // All-or-nothing — just un-flip it so the same code works again.
-      await db
-        .update(referralRewards)
-        .set({ redeemed: false, redeemedAt: null })
-        .where(eq(referralRewards.id, reward.id));
-    } else {
-      // store_credit / free_shipping — add this order's slice back onto
-      // whatever balance is there now (not onto a value assumed from
-      // redemption time), so a partial spend by some other order in the
-      // meantime is left untouched.
-      const restored = parseFloat(reward.creditAmount ?? "0") + parseFloat(usage.amountUsed);
-      await db
-        .update(referralRewards)
-        .set({ redeemed: false, redeemedAt: null, creditAmount: restored.toFixed(2) })
-        .where(eq(referralRewards.id, reward.id));
-    }
-
-    await db
-      .update(referralRewardUsages)
-      .set({ reversedAt: new Date() })
-      .where(eq(referralRewardUsages.id, usage.id));
+    // One statement per usage: it marks the usage reversed AND hands the
+    // slice back, together or not at all. Only the call that actually flips
+    // reversed_at gets to restore anything, so a cron run and an admin
+    // cancelling the same order at the same moment can never refund a reward
+    // twice. A discount code is simply un-flipped (all-or-nothing); credit
+    // vouchers get this order's slice added back onto whatever balance is
+    // there now, so a partial spend by another order in the meantime is
+    // left untouched.
+    await db.execute(sql`
+      with reversed as (
+        update referral_reward_usages
+           set reversed_at = now()
+         where id = ${usage.id} and reversed_at is null
+        returning reward_id, amount_used
+      )
+      update referral_rewards r
+         set credit_amount = case
+               when r.type = 'discount_code' then r.credit_amount
+               else coalesce(r.credit_amount, 0) + reversed.amount_used
+             end,
+             redeemed = false,
+             redeemed_at = null
+        from reversed
+       where r.id = reversed.reward_id
+    `);
   }
 }

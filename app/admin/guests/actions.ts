@@ -99,7 +99,7 @@ export async function grantGuestAccess(emailInput: string, days: number): Promis
     paragraphs: [
       "Hi,",
       `You've been given read-only access to the EcoFurnish admin dashboard until ${expiresAt.toUTCString()}, so you can see what a finished store's back office looks like.`,
-      "Sign in with this email address (create an account and verify it first if you don't have one). You'll see the dashboard, products and orders. Customer details are masked, and you're free to try changing things — your edits are only saved in your own browser and never touch the real store.",
+      "Sign in with this email address (create an account and verify it first if you don't have one), then open the account menu at the top right and choose \"Guest admin\" — or just use the button below. You'll see the dashboard, products and orders. Customer details are masked, and you're free to try changing things — your edits are only saved in your own browser and never touch the real store.",
     ],
     cta: { label: "Open the admin", path: "/admin" },
   });
@@ -193,7 +193,7 @@ export async function addAccessManager(
     paragraphs: [
       "Hi,",
       `You've been made an access manager. You can invite people to look around the admin read-only — for up to ${maxDays} day(s) each, with up to ${maxActive} guests at a time.`,
-      "Sign in with this email address and open the Guests page. That's the only part of the admin you'll see.",
+      "Sign in with this email address, then open the account menu at the top right and choose \"Manage guests\" — or use the button below. That's the only part of the admin you'll see.",
     ],
     cta: { label: "Open the Guests page", path: "/admin/guests" },
   });

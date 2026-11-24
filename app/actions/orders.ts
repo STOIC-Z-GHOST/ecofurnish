@@ -148,55 +148,79 @@ export async function createOrder(input: PlaceOrderInput) {
     Math.abs(input.lat) <= 90 &&
     Math.abs(input.lng) <= 180;
 
-  // Inserted with a provisional totalAmount (no discount applied yet) and
-  // updated below once applyReferralRewards runs — that function attaches
-  // a referralRewardUsages row to whatever it redeems, which needs a real
+  // The order row and its line items go in as ONE atomic batch: either both
+  // exist or neither does, so a failure part-way can never leave a paid-for-
+  // nothing order with no items. The id is generated here (instead of by the
+  // database) so the items can point at it inside the same batch.
+  //
+  // totalAmount starts as the undiscounted subtotal and is updated below once
+  // applyReferralRewards has run — that function attaches a
+  // referralRewardUsages row to whatever it redeems, which needs a real
   // orderId to point at (see reverseOrderRewardUsages in lib/referrals.ts,
   // which is how an abandoned/cancelled order's reward gets handed back
   // instead of staying burned forever).
-  const [order] = await db
-    .insert(orders)
-    .values({
-      userId,
-      customerName: input.customerName,
-      // From the signed-in account, never from the request: otherwise anyone
-      // with an account could put another person's address on an order and
-      // have your confirmation / delivery-PIN emails sent to them.
-      customerEmail: session.user.email,
-      customerPhone: input.customerPhone,
-      shippingAddress: input.shippingAddress,
-      city: input.city,
-      notes: input.notes,
-      customerLat: hasValidLocation ? input.lat!.toFixed(6) : null,
-      customerLng: hasValidLocation ? input.lng!.toFixed(6) : null,
-      totalAmount: subtotal.toFixed(2),
-    })
-    .returning();
+  const orderId = crypto.randomUUID();
+  try {
+    await db.batch([
+      db.insert(orders).values({
+        id: orderId,
+        userId,
+        customerName: input.customerName,
+        // From the signed-in account, never from the request: otherwise anyone
+        // with an account could put another person's address on an order and
+        // have your confirmation / delivery-PIN emails sent to them.
+        customerEmail: session.user.email,
+        customerPhone: input.customerPhone,
+        shippingAddress: input.shippingAddress,
+        city: input.city,
+        notes: input.notes,
+        customerLat: hasValidLocation ? input.lat!.toFixed(6) : null,
+        customerLng: hasValidLocation ? input.lng!.toFixed(6) : null,
+        totalAmount: subtotal.toFixed(2),
+      }),
+      db.insert(orderItems).values(pricedItems.map((item) => ({ ...item, orderId }))),
+    ]);
+  } catch (error) {
+    console.error("Couldn't create the order:", error);
+    return { success: false as const, error: "Couldn't place your order — please try again." };
+  }
 
   let discountAmount = "0.00";
   let discountNote: string | null = null;
-  if (input.promoCode || input.useStoreCredit) {
-    const result = await applyReferralRewards(
-      userId,
-      subtotal,
-      { promoCode: input.promoCode, useStoreCredit: input.useStoreCredit },
-      order.id
-    );
-    discountAmount = result.discountAmount;
-    discountNote = result.note;
+  try {
+    if (input.promoCode || input.useStoreCredit) {
+      const result = await applyReferralRewards(
+        userId,
+        subtotal,
+        { promoCode: input.promoCode, useStoreCredit: input.useStoreCredit },
+        orderId
+      );
+      discountAmount = result.discountAmount;
+      discountNote = result.note;
+    }
+    const totalAmount = Math.max(0, subtotal - parseFloat(discountAmount)).toFixed(2);
+    await db
+      .update(orders)
+      .set({ totalAmount, discountAmount, discountNote })
+      .where(eq(orders.id, orderId));
+  } catch (error) {
+    // Something failed after the order existed. Hand back any reward this
+    // order already took and cancel it, so the customer is never left with a
+    // burned code or credit and a half-finished order.
+    console.error("Couldn't finish applying discounts to the order:", error);
+    try {
+      await reverseOrderRewardUsages(orderId);
+      // Straight to the database rather than applyOrderStatus: that one
+      // emails the customer "your order was cancelled", which would be
+      // confusing for an order they never got to pay for.
+      await db.update(orders).set({ status: "cancelled" }).where(eq(orders.id, orderId));
+    } catch (cleanupError) {
+      console.error("Couldn't clean up the failed order:", cleanupError);
+    }
+    return { success: false as const, error: "Couldn't apply your discount — please try again." };
   }
-  const totalAmount = Math.max(0, subtotal - parseFloat(discountAmount)).toFixed(2);
 
-  await db
-    .update(orders)
-    .set({ totalAmount, discountAmount, discountNote })
-    .where(eq(orders.id, order.id));
-
-  await db.insert(orderItems).values(
-    pricedItems.map((item) => ({ ...item, orderId: order.id }))
-  );
-
-  return { success: true as const, orderId: order.id };
+  return { success: true as const, orderId };
 }
 
 /** Starts a Chapa transaction for an already-created order and returns its hosted checkout URL. */

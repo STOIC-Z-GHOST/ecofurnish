@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, PackageSearch, ShieldCheck, LogOut, UserCog, Gift } from "lucide-react";
+import { User, PackageSearch, ShieldCheck, LogOut, UserCog, Gift, Eye, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,21 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { AvatarDisplay } from "@/components/avatar-display";
 import { NAV_HOVER_ICON } from "./nav-hover";
 
+type GuestAccess = "guest" | "manager" | null;
+
+// Asks the server whether this person currently holds a guest / access-manager
+// grant (see app/api/admin-access/route.ts). Any failure means "show nothing".
+async function fetchGuestAccess(): Promise<GuestAccess> {
+  try {
+    const res = await fetch("/api/admin-access", { cache: "no-store", credentials: "same-origin" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { access?: string | null };
+    return data.access === "guest" || data.access === "manager" ? data.access : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function UserMenu() {
   const { data: session, isPending } = useSession();
   const isAdmin = session?.user?.role === "admin";
@@ -35,6 +50,27 @@ export default function UserMenu() {
   // Standard SSR-hydration-safe "mounted" gate (see comment above render).
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
+
+  // Does the owner currently let this person into the admin as a read-only
+  // guest (or as someone who invites guests)? Only the server knows — it
+  // checks the live grant, so this asks it rather than guessing from the
+  // session. It's just for showing a shortcut; the admin pages enforce access
+  // on their own. Asked on load and again whenever the menu opens, so a
+  // revoke or an expiry removes the shortcut straight away.
+  const userId = session?.user?.id;
+  const [guestAccess, setGuestAccess] = useState<GuestAccess>(null);
+  useEffect(() => {
+    if (!userId || isAdmin) return;
+    let cancelled = false;
+    void fetchGuestAccess().then((access) => {
+      if (!cancelled) setGuestAccess(access);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, isAdmin]);
+  // Never show a shortcut for someone who has since signed out or is a real admin.
+  const shownGuestAccess = userId && !isAdmin ? guestAccess : null;
 
   if (!mounted) {
     return (
@@ -54,7 +90,11 @@ export default function UserMenu() {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          if (open && userId && !isAdmin) void fetchGuestAccess().then(setGuestAccess);
+        }}
+      >
         <DropdownMenuTrigger
           render={
             <button type="button" aria-label="Account menu" className={`${NAV_HOVER_ICON} overflow-hidden p-1`} />
@@ -103,6 +143,24 @@ export default function UserMenu() {
               <span className="text-xs text-muted-foreground">Earn rewards for referrals</span>
             </span>
           </DropdownMenuItem>
+          {shownGuestAccess && (
+            <DropdownMenuItem
+              className="items-start gap-3 rounded-xl px-2 py-2.5"
+              render={<Link href={shownGuestAccess === "manager" ? "/admin/guests" : "/admin"} />}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+                {shownGuestAccess === "manager" ? <Users className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+              </span>
+              <span className="flex flex-col gap-0.5 pt-0.5">
+                <span className="text-sm font-semibold text-foreground">
+                  {shownGuestAccess === "manager" ? "Manage guests" : "Guest admin"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {shownGuestAccess === "manager" ? "Invite and revoke guest access" : "Look around the admin (read-only)"}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          )}
           {isAdmin && (
             <DropdownMenuItem
               className="items-start gap-3 rounded-xl px-2 py-2.5"

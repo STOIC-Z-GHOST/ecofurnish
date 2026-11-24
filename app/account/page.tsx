@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Gift, PackageSearch, ShieldCheck } from "lucide-react";
+import { Eye, Gift, PackageSearch, ShieldCheck, Users } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { getAdminAccess } from "@/lib/require-admin";
 import { ProfileForm } from "@/components/account/profile-form";
 import { PasswordForm } from "@/components/account/password-form";
 import { AvatarPicker } from "@/components/account/avatar-picker";
@@ -18,6 +19,11 @@ export default async function AccountPage() {
   if (!session?.user) redirect("/sign-in");
 
   const isAdmin = session.user.role === "admin";
+  // A read-only guest the owner has let in (or someone who invites guests):
+  // looked up live from the server, so it disappears the moment the grant is
+  // revoked or runs out. Real admins have their own card below.
+  const adminAccess = isAdmin ? null : await getAdminAccess();
+  const guestLevel = adminAccess?.level === "guest" || adminAccess?.level === "delegate" ? adminAccess.level : null;
   const divertedKg = await getUserPlasticDivertedKg(session.user.id);
 
   return (
@@ -26,7 +32,7 @@ export default async function AccountPage() {
 
       <ImpactBanner kg={divertedKg} />
 
-      <div className="mb-8 flex gap-3">
+      <div className="mb-8 flex flex-wrap gap-3">
         <Link
           href="/account/orders"
           className="flex flex-1 items-center gap-2 rounded-lg border border-border/60 p-4 text-sm font-medium transition-colors hover:bg-muted/30"
@@ -41,6 +47,15 @@ export default async function AccountPage() {
           <Gift className="h-4 w-4 text-primary" />
           Invite friends
         </Link>
+        {guestLevel && (
+          <Link
+            href={guestLevel === "guest" ? "/admin" : "/admin/guests"}
+            className="flex flex-1 items-center gap-2 rounded-lg border border-border/60 p-4 text-sm font-medium transition-colors hover:bg-muted/30"
+          >
+            {guestLevel === "guest" ? <Eye className="h-4 w-4 text-primary" /> : <Users className="h-4 w-4 text-primary" />}
+            {guestLevel === "guest" ? "Guest admin" : "Manage guests"}
+          </Link>
+        )}
         {isAdmin && (
           <Link
             href="/admin"

@@ -18,6 +18,19 @@ interface InboundEmail {
   receivedAt: Date;
 }
 
+// Wraps an inbound email's HTML for the sandboxed frame above. The CSP in
+// here is a second lock behind the sandbox: nothing may run, and nothing is
+// fetched from the internet except inline styles and data: images — which
+// also means "tracking pixels" and remote images stay blocked, so opening a
+// message never tells a sender that the admin read it.
+function buildEmailFrameDoc(html: string): string {
+  return `<!doctype html><html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'">
+<base target="_blank">
+<style>body{font:14px/1.5 system-ui,sans-serif;color:#111;background:#fff;margin:12px;word-wrap:break-word}img{max-width:100%;height:auto}table{max-width:100%}</style>
+</head><body>${html}</body></html>`;
+}
+
 export function InboxList({ emails }: { emails: InboundEmail[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [localEmails, setLocalEmails] = useState(emails);
@@ -105,12 +118,19 @@ export function InboxList({ emails }: { emails: InboundEmail[] }) {
             {isOpen && (
               <div className="border-t border-border/60 bg-muted/20 px-4 py-4">
                 {email.html ? (
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    // Admin-only surface, and Resend has already parsed this
-                    // out of a real email — same trust level as any other
-                    // email client rendering HTML mail.
-                    dangerouslySetInnerHTML={{ __html: email.html }}
+                  <iframe
+                    title={`Email from ${email.fromEmail}`}
+                    // Inbound mail is written by strangers, and this page runs
+                    // inside a signed-in admin session — so it is never put
+                    // into the page itself. It lives in a sandboxed frame:
+                    // no scripts, no forms, and no access to this page, its
+                    // cookies or its storage (the sandbox has no
+                    // allow-same-origin). Links may open in a new tab, which
+                    // is also sandbox-free so the destination site works.
+                    sandbox="allow-popups allow-popups-to-escape-sandbox"
+                    referrerPolicy="no-referrer"
+                    srcDoc={buildEmailFrameDoc(email.html)}
+                    className="h-96 w-full rounded-md border border-border/60 bg-white"
                   />
                 ) : (
                   <p className="whitespace-pre-wrap text-sm text-foreground">
