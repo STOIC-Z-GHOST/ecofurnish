@@ -24,10 +24,10 @@ interface Props {
 }
 
 const MESSAGES: Record<string, string> = {
-  waiting: "Got it — we'll hold your order and email you the moment it's confirmed.",
-  refunded: "Refunded — it can take a few days to show up with your payment provider.",
-  refund_pending: "Cancelled — your refund is being processed and we'll email you when it's sent.",
-  credited: "Done — the store credit is on your account. Tick “use store credit” at checkout.",
+  waiting: "Got it, we'll hold your order and email you the moment it's confirmed.",
+  refunded: "Refunded, it can take a few days to show up with your payment provider.",
+  refund_pending: "Cancelled, your refund is being processed and we'll email you when it's sent.",
+  credited: "Done, the store credit is on your account. Tick “use store credit” at checkout.",
 };
 
 export function SoldOutChoice({
@@ -54,7 +54,7 @@ export function SoldOutChoice({
           toast.success(MESSAGES[result.outcome] ?? "Done.");
         }
       } catch {
-        toast.error("Something went wrong — please try again.");
+        toast.error("Something went wrong, please try again.");
       } finally {
         setBusy(null);
         router.refresh();
@@ -73,7 +73,7 @@ export function SoldOutChoice({
           <Hourglass className="h-4 w-4" /> Waiting for {itemName} to be restocked
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          You&apos;ve paid {amount} and that price is locked — you&apos;ll never be asked for more,
+          You&apos;ve paid {amount} and that price is locked, you&apos;ll never be asked for more,
           even if the price goes up. We&apos;ll email you as soon as the order is confirmed. {restockText}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -101,7 +101,7 @@ export function SoldOutChoice({
       id: "wait",
       icon: Hourglass,
       title: "Wait for the restock",
-      body: `We keep your order and confirm it automatically when ${itemName} is back. ${restockText} Your price is locked — you won't pay more even if it rises.`,
+      body: `We keep your order and confirm it automatically when ${itemName} is back. ${restockText} Your price is locked, you won't pay more even if it rises.`,
       hidden: !restockExpected,
     },
     {
@@ -117,7 +117,7 @@ export function SoldOutChoice({
     <div className="mt-8 text-left">
       <h2 className="text-lg font-semibold">What would you like to do?</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Your payment is safe — pick one and we&apos;ll take care of the rest.
+        Your payment is safe, pick one and we&apos;ll take care of the rest.
       </p>
       <div className="mt-4 grid gap-3">
         {options

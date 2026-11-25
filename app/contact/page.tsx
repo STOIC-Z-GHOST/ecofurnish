@@ -42,7 +42,7 @@ export default function ContactPage() {
       toast.error(
         "error" in result && result.error
           ? result.error
-          : "Couldn't send your message — please try again in a moment."
+          : "Couldn't send your message, please try again in a moment."
       );
     }
   }
@@ -79,7 +79,7 @@ export default function ContactPage() {
             <div className="py-8 text-center">
               <h2 className="text-xl font-semibold">Message sent</h2>
               <p className="mt-2 text-muted-foreground">
-                Thanks for reaching out — we&apos;ll get back to you soon.
+                Thanks for reaching out, we&apos;ll get back to you soon.
               </p>
             </div>
           ) : (

@@ -68,7 +68,7 @@ export function TurnstileWidget({ onVerify, onExpire, resetSignal }: TurnstileWi
   if (!siteKey) {
     return (
       <p className="text-xs text-muted-foreground">
-        Captcha isn&apos;t configured yet — add NEXT_PUBLIC_TURNSTILE_SITE_KEY (or NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY) to .env.
+        Captcha isn&apos;t configured yet, add NEXT_PUBLIC_TURNSTILE_SITE_KEY (or NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY) to .env.
       </p>
     );
   }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, Heart, Leaf, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { showCartToast } from "@/components/ui/cart-toast";
 import { Badge } from "@/components/ui/badge";
 import { useCart, useCartRoom } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -15,7 +16,9 @@ import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
 import DiscountLine from "./DiscountLine";
+import CardRating from "./CardRating";
 import ImageOverlay from "./ImageOverlay";
+import StockBadge from "./StockBadge";
 import RestockOverlay from "./RestockOverlay";
 
 export default function ProductHoverDetail({
@@ -75,7 +78,7 @@ export default function ProductHoverDetail({
       imageUrl: product.imageUrl,
       stock: effectiveStock,
     });
-    if (added > 0) toast.success(`${product.name} added to cart`);
+    if (added > 0) showCartToast({ name: product.name, imageUrl: product.imageUrl });
     else toast.info(`All ${effectiveStock} in stock are already in your cart`);
   }
 
@@ -97,7 +100,7 @@ export default function ProductHoverDetail({
     // what's below rather than pushing anything, and never clips the
     // Add to Cart row off the bottom.
     <div
-      className="absolute -inset-x-2 -top-2 z-30 flex min-h-[calc(100%+1rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl duration-150 animate-in fade-in-0 zoom-in-95 sm:-inset-x-3 sm:-top-3 sm:min-h-[calc(100%+1.5rem)]"
+      className="absolute -inset-x-2 -top-2 z-30 hidden min-h-[calc(100%+1rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl duration-150 animate-in fade-in-0 zoom-in-95 sm:-inset-x-3 sm:-top-3 sm:min-h-[calc(100%+1.5rem)] md:flex"
       // Purely supplementary — the card underneath already exposes the
       // same name/link/actions to the keyboard & screen-reader tab order,
       // so this expanded preview doesn't need its own stop in it.
@@ -110,7 +113,7 @@ export default function ProductHoverDetail({
               the arrows' glow shadow can spill past their own edges
               instead of getting cut off by the same overflow-hidden that
               clips the photo. */}
-          <div className="absolute inset-0 overflow-hidden bg-muted">
+          <div className="absolute inset-0 overflow-hidden bg-white">
             <Image
               src={displayImage}
               alt={product.name}
@@ -125,9 +128,8 @@ export default function ProductHoverDetail({
             </Badge>
           </div>
 
-          {/* Same badges, same spot as on the card itself, so nothing jumps
-              when the preview opens. Lifted a little when the photo dots
-              are showing so the two don't overlap. */}
+          {/* Flash-sale countdown, same spot as on the card. Lifted a little
+              when the photo dots are showing so the two don't overlap. */}
           <ImageOverlay product={product} className={hasMultiplePhotos ? "bottom-4 sm:bottom-5" : undefined} />
 
           {hasMultiplePhotos && (
@@ -168,12 +170,20 @@ export default function ProductHoverDetail({
 
         <div className="flex grow flex-col p-3 pb-0 text-sm sm:p-4 sm:pb-0">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="font-heading text-base leading-snug font-medium">{product.name}</h3>
+            <h3 className="font-sans text-base leading-snug font-medium">{product.name}</h3>
             <span className="whitespace-nowrap text-lg font-bold text-primary">
               {formatPrice(getEffectivePrice(product), currency)}
             </span>
           </div>
           <DiscountLine product={product} currency={currency} className="mt-0.5" />
+          <CardRating rating={product.avgRating} count={product.reviewCount} className="mt-1" />
+          <StockBadge
+            productId={product.id}
+            stock={product.stock}
+            restockAt={product.restockAt}
+            variant="line"
+            className="mt-1"
+          />
 
           <p className="mt-2 line-clamp-3 text-muted-foreground">
             {product.description || "Sustainable furniture crafted from recycled materials."}
@@ -198,7 +208,7 @@ export default function ProductHoverDetail({
           tabIndex={-1}
           disabled={product.hasVariants ? product.stock <= 0 : effectiveStock <= 0 || allInCart || !ready}
           onClick={handleAddToCart}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 sm:text-sm"
+          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           {allInCart ? (
             <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -221,13 +231,13 @@ export default function ProductHoverDetail({
           aria-pressed={liked}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
           onClick={handleWishlist}
-          className={`shrink-0 rounded-xl border p-2.5 transition-colors ${
+          className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors hover:bg-muted ${
             liked
-              ? "border-red-500 bg-red-50 text-red-500"
-              : "border-border text-muted-foreground hover:border-red-500 hover:text-red-500"
+              ? "text-emerald-700 dark:text-emerald-400"
+              : "text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400"
           }`}
         >
-          <Heart size={16} fill={liked ? "currentColor" : "none"} />
+          <Heart size={20} strokeWidth={1.75} fill={liked ? "currentColor" : "none"} />
         </button>
       </div>
     </div>

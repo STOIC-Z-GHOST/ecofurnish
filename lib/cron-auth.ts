@@ -19,7 +19,7 @@ export function rejectUnlessCron(request: NextRequest): NextResponse | null {
 
   const secret = process.env.CRON_SECRET;
   if (!secret) {
-    console.error("CRON_SECRET is not set — refusing cron request");
+    console.error("CRON_SECRET is not set, refusing cron request");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

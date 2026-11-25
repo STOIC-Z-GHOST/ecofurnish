@@ -104,7 +104,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                     onClick={(e) => handleItemClick(e, item.href)}
                     className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
                   >
-                    <Icon className="h-5 w-5 text-emerald-700" />
+                    <Icon className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                     <span className="flex-1">{item.title}</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </Link>
@@ -120,7 +120,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                   aria-expanded={categoriesOpen}
                   className="flex w-full items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
                 >
-                  <LayoutGrid className="h-5 w-5 text-emerald-700" />
+                  <LayoutGrid className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                   <span className="flex-1 text-left">Categories</span>
                   <ChevronDown
                     className={`h-4 w-4 text-muted-foreground transition-transform ${
@@ -160,7 +160,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
                 >
-                  <ShieldCheck className="h-5 w-5 text-emerald-700" />
+                  <ShieldCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                   <span className="flex-1">Admin</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
@@ -175,7 +175,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
           <svg
             viewBox="0 0 300 60"
             preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-x-0 top-0 h-12 w-full text-emerald-700/10"
+            className="pointer-events-none absolute inset-x-0 top-0 h-12 w-full text-emerald-700 dark:text-emerald-400/10"
           >
             <path
               d="M0 40 C 60 10, 120 55, 180 25 S 260 45, 300 15"
@@ -185,7 +185,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
             />
           </svg>
           <div className="relative flex items-center gap-2">
-            <Leaf className="h-4 w-4 shrink-0 text-emerald-700" />
+            <Leaf className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
             <p className="text-sm text-muted-foreground">
               Sustainable living, thoughtfully designed.
             </p>

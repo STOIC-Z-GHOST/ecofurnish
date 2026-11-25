@@ -79,7 +79,7 @@ export default async function AboutPage() {
           footnote for anyone curious, not in the storefront's own
           footer where it read like part of the EcoFurnish brand. */}
       <div className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-        This is a demo storefront — designed &amp; built by{" "}
+        This is a demo storefront, designed &amp; built by{" "}
         <a
           href={siteConfig.developer.github}
           target="_blank"

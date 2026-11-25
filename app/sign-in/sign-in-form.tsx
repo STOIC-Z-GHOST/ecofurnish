@@ -81,7 +81,7 @@ export function SignInForm({ socialProviders }: { socialProviders: SocialProvide
       { email: unverifiedEmail },
       {
         onSuccess: () => {
-          toast.success("Verification email sent — check your inbox.");
+          toast.success("Verification email sent, check your inbox.");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Couldn't resend the email.");

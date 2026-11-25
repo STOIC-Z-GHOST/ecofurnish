@@ -128,7 +128,7 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
                 then come back and sign in.
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Don&apos;t see it? Check your spam or junk folder — and if it&apos;s there, mark it
+                Don&apos;t see it? Check your spam or junk folder, and if it&apos;s there, mark it
                 &quot;Not spam&quot; so it (and future emails) land in your inbox.{" "}
                 <Link href="/help/check-spam" className="font-medium text-foreground hover:underline">
                   More help
@@ -144,7 +144,7 @@ export function SignUpForm({ socialProviders }: { socialProviders: SocialProvide
                 className="mt-4 text-sm font-medium text-foreground hover:underline disabled:no-underline disabled:text-muted-foreground"
               >
                 {resendState === "sent"
-                  ? "Sent — check your inbox"
+                  ? "Sent, check your inbox"
                   : resendState === "sending"
                     ? "Sending…"
                     : "Link expired or never arrived? Send a new one"}

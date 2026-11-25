@@ -2,13 +2,15 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
-import { Leaf, Recycle, Truck } from "lucide-react";
 import { attachRatings } from "@/lib/reviews-queries";
 import { runAutoRestock } from "@/lib/auto-restock";
 import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
 import Testimonials from "@/components/home/Testimonials";
+import ImpactCards from "@/components/home/ImpactCards";
+import AboutMaker from "@/components/home/AboutMaker";
+import SectionHeading from "@/components/home/SectionHeading";
 import ContinueBrowsing from "@/components/home/ContinueBrowsing";
 import RecentFinds from "@/components/home/RecentFinds";
 import { CatalogView } from "@/components/catalog-view";
@@ -40,6 +42,9 @@ export default async function Home() {
   const rawCatalog = await db.select().from(products);
   const catalog = await attachRatings(rawCatalog);
   const featured = catalog.slice(0, 4);
+  // Figures for the "Our impact" cards, worked out from the real catalog.
+  const plasticKg =
+    Math.round(catalog.reduce((sum, p) => sum + Number(p.plasticWeightKg || 0), 0) * 10) / 10;
 
   // Tells Google the site's name is "EcoFurnish" (not the shared host name
   // "de5.net" it falls back to). Google only reads this from the home page;
@@ -69,13 +74,11 @@ export default async function Home() {
 
       <Categories />
 
-      <div id="all-products" className="container mx-auto max-w-7xl px-4 py-12">
-        <div className="mb-10">
-          <h2 className="text-3xl font-bold tracking-tight">Full Catalog</h2>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Sustainable furniture that cleans our streets.
-          </p>
-        </div>
+      <div id="all-products" className="container mx-auto max-w-7xl scroll-mt-24 px-4 py-12 sm:py-16">
+        <SectionHeading
+          title="All products"
+          subtitle="Sustainable furniture that cleans our streets."
+        />
 
         {catalog.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed bg-muted/20 py-24 text-center">
@@ -94,49 +97,9 @@ export default async function Home() {
 
       <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
 
-      <section id="about" className="border-t border-border/60 bg-muted/30">
-        <div className="container mx-auto max-w-7xl px-4 py-16">
-          <h2 className="text-2xl font-bold tracking-tight">Our Impact</h2>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            Every piece in the EcoFurnish catalog is built from recycled
-            plastic composite, reclaimed wood, or both — here&apos;s how that
-            plays out from raw material to your living room.
-          </p>
+      <ImpactCards plasticKg={plasticKg} pieces={catalog.length} />
 
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            <div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Recycle className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-semibold">Recycled materials</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Collected plastic waste is cleaned, shredded, and remoulded
-                into structural panels and shells for our furniture.
-              </p>
-            </div>
-            <div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Leaf className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-semibold">Every product labeled</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Each listing shows the plastic diverted for that specific
-                piece, so you know exactly what you&apos;re supporting.
-              </p>
-            </div>
-            <div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Truck className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-semibold">Local delivery</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Orders ship from Addis Ababa, keeping transport emissions
-                low for customers across Ethiopia.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AboutMaker />
 
       <Testimonials />
       <Newsletter />

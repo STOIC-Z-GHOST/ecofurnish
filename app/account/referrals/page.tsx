@@ -33,7 +33,7 @@ export default async function ReferralsPage() {
 
       <h1 className="mb-2 text-3xl font-extrabold tracking-tight">Invite friends</h1>
       <p className="mb-8 text-muted-foreground">
-        Share your link. Rewards unlock once your friends actually buy something —
+        Share your link. Rewards unlock once your friends actually buy something -
         not just for signing up.
       </p>
 
@@ -44,18 +44,18 @@ export default async function ReferralsPage() {
 
       <section className="mb-8 grid grid-cols-2 gap-4">
         <div className="rounded-lg border border-border/60 p-5 text-center">
-          <p className="text-3xl font-bold text-emerald-700">{stats.invitedCount}</p>
+          <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{stats.invitedCount}</p>
           <p className="mt-1 text-sm text-muted-foreground">Friends invited</p>
         </div>
         <div className="rounded-lg border border-border/60 p-5 text-center">
-          <p className="text-3xl font-bold text-emerald-700">{stats.qualifiedCount}</p>
+          <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{stats.qualifiedCount}</p>
           <p className="mt-1 text-sm text-muted-foreground">Actually purchased</p>
         </div>
       </section>
 
       {stats.nextMilestone && (
         <section className="mb-8 rounded-lg border border-emerald-700/30 bg-emerald-700/5 p-5">
-          <p className="text-sm font-medium text-emerald-800">
+          <p className="text-sm font-medium text-emerald-800 dark:text-emerald-400">
             {stats.nextMilestone.remaining} more purchasing friend
             {stats.nextMilestone.remaining === 1 ? "" : "s"} until your next reward
           </p>
@@ -89,7 +89,7 @@ export default async function ReferralsPage() {
               >
                 <span
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                    unlocked ? "bg-emerald-700/15 text-emerald-700" : "bg-muted text-muted-foreground"
+                    unlocked ? "bg-emerald-700/15 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -113,7 +113,7 @@ export default async function ReferralsPage() {
       {stats.rewards.length > 0 && (
         <section className="rounded-lg border border-border/60 p-6">
           <h2 className="mb-4 flex items-center gap-2 font-semibold">
-            <Gift className="h-4 w-4 text-emerald-700" />
+            <Gift className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
             Your rewards
           </h2>
           <div className="space-y-3">
@@ -139,7 +139,7 @@ export default async function ReferralsPage() {
                   className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                     r.redeemed
                       ? "bg-muted text-muted-foreground"
-                      : "bg-emerald-700/10 text-emerald-700"
+                      : "bg-emerald-700/10 text-emerald-700 dark:text-emerald-400"
                   }`}
                 >
                   {r.redeemed ? "Used" : "Available"}

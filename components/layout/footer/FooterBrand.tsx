@@ -6,8 +6,8 @@ export default function FooterBrand() {
       <Logo />
 
       <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-        Sustainable furniture designed for modern families who value quality,
-        comfort, and timeless design.
+        Furniture from recycled plastic and reclaimed wood, built in Addis
+        Ababa and delivered across Ethiopia.
       </p>
     </div>
   );

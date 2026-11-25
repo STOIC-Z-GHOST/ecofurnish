@@ -1,20 +1,14 @@
 import Link from "next/link";
 
+// One clear action. A second button next to it only splits attention.
 export default function HeroButtons() {
   return (
-    <div className="mt-8 flex flex-wrap gap-4">
+    <div className="mt-8">
       <Link
         href="/#all-products"
-        className="rounded-xl bg-emerald-700 px-6 py-3 text-white transition-all duration-300 hover:bg-emerald-800 hover:shadow-lg"
+        className="inline-flex h-12 items-center rounded-md bg-primary px-7 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
-        Shop Collection
-      </Link>
-
-      <Link
-        href="/#all-products"
-        className="rounded-xl border border-border px-6 py-3 text-foreground transition-all duration-300 hover:border-emerald-700 hover:text-emerald-700"
-      >
-        Explore Collections
+        Shop the collection
       </Link>
     </div>
   );

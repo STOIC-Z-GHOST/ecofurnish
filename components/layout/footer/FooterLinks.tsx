@@ -11,7 +11,7 @@ interface FooterLinkColumnProps {
 export default function FooterLinks({ title, links }: FooterLinkColumnProps) {
   return (
     <div>
-      <h2 className="mb-4 font-semibold text-foreground">{title}</h2>
+      <h2 className="mb-4 font-sans text-base font-semibold text-foreground">{title}</h2>
 
       <div className="space-y-2">
         {links.map((link) => (

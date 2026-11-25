@@ -36,7 +36,7 @@ export default function RecentFinds() {
               href={`/products/${item.productId}`}
               className="group w-36 shrink-0 sm:w-44"
             >
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+              <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
                 <Image
                   src={item.imageUrl || "/placeholder.jpg"}
                   alt={item.name}

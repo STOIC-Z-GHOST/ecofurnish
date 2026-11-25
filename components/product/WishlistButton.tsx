@@ -25,15 +25,16 @@ export default function WishlistButton({ product }: { product: Product }) {
           hasVariants: product.hasVariants,
         });
       }}
-      className={`rounded-xl border p-3 transition-colors ${
+      className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors hover:bg-muted ${
         liked
-          ? "border-red-500 bg-red-50 text-red-500"
-          : "border-border text-muted-foreground hover:border-red-500 hover:text-red-500"
+          ? "text-emerald-700 dark:text-emerald-400"
+          : "text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400"
       }`}
     >
       <Heart
         key={liked ? "liked" : "unliked"}
-        size={20}
+        size={22}
+        strokeWidth={1.75}
         fill={liked ? "currentColor" : "none"}
         className={liked ? "animate-in zoom-in-50 duration-300" : undefined}
       />

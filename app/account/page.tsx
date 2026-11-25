@@ -106,7 +106,7 @@ export default async function AccountPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             {hasPassword
               ? "You'll need your current password to set a new one."
-              : `You signed up with ${providerNames.join(" / ") || "a social account"}, so you don't have a password yet. Add one and you can also sign in with ${session.user.email} and your password next time — signing in with ${providerNames[0] ?? "that account"} keeps working too.`}
+              : `You signed up with ${providerNames.join(" / ") || "a social account"}, so you don't have a password yet. Add one and you can also sign in with ${session.user.email} and your password next time, signing in with ${providerNames[0] ?? "that account"} keeps working too.`}
           </p>
           <div className="mt-4">
             <PasswordForm hasPassword={hasPassword} />
@@ -127,7 +127,7 @@ export default async function AccountPage() {
           <h2 className="font-semibold text-destructive">Danger zone</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Permanently delete your account. We&apos;ll email a confirmation link
-            first — nothing is deleted immediately.
+            first, nothing is deleted immediately.
           </p>
           <div className="mt-4">
             <DeleteAccountButton />

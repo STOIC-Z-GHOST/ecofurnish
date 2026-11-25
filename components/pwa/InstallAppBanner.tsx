@@ -111,37 +111,35 @@ export default function InstallAppBanner() {
   if (dismissed || (!deferredPrompt && !manualHint)) return null
 
   return (
+    // A slim bar (50px) in the normal page flow at the very top. Because it
+    // is not floating, it pushes the navbar and the page down by its own
+    // height while it is showing, so it never covers the logo.
     <div
-      className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex items-start gap-3 rounded-lg border border-border bg-background p-3 shadow-lg sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-80"
-      role="dialog"
+      className="flex h-[50px] items-center gap-3 border-b border-border bg-muted px-3 sm:px-6"
+      role="region"
       aria-label="Install EcoFurnish"
     >
       <Image
         src="/icon-192.png"
         alt=""
-        width={40}
-        height={40}
-        className="mt-0.5 size-10 shrink-0 rounded-lg"
+        width={28}
+        height={28}
+        className="size-7 shrink-0 rounded-md"
       />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">Install EcoFurnish</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {manualHint === 'ios' &&
-            'Tap the Share icon, then "Add to Home Screen" for quick access.'}
-          {manualHint === 'safari' &&
-            'Click the Share icon in the toolbar, then "Add to Dock" for quick access.'}
-          {!manualHint && 'Add it to your home screen for a faster, full-screen experience.'}
-        </p>
-        {!manualHint && (
-          <Button size="sm" className="mt-2" onClick={handleInstall}>
-            Install
-          </Button>
-        )}
-      </div>
+      <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+        {manualHint === 'ios' && 'Tap Share, then Add to Home Screen'}
+        {manualHint === 'safari' && 'Click Share, then Add to Dock'}
+        {!manualHint && 'Add EcoFurnish to your Home Screen'}
+      </p>
+      {!manualHint && (
+        <Button size="sm" className="shrink-0" onClick={handleInstall}>
+          Install
+        </Button>
+      )}
       <button
         onClick={dismiss}
         aria-label="Dismiss"
-        className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+        className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-background hover:text-foreground"
       >
         <X className="size-4" />
       </button>

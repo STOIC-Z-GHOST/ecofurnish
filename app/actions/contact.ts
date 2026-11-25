@@ -27,13 +27,13 @@ export async function submitContactForm(input: {
     return { success: false as const, error: "Please fill in every field." };
   }
   if (name.length > 100 || message.length > 5000) {
-    return { success: false as const, error: "That message is too long — please shorten it." };
+    return { success: false as const, error: "That message is too long, please shorten it." };
   }
   if (!isPlausibleEmail(email)) {
     return { success: false as const, error: "Please enter a valid email address." };
   }
   if (!(await allowRequest("contact", 5, 10 * 60 * 1000))) {
-    return { success: false as const, error: "You've sent a few messages already — please try again in a little while." };
+    return { success: false as const, error: "You've sent a few messages already, please try again in a little while." };
   }
   // Verified here, inside the action, so calling the action directly (skipping
   // the form) can't dodge it. A token works once, so this is the only check.
@@ -41,7 +41,7 @@ export async function submitContactForm(input: {
     return { success: false as const, error: "Please complete the captcha." };
   }
   if (!(await verifyTurnstileToken(input.captchaToken))) {
-    return { success: false as const, error: "Captcha verification failed — please try again." };
+    return { success: false as const, error: "Captcha verification failed, please try again." };
   }
   return sendContactMessage({ name, email, message });
 }

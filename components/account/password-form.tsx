@@ -32,11 +32,11 @@ function AddPasswordForm() {
         toast.error(result.error);
         return;
       }
-      toast.success("Password added — you can now sign in with your email and password too.");
+      toast.success("Password added, you can now sign in with your email and password too.");
       setNewPassword("");
       router.refresh(); // the card switches to "Change password"
     } catch {
-      toast.error("Couldn't add your password — please try again.");
+      toast.error("Couldn't add your password, please try again.");
     } finally {
       setSaving(false);
     }

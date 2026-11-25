@@ -96,7 +96,7 @@ export function PaymentReceiptCard({
       </div>
       {testMode && !showChapaLink && (
         <p className="mt-3 text-xs text-muted-foreground print:hidden">
-          Test-mode payment — the link to Chapa&apos;s own receipt only appears for live payments.
+          Test-mode payment, the link to Chapa&apos;s own receipt only appears for live payments.
         </p>
       )}
     </section>

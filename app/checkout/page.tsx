@@ -80,7 +80,7 @@ export default function CheckoutPage() {
         <h1 className="text-2xl font-semibold">Sign in to check out</h1>
         <p className="mt-2 text-muted-foreground">
           Your {items.length} cart {items.length === 1 ? "item stays" : "items stay"} right
-          here — sign in or create an account to complete your order.
+          here, sign in or create an account to complete your order.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button render={<Link href="/sign-in" />} nativeButton={false}>
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
       <h1 className="mb-2 text-3xl font-extrabold tracking-tight">Checkout</h1>
       {canceled && (
         <p className="mb-6 rounded-lg border border-border/60 bg-muted/30 px-4 py-2 text-sm text-muted-foreground">
-          Payment was canceled — your cart is untouched, try again whenever you&apos;re ready.
+          Payment was canceled, your cart is untouched, try again whenever you&apos;re ready.
         </p>
       )}
 
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
           </div>
           <p className="-mt-2 text-xs text-muted-foreground">
             If your browser allows it, we&apos;ll also use your device location to help place
-            your delivery pin more accurately — this never affects whether your order goes
+            your delivery pin more accurately, this never affects whether your order goes
             through.
           </p>
 
@@ -200,7 +200,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="space-y-3 rounded-lg border border-emerald-700/30 bg-emerald-700/5 p-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-400">
               <Gift className="h-4 w-4" />
               Referral rewards
             </div>
@@ -226,14 +226,14 @@ export default function CheckoutPage() {
           </div>
 
           <div className="rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
-            You&apos;ll complete payment on Chapa&apos;s secure checkout page next —
+            You&apos;ll complete payment on Chapa&apos;s secure checkout page next -
             card, mobile money, or bank transfer, charged in ETB. This is
             running in test mode, so no real money moves.
           </div>
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting ? "Preparing checkout…" : `Continue to Payment — ${formatPrice(estimatedTotal, "ETB")}`}
+            {submitting ? "Preparing checkout…" : `Continue to Payment, ${formatPrice(estimatedTotal, "ETB")}`}
           </Button>
 
           <PaymentBadge className="mx-auto w-fit" />
@@ -255,7 +255,7 @@ export default function CheckoutPage() {
             ))}
           </div>
           {creditToApply > 0 && (
-            <div className="mt-3 flex justify-between text-sm text-emerald-700">
+            <div className="mt-3 flex justify-between text-sm text-emerald-700 dark:text-emerald-400">
               <span>Store credit applied</span>
               <span>−{formatPrice(creditToApply.toFixed(2), "ETB")}</span>
             </div>

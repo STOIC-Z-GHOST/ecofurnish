@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
         // just don't hide a genuine failure (e.g. rate limited) behind a
         // fake "check your email" state.
         onSuccess: () => setSent(true),
-        onError: (ctx) => setError(ctx.error.message || "Something went wrong — try again."),
+        onError: (ctx) => setError(ctx.error.message || "Something went wrong, try again."),
         onResponse: () => {
           setLoading(false);
           resetCaptcha();
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
       {sent ? (
         <div className="mt-6 space-y-4 rounded-lg border border-border/60 p-4 text-sm">
           <p className="text-muted-foreground">
-            If an account exists for that email, a reset link is on its way — check your inbox.
+            If an account exists for that email, a reset link is on its way, check your inbox.
           </p>
           <Link
             href="/sign-in"

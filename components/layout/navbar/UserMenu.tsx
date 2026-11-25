@@ -111,7 +111,7 @@ export default function UserMenu() {
             className="items-start gap-3 rounded-xl px-2 py-2.5"
             render={<Link href="/account" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
               <UserCog className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -123,7 +123,7 @@ export default function UserMenu() {
             className="items-start gap-3 rounded-xl px-2 py-2.5"
             render={<Link href="/account/orders" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
               <PackageSearch className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -135,7 +135,7 @@ export default function UserMenu() {
             className="items-start gap-3 rounded-xl px-2 py-2.5"
             render={<Link href="/account/referrals" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
               <Gift className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -148,7 +148,7 @@ export default function UserMenu() {
               className="items-start gap-3 rounded-xl px-2 py-2.5"
               render={<Link href={shownGuestAccess === "manager" ? "/admin/guests" : "/admin"} />}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
                 {shownGuestAccess === "manager" ? <Users className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </span>
               <span className="flex flex-col gap-0.5 pt-0.5">
@@ -166,7 +166,7 @@ export default function UserMenu() {
               className="items-start gap-3 rounded-xl px-2 py-2.5"
               render={<Link href="/admin" />}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
                 <ShieldCheck className="h-4.5 w-4.5" />
               </span>
               <span className="flex flex-col gap-0.5 pt-0.5">

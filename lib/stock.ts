@@ -184,11 +184,11 @@ export async function sweepWaitingOrders(): Promise<number> {
       if (order.userId) await qualifyReferralIfFirstPurchase(order.userId);
       await sendOrderNoticeEmail({
         toEmail: order.customerEmail,
-        subject: "Good news — your EcoFurnish item is back in stock",
+        subject: "Good news, your EcoFurnish item is back in stock",
         paragraphs: [
           `Hi ${order.customerName.split(" ")[0] || "there"},`,
           `The item you were waiting for is back in stock and your order ${order.id.slice(0, 8)} is now confirmed. We're getting it ready for delivery.`,
-          `You already paid ${order.totalAmount} ETB — that price is locked in, so there's nothing more to pay even if the price has changed since.`,
+          `You already paid ${order.totalAmount} ETB, that price is locked in, so there's nothing more to pay even if the price has changed since.`,
         ],
         cta: { label: "View your order", path: `/order-confirmation/${order.id}` },
       });

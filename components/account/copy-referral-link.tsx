@@ -18,7 +18,7 @@ export function CopyReferralLink({ link }: { link: string }) {
     <div className="flex gap-2">
       <Input readOnly value={link} onFocus={(e) => e.target.select()} className="font-mono text-xs sm:text-sm" />
       <Button type="button" variant="outline" onClick={handleCopy} className="shrink-0">
-        {copied ? <Check className="h-4 w-4 text-emerald-700" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> : <Copy className="h-4 w-4" />}
         {copied ? "Copied" : "Copy"}
       </Button>
     </div>

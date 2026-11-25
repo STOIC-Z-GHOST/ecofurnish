@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTheme } from "@teispace/next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,25 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const { theme, setTheme } = useTheme();
-
-  // "light-explicit" only applies the light-green background when the
-  // person deliberately picked Light — if they picked System and it
-  // happens to resolve to light, we leave the plainer default alone,
-  // since that wasn't a specific request for the green look.
-  useEffect(() => {
-    document.documentElement.classList.toggle("light-explicit", theme === "light");
-  }, [theme]);
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            className={compact ? "size-7" : undefined}
+            className={`border-transparent bg-transparent text-foreground hover:bg-muted ${compact ? "size-7" : "size-9"}`}
           />
         }
       >

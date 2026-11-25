@@ -31,7 +31,7 @@ export default function Error({
       </div>
       <h1 className="mt-6 text-2xl font-extrabold tracking-tight">Something went wrong</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        This page hit a snag loading — it&apos;s probably temporary. Try again, or head back
+        This page hit a snag loading, it&apos;s probably temporary. Try again, or head back
         to the homepage.
       </p>
       <div className="mt-8 flex gap-3">

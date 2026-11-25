@@ -10,7 +10,7 @@ export function ImpactBanner({ kg }: { kg: number }) {
         <p className="text-2xl font-extrabold tracking-tight text-primary">{kg.toFixed(1)} kg</p>
         <p className="text-sm text-muted-foreground">
           {kg > 0
-            ? "of plastic diverted from landfill by your orders — thank you."
+            ? "of plastic diverted from landfill by your orders, thank you."
             : "Place your first order to start tracking your impact."}
         </p>
       </div>

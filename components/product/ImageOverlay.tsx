@@ -2,20 +2,15 @@ import { hasActiveDiscount } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 import CountdownTimer from "./CountdownTimer";
-import RatingBadge from "./RatingBadge";
-import StockBadge from "./StockBadge";
 
 /**
- * The badges that sit ON the product picture — stock warning, flash-sale
- * countdown and the star-rating pill. One component so the
- * catalog card and its hover preview show them in exactly the same place:
- * hovering a card used to move the stock warning down into the text, which
- * made the whole card jump. They only appear as plain inline text on the
- * product page itself (see ProductSummary).
+ * What still sits ON the product picture: the flash-sale countdown, and
+ * nothing else. The kg Diverted pill is top left (see ProductImage). The
+ * low-stock warning and the star rating used to float over the photo too,
+ * which looked cluttered, so they now sit as plain text under the price
+ * (see ProductInfo).
  *
- * Anchored to the bottom and allowed to wrap, so on a narrow phone card the
- * badges stack upward rather than running into the eco pill above. Renders
- * an empty, invisible box when there is nothing to flag.
+ * Renders an empty, invisible box when there is nothing to show.
  */
 export default function ImageOverlay({
   product,
@@ -33,20 +28,7 @@ export default function ImageOverlay({
         className
       )}
     >
-      <StockBadge
-        productId={product.id}
-        stock={product.stock}
-        restockAt={product.restockAt}
-        variant="overlay"
-        showCountdown={false}
-      />
-      {/* The "% off" pill now lives next to the old price under the card's
-          price (see DiscountLine); only a flash-sale timer stays here. */}
       {discounted && product.dealEndsAt && <CountdownTimer endsAt={product.dealEndsAt} compact />}
-      {/* ml-auto pins the rating to the right edge, opposite the stock
-          badge; if the left side fills the row it wraps onto its own line,
-          still at the bottom right. */}
-      <RatingBadge rating={product.avgRating} count={product.reviewCount} className="ml-auto" />
     </div>
   );
 }

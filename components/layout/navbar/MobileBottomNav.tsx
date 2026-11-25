@@ -138,7 +138,7 @@ export default function MobileBottomNav() {
                 href={tab.href}
                 onClick={(e) => handleTabClick(e, tab.href)}
                 className={`flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
-                  active ? 'text-emerald-700' : 'text-muted-foreground'
+                  active ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >

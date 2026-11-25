@@ -15,7 +15,7 @@ export default function OfflinePage() {
       <h1 className="mt-6 text-2xl font-extrabold tracking-tight">You&apos;re offline</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         This page hasn&apos;t been saved for offline use. Reconnect and try
-        again — pages you&apos;ve already visited should still open.
+        again, pages you&apos;ve already visited should still open.
       </p>
       <Button render={<Link href="/" />} className="mt-8">
         Back to home

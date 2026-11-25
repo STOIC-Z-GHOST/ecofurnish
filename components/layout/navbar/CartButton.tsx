@@ -12,10 +12,10 @@ export default function CartButton() {
     <Link href="/cart" aria-label="Shopping Cart" className={`${NAV_HOVER_ICON} p-2`}>
       {/* Keying on totalItems forces React to remount this element whenever
           the cart total changes, which replays the one-shot "animate-in"
-          animation — the same visible feedback for +1 as for -1, so it
+          animation, the same visible feedback for +1 as for -1, so it
           also plays on removing an item, not just adding one.
           Prefixed so the icon's key can never collide with the badge's
-          key below — both derive from the same totalItems value, and
+          key below, both derive from the same totalItems value, and
           sibling elements need distinct keys even when neither is in
           a .map(). */}
       <ShoppingCart

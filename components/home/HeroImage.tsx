@@ -3,18 +3,18 @@ import Image from "next/image";
 
 export default function HeroImage() {
   return (
-    <div className="relative flex items-center justify-center">
-      <div className="absolute h-80 w-80 rounded-full bg-emerald-100 blur-3xl" />
-
-      <Image
-        src={HERO_IMAGE.src}
-        alt={HERO_IMAGE.alt}
-        width={550}
-        height={550}
-        priority
-        sizes="(max-width: 550px) 100vw, 550px"
-        className="relative z-10 object-contain"
-      />
+    // A square white stage, like the product pictures, with a soft shadow.
+    <div className="relative mx-auto w-full max-w-xl">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-foreground/10">
+        <Image
+          src={HERO_IMAGE.src}
+          alt={HERO_IMAGE.alt}
+          fill
+          priority
+          sizes="(max-width: 1024px) 90vw, 560px"
+          className="object-contain"
+        />
+      </div>
     </div>
   );
 }

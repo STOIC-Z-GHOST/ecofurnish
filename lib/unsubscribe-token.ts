@@ -13,7 +13,7 @@ function secret(): string {
   const value = process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET;
   if (value) return value;
   if (process.env.NODE_ENV !== "production") return "development-only-unsubscribe-secret";
-  throw new Error("BETTER_AUTH_SECRET is not set — can't sign unsubscribe links.");
+  throw new Error("BETTER_AUTH_SECRET is not set, can't sign unsubscribe links.");
 }
 
 function sign(email: string): string {

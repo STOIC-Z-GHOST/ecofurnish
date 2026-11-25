@@ -53,7 +53,7 @@ export async function refundOrder(order: Order, soldOutName: string) {
     subject: "Your EcoFurnish order has been cancelled and refunded",
     paragraphs: [
       `Hi ${firstName},`,
-      `We're sorry — ${soldOutName} sold out before we could confirm order ${shortId}, so we've cancelled it.`,
+      `We're sorry, ${soldOutName} sold out before we could confirm order ${shortId}, so we've cancelled it.`,
       refund.success
         ? `We've refunded the full ${amount} to your original payment method. It can take a few days to show up.`
         : `We're processing your full ${amount} refund by hand and will email you as soon as it's sent.`,
@@ -63,8 +63,8 @@ export async function refundOrder(order: Order, soldOutName: string) {
 
   await sendTelegramMessage(
     refund.success
-      ? `↩️ <b>Refunded</b> — order <code>${shortId}</code> (${escapeHtml(amount)}): ${escapeHtml(soldOutName)} sold out. Cancelled and refunded automatically.`
-      : `🚨 <b>Manual refund needed</b> — order <code>${shortId}</code> (${escapeHtml(amount)}): ${escapeHtml(soldOutName)} sold out and the automatic Chapa refund failed. Refund tx_ref <code>${escapeHtml(order.chapaTxRef ?? "?")}</code> in the Chapa dashboard, then mark the order refunded.`
+      ? `↩️ <b>Refunded</b>, order <code>${shortId}</code> (${escapeHtml(amount)}): ${escapeHtml(soldOutName)} sold out. Cancelled and refunded automatically.`
+      : `🚨 <b>Manual refund needed</b>, order <code>${shortId}</code> (${escapeHtml(amount)}): ${escapeHtml(soldOutName)} sold out and the automatic Chapa refund failed. Refund tx_ref <code>${escapeHtml(order.chapaTxRef ?? "?")}</code> in the Chapa dashboard, then mark the order refunded.`
   );
 
   return { refunded: refund.success };

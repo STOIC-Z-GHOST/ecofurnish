@@ -38,19 +38,19 @@ export async function submitDriverApplication(input: DriverApplicationInput) {
     return { success: false as const, error: "Please select a vehicle type." };
   }
   if (fullName.length > 100 || phone.length > 30 || city.length > 100 || input.notes.length > 1000) {
-    return { success: false as const, error: "One of your answers is too long — please shorten it." };
+    return { success: false as const, error: "One of your answers is too long, please shorten it." };
   }
   if (email && !isPlausibleEmail(email)) {
     return { success: false as const, error: "Please enter a valid email address, or leave it blank." };
   }
   if (!(await allowRequest("driver-application", 5, 60 * 60 * 1000))) {
-    return { success: false as const, error: "Too many applications from this connection — please try again later." };
+    return { success: false as const, error: "Too many applications from this connection, please try again later." };
   }
   if (typeof input.captchaToken !== "string" || !input.captchaToken) {
     return { success: false as const, error: "Please complete the captcha." };
   }
   if (!(await verifyTurnstileToken(input.captchaToken))) {
-    return { success: false as const, error: "Captcha verification failed — please try again." };
+    return { success: false as const, error: "Captcha verification failed, please try again." };
   }
 
   await db.insert(driverApplications).values({

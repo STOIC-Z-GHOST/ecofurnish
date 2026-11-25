@@ -35,14 +35,14 @@ export async function getSupportFacts(): Promise<SupportFacts> {
       "Most orders ship within 1-2 business days from Addis Ababa. Delivery typically takes 2-5 business days within Addis Ababa, and 5-10 business days elsewhere in Ethiopia.",
 
     paymentSteps:
-      "Add items to your cart, go to checkout, sign in (or create a free account), enter your shipping details, then pay securely through Chapa — cards, Telebirr, CBE Birr, or bank transfer are all supported. We never see or store your card details.",
+      "Add items to your cart, go to checkout, sign in (or create a free account), enter your shipping details, then pay securely through Chapa, cards, Telebirr, CBE Birr, or bank transfer are all supported. We never see or store your card details.",
 
     // Sourced straight from app/about/page.tsx, so the bot's answer to
     // "what is EcoFurnish" matches the actual About page instead of the
     // old placeholder drafted from the site tagline. Keep these in sync
     // if the About page copy changes.
     missionStatement:
-      "EcoFurnish turns the plastic waste piling up around Addis Ababa into furniture people actually want in their homes. We source reclaimed plastic and wood locally and work with small workshops to build pieces meant to last, not be replaced next season — and every product listing shows exactly how much plastic it diverted from landfills, no vague 'eco-friendly' claims.",
+      "EcoFurnish turns the plastic waste piling up around Addis Ababa into furniture people actually want in their homes. We source reclaimed plastic and wood locally and work with small workshops to build pieces meant to last, not be replaced next season, and every product listing shows exactly how much plastic it diverted from landfills, no vague 'eco-friendly' claims.",
 
     links: {
       terms: `${siteConfig.url}/terms`,

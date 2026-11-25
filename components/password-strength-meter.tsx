@@ -40,7 +40,7 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
             <li
               key={check.id}
               className={`flex items-center gap-1.5 text-xs ${
-                passed ? "text-emerald-600" : "text-muted-foreground"
+                passed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
               }`}
             >
               {passed ? (

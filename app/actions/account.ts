@@ -43,14 +43,14 @@ export async function addPassword(newPassword: string) {
 
   const accounts = await auth.api.listUserAccounts({ headers: reqHeaders });
   if (accounts.some((a) => a.providerId === "credential")) {
-    return { success: false as const, error: "You already have a password — use Change password instead." };
+    return { success: false as const, error: "You already have a password, use Change password instead." };
   }
 
   try {
     await auth.api.setPassword({ body: { newPassword }, headers: reqHeaders });
   } catch (error) {
     console.error("Adding a password failed:", error);
-    return { success: false as const, error: "Couldn't add your password — please try again." };
+    return { success: false as const, error: "Couldn't add your password, please try again." };
   }
 
   // Anyone else signed in as this account (another device, or someone who

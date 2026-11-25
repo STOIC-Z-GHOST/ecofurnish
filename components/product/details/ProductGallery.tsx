@@ -52,13 +52,13 @@ export default function ProductGallery({ product, focusImage }: ProductGalleryPr
       <div className="group relative h-64 rounded-2xl sm:h-80 md:h-96 lg:h-[420px]">
         {/* Image clipping lives on its own inner layer now, separate from
             the outer positioning box. The arrows below need to spill their
-            glow shadow outward past their own edges — if they shared this
+            glow shadow outward past their own edges, if they shared this
             same overflow-hidden box as the image, that outward glow would
             get cut off right at the rounded corner, since the buttons sit
             close to it (left-3/right-3). Splitting the two lets the image
             still clip to rounded corners while the arrows/dots, as
             children of the outer (non-clipping) box, render freely. */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl bg-muted">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl bg-white">
           <Image
             src={displayPhotos[index]}
             alt={product.name}

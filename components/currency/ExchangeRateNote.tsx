@@ -42,7 +42,7 @@ export function ExchangeRateNote({ className }: { className?: string }) {
 
   return (
     <p className={className}>
-      Exchange rates refresh every {REFRESH_MINUTES} minutes — updated {relativeTime(ratesUpdatedAt, now)}.
+      Exchange rates refresh every {REFRESH_MINUTES} minutes, updated {relativeTime(ratesUpdatedAt, now)}.
     </p>
   );
 }

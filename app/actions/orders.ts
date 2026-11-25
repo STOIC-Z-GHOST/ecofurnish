@@ -119,8 +119,8 @@ export async function createOrder(input: PlaceOrderInput) {
       return {
         success: false as const,
         error: item.variantId
-          ? `The option you chose for ${product.name} isn't available any more — please remove it from your cart and choose again.`
-          : `Please choose the color/size for ${product.name} on its page first — then add it to your cart.`,
+          ? `The option you chose for ${product.name} isn't available any more, please remove it from your cart and choose again.`
+          : `Please choose the color/size for ${product.name} on its page first, then add it to your cart.`,
       };
     }
   }
@@ -157,8 +157,8 @@ export async function createOrder(input: PlaceOrderInput) {
         success: false as const,
         error:
           stock <= 0
-            ? `Sorry — ${name} just sold out. Please remove it from your cart to continue.`
-            : `Only ${stock} of ${name} left — please lower the quantity in your cart.`,
+            ? `Sorry, ${name} just sold out. Please remove it from your cart to continue.`
+            : `Only ${stock} of ${name} left, please lower the quantity in your cart.`,
       };
     }
   }
@@ -241,7 +241,7 @@ export async function createOrder(input: PlaceOrderInput) {
     ]);
   } catch (error) {
     console.error("Couldn't create the order:", error);
-    return { success: false as const, error: "Couldn't place your order — please try again." };
+    return { success: false as const, error: "Couldn't place your order, please try again." };
   }
 
   let discountAmount = "0.00";
@@ -276,7 +276,7 @@ export async function createOrder(input: PlaceOrderInput) {
     } catch (cleanupError) {
       console.error("Couldn't clean up the failed order:", cleanupError);
     }
-    return { success: false as const, error: "Couldn't apply your discount — please try again." };
+    return { success: false as const, error: "Couldn't apply your discount, please try again." };
   }
 
   return { success: true as const, orderId };
@@ -331,7 +331,7 @@ export async function createCheckoutSession(orderId: string) {
     // Chapa unreachable / timed out / returned something that isn't JSON —
     // give the customer a clear message instead of a raw server error.
     console.error("Chapa initialize threw:", error);
-    return { success: false as const, error: "We couldn't reach the payment provider — please try again in a moment." };
+    return { success: false as const, error: "We couldn't reach the payment provider, please try again in a moment." };
   }
 
   if (!result.success) {
@@ -371,15 +371,15 @@ async function holdOrderForChoice(order: typeof orders.$inferSelect, soldOutName
     subject: "Action needed: your EcoFurnish item just sold out",
     paragraphs: [
       `Hi ${order.customerName.split(" ")[0] || "there"},`,
-      `Your payment for order ${shortId} went through, but ${soldOutName} sold out a moment before we could confirm it. You haven't lost anything — please choose what you'd like us to do:`,
-      "1. Refund — the full amount goes back to your original payment method.",
-      "2. Wait for the restock — we keep your order and confirm it automatically when the item is back. The price you paid is locked, so you never pay more, even if the price goes up.",
-      "3. Store credit — the full amount becomes credit you can spend on anything else in the shop.",
+      `Your payment for order ${shortId} went through, but ${soldOutName} sold out a moment before we could confirm it. You haven't lost anything, please choose what you'd like us to do:`,
+      "1. Refund, the full amount goes back to your original payment method.",
+      "2. Wait for the restock, we keep your order and confirm it automatically when the item is back. The price you paid is locked, so you never pay more, even if the price goes up.",
+      "3. Store credit, the full amount becomes credit you can spend on anything else in the shop.",
     ],
     cta: { label: "Choose an option", path: `/order-confirmation/${order.id}` },
   });
   await sendTelegramMessage(
-    `⏳ <b>Sold out at payment</b> — order <code>${shortId}</code> (${escapeHtml(order.totalAmount)} ETB): ${escapeHtml(soldOutName)}. Customer was emailed to choose refund / wait / store credit.`
+    `⏳ <b>Sold out at payment</b>, order <code>${shortId}</code> (${escapeHtml(order.totalAmount)} ETB): ${escapeHtml(soldOutName)}. Customer was emailed to choose refund / wait / store credit.`
   );
 }
 
@@ -524,13 +524,13 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
   if (!hold || !allowedFrom.includes(hold.state)) {
     return {
       success: false as const,
-      error: "This order has already been taken care of — refresh the page to see where it stands.",
+      error: "This order has already been taken care of, refresh the page to see where it stands.",
     };
   }
   const soldOutName = hold.note ?? "the item";
 
   if (choice === "credit" && !order.userId) {
-    return { success: false as const, error: "Store credit needs a signed-in account — please choose a refund." };
+    return { success: false as const, error: "Store credit needs a signed-in account, please choose a refund." };
   }
 
   if (choice === "wait") {
@@ -539,7 +539,7 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
     if (!restock.expected) {
       return {
         success: false as const,
-        error: "We don't have a restock date for this item yet — please choose a refund or store credit.",
+        error: "We don't have a restock date for this item yet, please choose a refund or store credit.",
       };
     }
   }
@@ -551,7 +551,7 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
     .where(and(eq(orderStockHolds.orderId, orderId), eq(orderStockHolds.state, hold.state)))
     .returning({ orderId: orderStockHolds.orderId });
   if (!claimed) {
-    return { success: false as const, error: "This order was just updated — refresh the page." };
+    return { success: false as const, error: "This order was just updated, refresh the page." };
   }
 
   const shortId = order.id.slice(0, 8);
@@ -562,7 +562,7 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
         subject: "We're holding your EcoFurnish order until it's back in stock",
         paragraphs: [
           `Hi ${order.customerName.split(" ")[0] || "there"},`,
-          `Thanks — we're holding order ${shortId} until ${soldOutName} is back in stock, and we'll email you the moment it's confirmed.`,
+          `Thanks, we're holding order ${shortId} until ${soldOutName} is back in stock, and we'll email you the moment it's confirmed.`,
           `You've already paid ${order.totalAmount} ETB and that price is locked in: you won't be asked for more, even if the price goes up. You can switch to a refund or store credit any time before then.`,
         ],
         cta: { label: "View your order", path: `/order-confirmation/${order.id}` },
@@ -597,7 +597,7 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
       subject: "Your EcoFurnish store credit is ready",
       paragraphs: [
         `Hi ${order.customerName.split(" ")[0] || "there"},`,
-        `We've turned the ${order.totalAmount} ETB you paid for order ${shortId} into store credit. It's on your account now — tick "use store credit" at checkout to spend it on anything in the shop.`,
+        `We've turned the ${order.totalAmount} ETB you paid for order ${shortId} into store credit. It's on your account now, tick "use store credit" at checkout to spend it on anything in the shop.`,
       ],
       cta: { label: "Browse the shop", path: "/" },
     });
@@ -612,7 +612,7 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
       .update(orderStockHolds)
       .set({ state: hold.state })
       .where(eq(orderStockHolds.orderId, orderId));
-    return { success: false as const, error: "Something went wrong — please try again." };
+    return { success: false as const, error: "Something went wrong, please try again." };
   }
 }
 

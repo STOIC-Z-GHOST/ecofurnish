@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { showCartToast } from "@/components/ui/cart-toast";
 import { Product } from "@/types/product";
 import { Badge } from "@/components/ui/badge";
 import { cartLineKey, useCart, useCartRoom } from "@/lib/cart-context";
@@ -90,9 +91,13 @@ export default function ProductSummary({
     if (added <= 0) {
       toast.info(`All ${effectiveStock} in stock are already in your cart`);
     } else if (added < pickerQuantity) {
-      toast.success(`Added ${added} — that's all that was left (${effectiveStock} in your cart)`);
+      toast.success(`Added ${added}, that's all that was left (${effectiveStock} in your cart)`);
     } else {
-      toast.success(`${added} × ${product.name}${label} added to cart`);
+      showCartToast({
+        name: `${product.name}${label}`,
+        imageUrl: selectedVariant?.imageUrl ?? product.imageUrl,
+        detail: `${added} added to cart`,
+      });
     }
     setQuantity(1);
   }

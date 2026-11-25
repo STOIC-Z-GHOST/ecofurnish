@@ -53,7 +53,7 @@ export async function getOrCreateReferralCode(userId: string): Promise<string> {
       // unique constraint hit — try again with a fresh code
     }
   }
-  throw new Error("Couldn't generate a referral code — please try again.");
+  throw new Error("Couldn't generate a referral code, please try again.");
 }
 
 /**

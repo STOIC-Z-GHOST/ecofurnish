@@ -4,14 +4,11 @@ import CategoryCard from "./CategoryCard";
 
 export default function Categories() {
   return (
-    <section id="categories" className="py-20">
-      <div className="container mx-auto px-4">
-        <SectionHeading
-          title="Shop by Category"
-          subtitle="Find furniture designed for every room in your home."
-        />
+    <section id="categories" className="py-12 sm:py-20">
+      <div className="container mx-auto max-w-7xl px-4">
+        <SectionHeading title="Shop by room" href="/#all-products" />
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
           {CATEGORIES.map((category) => (
             <CategoryCard
               key={category.id}

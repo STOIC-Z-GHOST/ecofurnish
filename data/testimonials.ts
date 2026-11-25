@@ -1,23 +1,25 @@
+// Demo data: these are sample reviews written for the portfolio build, not
+// real customers. The Testimonials section says so with a "Demo data" tag.
 export const TESTIMONIALS = [
   {
     id: "1",
-    name: "Sarah Johnson",
-    role: "Interior Designer",
+    name: "Abebe M.",
+    role: "Small business owner, Bole",
     comment:
-      "The quality exceeded my expectations. Every piece feels premium.",
+      "The chairs arrived well wrapped and the finish is even better in person. My shop feels warmer already.",
   },
   {
     id: "2",
-    name: "Michael Brown",
-    role: "Home Owner",
+    name: "Ermias A.",
+    role: "Home owner, Gerji",
     comment:
-      "Beautiful furniture, fast delivery, and outstanding customer service.",
+      "The UI is incredibly smooth, and the checkout process was a breeze. The coffee table is solid and heavy.",
   },
   {
     id: "3",
-    name: "Emily Davis",
-    role: "Architect",
+    name: "Selam T.",
+    role: "Interior stylist, Kazanchis",
     comment:
-      "Modern designs with sustainability in mind. Highly recommended.",
+      "I love that every piece lists the plastic it kept out of the street. My clients ask about it every time.",
   },
 ];

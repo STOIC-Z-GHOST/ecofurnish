@@ -14,7 +14,7 @@ export async function subscribeToNewsletter(rawEmail: string) {
     return { success: false as const, error: "Enter a valid email address." };
   }
   if (!(await allowRequest("newsletter", 10, 10 * 60 * 1000))) {
-    return { success: false as const, error: "Too many attempts — please try again in a little while." };
+    return { success: false as const, error: "Too many attempts, please try again in a little while." };
   }
   let isNewSubscriber = false;
   try {
@@ -29,7 +29,7 @@ export async function subscribeToNewsletter(rawEmail: string) {
     isNewSubscriber = inserted.length > 0;
   } catch (err) {
     console.error("Failed to save newsletter subscriber:", err);
-    return { success: false as const, error: "Something went wrong — try again." };
+    return { success: false as const, error: "Something went wrong, try again." };
   }
   // Only a genuinely new subscriber gets the welcome email — resubmitting
   // an already-subscribed address used to fire it again every time.

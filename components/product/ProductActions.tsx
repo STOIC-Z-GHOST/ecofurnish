@@ -8,10 +8,24 @@ import { useCart, useCartRoom } from "@/lib/cart-context";
 import { getEffectivePrice } from "@/lib/pricing";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { toast } from "sonner";
+import { showCartToast } from "@/components/ui/cart-toast";
 import { Product } from "@/types/product";
+import { cn } from "@/lib/utils";
 import WishlistButton from "./WishlistButton";
 
-export default function ProductActions({ product }: { product: Product }) {
+// One height and one set of paddings for every button in every card, so
+// "Add to Cart" and "Choose options" line up exactly across a row.
+const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-5 sm:pt-2";
+const BUTTON = "h-10 flex-1 items-center justify-center gap-1.5 text-sm";
+
+export default function ProductActions({
+  product,
+  row = false,
+}: {
+  product: Product;
+  /** Phone shop list: the button sits under the details, left aligned. */
+  row?: boolean;
+}) {
   const { addItem } = useCart();
   const effectiveStock = useEffectiveStock(product.id, product.stock);
   const { allInCart, ready } = useCartRoom(product.id, effectiveStock);
@@ -28,7 +42,7 @@ export default function ProductActions({ product }: { product: Product }) {
       imageUrl: product.imageUrl,
       stock: effectiveStock,
     });
-    if (added > 0) toast.success(`${product.name} added to cart`);
+    if (added > 0) showCartToast({ name: product.name, imageUrl: product.imageUrl });
     else toast.info(`All ${effectiveStock} in stock are already in your cart`);
   }
 
@@ -36,15 +50,15 @@ export default function ProductActions({ product }: { product: Product }) {
   // buyer has to choose on its page, so the card sends them there.
   if (product.hasVariants) {
     return (
-      <CardFooter className="mt-auto flex gap-1.5 bg-transparent p-3 sm:gap-2 sm:p-4 sm:py-3">
+      <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
         {product.stock <= 0 ? (
-          <Button size="lg" className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm" disabled>
+          <Button size="lg" className={BUTTON} disabled>
             Out of Stock
           </Button>
         ) : (
           <Button
             size="lg"
-            className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm"
+            className={BUTTON}
             render={<Link href={`/products/${product.id}`} />}
             nativeButton={false}
           >
@@ -58,10 +72,10 @@ export default function ProductActions({ product }: { product: Product }) {
   }
 
   return (
-    <CardFooter className="mt-auto flex gap-1.5 bg-transparent p-3 sm:gap-2 sm:p-4 sm:py-3">
+    <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
       <Button
         size="lg"
-        className="flex flex-1 items-center gap-1 text-xs sm:gap-1.5 sm:text-sm"
+        className={BUTTON}
         disabled={effectiveStock <= 0 || allInCart || !ready}
         onClick={handleAddToCart}
       >

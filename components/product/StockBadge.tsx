@@ -13,7 +13,7 @@ const LOW_STOCK_THRESHOLD = 5;
 // product cards, the hover preview and the product page. Keep it short: it
 // has to fit on one line inside a narrow product card.
 function lowStockMessage(left: number): string {
-  return left === 1 ? "Last one — grab it!" : `Almost gone — ${left} left`;
+  return left === 1 ? "Last one, grab it!" : `Almost gone, ${left} left`;
 }
 
 /**
@@ -41,13 +41,27 @@ export default function StockBadge({
   stock: number;
   restockAt?: Date | string | null;
   className?: string;
-  variant?: "inline" | "overlay";
+  variant?: "inline" | "overlay" | "line";
   /** Overlay pill only: show the little "Back in …" line. Off where the
    * full-picture RestockOverlay already shows the countdown. */
   showCountdown?: boolean;
 }) {
   const effectiveStock = useEffectiveStock(productId, stock);
   const overlay = variant === "overlay";
+
+  // variant="line": plain small red text under the price on the cards. Only
+  // appears when stock is low; sold-out pictures are covered by
+  // RestockOverlay, and plain "in stock" needs no note on a card.
+  if (variant === "line") {
+    if (effectiveStock <= 0 || effectiveStock > LOW_STOCK_THRESHOLD) return null;
+    return (
+      <span
+        className={cn("block text-xs font-medium text-red-600 dark:text-red-400", className)}
+      >
+        {lowStockMessage(effectiveStock)}
+      </span>
+    );
+  }
 
   if (effectiveStock <= 0) {
     if (overlay) {

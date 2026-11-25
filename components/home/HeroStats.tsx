@@ -1,32 +1,22 @@
-const stats = [
-  {
-    value: "10K+",
-    label: "Happy Customers",
-  },
-  {
-    value: "100%",
-    label: "Eco Certified",
-  },
-  {
-    value: "Free",
-    label: "Shipping",
-  },
+import { Check } from "lucide-react";
+
+// Plain facts about how the furniture is made, taken from the About page.
+// No customer counts or awards here: only things that are true of the store.
+const facts = [
+  "Recycled plastic and reclaimed wood",
+  "Built in Addis Ababa",
+  "Plastic diverted shown on every piece",
 ];
 
 export default function HeroStats() {
   return (
-    <div className="mt-10 flex flex-wrap gap-8">
-      {stats.map((stat) => (
-        <div key={stat.label}>
-          <p className="text-2xl font-bold text-foreground">
-            {stat.value}
-          </p>
-
-          <p className="text-sm text-muted-foreground">
-            {stat.label}
-          </p>
-        </div>
+    <ul className="mt-10 space-y-2.5">
+      {facts.map((fact) => (
+        <li key={fact} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+          <Check className="size-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
+          {fact}
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

@@ -42,5 +42,5 @@ export const HERO_IMAGE = {
   // the sign-in split panel were both shipping an uncompressed PNG on
   // every load.
   src: "/images/products/eco-lounge-chair.jpg",
-  alt: "Eco Lounge Chair — recycled-plastic shell, oak frame",
+  alt: "Eco Lounge Chair, recycled-plastic shell, oak frame",
 };

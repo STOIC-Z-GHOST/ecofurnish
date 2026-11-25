@@ -24,12 +24,12 @@ export default function ContinueBrowsing() {
           href={`/products/${latest.productId}`}
           className="group flex flex-col items-center gap-5 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 sm:flex-row sm:gap-6 sm:p-6"
         >
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-28">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-white sm:h-28 sm:w-28">
             <Image
               src={latest.imageUrl || "/placeholder.jpg"}
               alt={latest.name}
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="112px"
             />
           </div>

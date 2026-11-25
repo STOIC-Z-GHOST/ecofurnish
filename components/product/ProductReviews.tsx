@@ -72,7 +72,7 @@ export default function ProductReviews({
     setSubmitting(true);
     try {
       await submitReview(productId, rating, comment);
-      toast.success(myExistingReview ? "Review updated" : "Review posted — thanks!");
+      toast.success(myExistingReview ? "Review updated" : "Review posted, thanks!");
       setJustSubmitted(true);
       setFormOpen(false);
     } catch (err) {
@@ -89,13 +89,13 @@ export default function ProductReviews({
       {canReview && formOpen && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-3 rounded-lg border border-border/60 p-4">
           <p className="text-sm font-medium">
-            {myExistingReview || justSubmitted ? "Edit your review" : "You bought this — leave a review"}
+            {myExistingReview || justSubmitted ? "Edit your review" : "You bought this, leave a review"}
           </p>
           <StarPicker value={rating} onChange={setRating} />
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Optional — what did you think?"
+            placeholder="Optional, what did you think?"
             rows={3}
           />
           <Button type="submit" disabled={submitting}>
@@ -134,7 +134,7 @@ export default function ProductReviews({
                 </div>
                 <span className="text-sm font-medium">{displayName(review.userName)}</span>
                 {/* Every review here came from a gated, delivered-order
-                    check (see canReviewProduct in lib/reviews.ts) — so
+                    check (see canReviewProduct in lib/reviews.ts), so
                     this badge is unconditional, not a per-review flag. */}
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <BadgeCheck size={14} className="text-primary" />

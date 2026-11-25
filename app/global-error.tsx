@@ -42,7 +42,7 @@ export default function GlobalError({
             Something went wrong
           </h1>
           <p style={{ marginTop: "8px", color: "#6b6a5c", maxWidth: "28rem" }}>
-            EcoFurnish hit a snag loading this page — it&apos;s probably temporary.
+            EcoFurnish hit a snag loading this page, it&apos;s probably temporary.
           </p>
           <button
             onClick={() => reset()}

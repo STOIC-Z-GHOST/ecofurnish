@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Not seeing our emails? — EcoFurnish",
+  title: "Not seeing our emails?, EcoFurnish",
 };
 
 const PROVIDER_STEPS: { name: string; steps: string[] }[] = [
@@ -46,14 +46,14 @@ export default function CheckSpamHelpPage() {
       <h1 className="text-3xl font-extrabold tracking-tight">Not seeing our emails?</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Account verification, order updates, and delivery PINs all come from{" "}
-        <span className="font-medium text-foreground">admin@ecofurnish.abrdns.com</span> — here&apos;s
+        <span className="font-medium text-foreground">admin@ecofurnish.abrdns.com</span>, here&apos;s
         how to find one that landed in spam, and how to stop it happening again.
       </p>
 
       <div className="mt-8 rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
         Start with your Spam or Junk folder and search for &quot;EcoFurnish&quot;. If you find the
         email there, marking it &quot;Not spam&quot; (steps below, by provider) is what actually
-        fixes it for next time — deleting it or just moving it to your inbox doesn&apos;t teach your
+        fixes it for next time, deleting it or just moving it to your inbox doesn&apos;t teach your
         mail provider anything.
       </div>
 

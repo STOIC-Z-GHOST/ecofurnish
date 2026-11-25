@@ -39,7 +39,7 @@ export default async function AuthErrorPage({
       {isSessionMismatch ? (
         <p className="mt-3 text-muted-foreground">
           This kind of link (deleting your account, resetting your password) only works in
-          the same browser you were signed into when you requested it — and only while
+          the same browser you were signed into when you requested it, and only while
           you&apos;re still signed in there. If you opened this from an email app, it may have
           launched a different browser than the one you were using. Sign in again on the
           device/browser you started from, then request the email again.
@@ -47,7 +47,7 @@ export default async function AuthErrorPage({
       ) : isAccountLinking ? (
         <p className="mt-3 text-muted-foreground">
           This email already has an EcoFurnish account. Sign in the way you originally set it
-          up — with a password, or whichever sign-in button you used the first time — rather
+          up, with a password, or whichever sign-in button you used the first time, rather
           than the one you just tried.
         </p>
       ) : (

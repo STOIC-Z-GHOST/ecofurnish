@@ -52,7 +52,7 @@ export default function Newsletter() {
 
         {status === "done" ? (
           <p className="mt-10 font-medium text-white">
-            You&apos;re on the list — check your inbox for a confirmation.
+            You&apos;re on the list, check your inbox for a confirmation.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -67,7 +67,7 @@ export default function Newsletter() {
             <button
               type="submit"
               disabled={status === "submitting"}
-              className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-emerald-700 transition hover:bg-zinc-100 disabled:opacity-70"
+              className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-emerald-700 dark:text-emerald-400 transition hover:bg-zinc-100 disabled:opacity-70"
             >
               {status === "submitting" && <Loader2 className="h-4 w-4 animate-spin" />}
               Subscribe

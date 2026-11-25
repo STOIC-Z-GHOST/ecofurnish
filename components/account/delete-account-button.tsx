@@ -52,7 +52,7 @@ export function DeleteAccountButton() {
               <DialogTitle>Check your email</DialogTitle>
               <DialogDescription>
                 We sent a confirmation link to your email. Your account stays active until
-                you click it — nothing is deleted yet.
+                you click it, nothing is deleted yet.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

@@ -19,7 +19,7 @@ const QUICK_LINKS = [
   },
   {
     title: "Start a return",
-    description: "30-day return window — see conditions and how to start one.",
+    description: "30-day return window, see conditions and how to start one.",
     href: "/returns",
     icon: RotateCcw,
   },
@@ -54,7 +54,7 @@ const FAQS: { question: string; answer: ReactNode }[] = [
     question: "What payment methods can I use?",
     answer: (
       <>
-        Checkout is handled by Chapa, Ethiopia&apos;s payment gateway — it
+        Checkout is handled by Chapa, Ethiopia&apos;s payment gateway, it
         covers major cards and local options like Telebirr and bank
         transfers depending on what Chapa supports at checkout. We never see
         or store your card details ourselves.
@@ -83,7 +83,7 @@ const FAQS: { question: string; answer: ReactNode }[] = [
         <Link href="/contact" className="text-primary hover:underline">
           contact page
         </Link>{" "}
-        as soon as possible with your order number — we can usually help
+        as soon as possible with your order number, we can usually help
         before it&apos;s handed off to a driver, but can&apos;t guarantee changes
         once delivery is underway.
       </>
@@ -119,7 +119,7 @@ const FAQS: { question: string; answer: ReactNode }[] = [
     question: "How do I delete my account or data?",
     answer: (
       <>
-        Sign in and go to Account, then choose Delete Account — see the{" "}
+        Sign in and go to Account, then choose Delete Account, see the{" "}
         <Link href="/privacy#deleting-your-data" className="text-primary hover:underline">
           Privacy Policy
         </Link>{" "}

@@ -173,7 +173,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Order confirmed</h1>
             <p className="mt-2 text-muted-foreground">
-              Thanks, {order.customerName.split(" ")[0]} — payment received and we&apos;ll be in
+              Thanks, {order.customerName.split(" ")[0]}, payment received and we&apos;ll be in
               touch at {order.customerEmail} to confirm delivery.
             </p>
           </>
@@ -189,13 +189,13 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
         ) : wasRefunded ? (
           <>
             <PackageX className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Sorry — it just sold out</h1>
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Sorry, it just sold out</h1>
             <p className="mt-2 text-muted-foreground">
               Someone else bought the last one while your payment was going through, so we couldn&apos;t
               fulfil this order. We&apos;ve cancelled it and{" "}
               {order.paymentStatus === "refunded"
-                ? "refunded the full amount to your original payment method — it can take a few days to show up."
-                : `are processing your full refund — we'll email ${order.customerEmail} as soon as it's sent.`}
+                ? "refunded the full amount to your original payment method, it can take a few days to show up."
+                : `are processing your full refund, we'll email ${order.customerEmail} as soon as it's sent.`}
             </p>
           </>
         ) : (
@@ -204,7 +204,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Payment pending</h1>
             <p className="mt-2 text-muted-foreground">
               We haven&apos;t received confirmation from Chapa yet. If you completed payment, this
-              page will update shortly — refresh in a moment.
+              page will update shortly, refresh in a moment.
             </p>
           </>
         )}

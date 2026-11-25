@@ -16,7 +16,7 @@ export default function NavbarActions() {
           away. `contents` (rather than a plain block wrapper) keeps these
           as direct children of this flex row when visible, which matters:
           a wrapper div here pulls the Link out of the flex item box model,
-          reverting it to a default inline anchor — that's what was making
+          reverting it to a default inline anchor, that's what was making
           the hover highlight render as a stretched rectangle instead of a
           square, and throwing off the notification badge's positioning. */}
       <div className="hidden sm:contents">

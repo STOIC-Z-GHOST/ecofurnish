@@ -44,7 +44,7 @@ export function AvatarPicker({
       <div className="flex items-center gap-4">
         <AvatarDisplay image={previewValue} name={name} className="h-16 w-16 text-xl" />
         <p className="text-sm text-muted-foreground">
-          Pick a color and, if you like, an icon — no file to upload, and it
+          Pick a color and, if you like, an icon, no file to upload, and it
           looks the same on every device you sign in from.
         </p>
       </div>
@@ -72,7 +72,7 @@ export function AvatarPicker({
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-medium">Icon (optional — otherwise your initials)</p>
+        <p className="mb-2 text-sm font-medium">Icon (optional, otherwise your initials)</p>
         <div className="flex flex-wrap gap-2">
           {AVATAR_ICONS.map((opt) => (
             <button

@@ -8,7 +8,7 @@ import { useWishlist } from "@/lib/wishlist-context";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { showCartToast } from "@/components/ui/cart-toast";
 
 export default function WishlistPage() {
   const { items, removeItem } = useWishlist();
@@ -84,7 +84,7 @@ export default function WishlistPage() {
                     imageUrl: item.imageUrl,
                     stock: 99, // wishlist doesn't track live stock — checkout still enforces real limits
                   });
-                  toast.success(`${item.name} added to cart`);
+                  showCartToast({ name: item.name, imageUrl: item.imageUrl });
                 }}
               >
                 <ShoppingCart className="h-4 w-4" />

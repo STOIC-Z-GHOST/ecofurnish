@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
       <div className="container mx-auto flex max-w-sm flex-col justify-center px-4 py-24">
         <h1 className="text-2xl font-bold tracking-tight">Invalid reset link</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This link is missing its token — it may have been copied incorrectly. Request a new one
+          This link is missing its token, it may have been copied incorrectly. Request a new one
           instead.
         </p>
         <Link

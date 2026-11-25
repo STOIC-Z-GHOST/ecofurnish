@@ -78,7 +78,7 @@ export default function DriveApplicationPage() {
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight">Drive for EcoFurnish</h1>
         <p className="mt-3 text-muted-foreground">
-          Deliver sustainable furniture around Addis Ababa. Apply below — no account needed, and
+          Deliver sustainable furniture around Addis Ababa. Apply below, no account needed, and
           a dispatcher will follow up by phone or email once they&apos;ve reviewed it.
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function DriveApplicationPage() {
           <div className="py-8 text-center">
             <h2 className="text-xl font-semibold">Application received</h2>
             <p className="mt-2 text-muted-foreground">
-              Thanks for applying — a dispatcher will review it and get back to you soon.
+              Thanks for applying, a dispatcher will review it and get back to you soon.
             </p>
           </div>
         ) : (

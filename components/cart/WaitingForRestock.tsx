@@ -38,7 +38,7 @@ export function WaitingForRestock() {
         <Hourglass className="h-4 w-4" /> Waiting for restock
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Already paid for — the price is locked, and we&apos;ll email you when it&apos;s confirmed.
+        Already paid for, the price is locked, and we&apos;ll email you when it&apos;s confirmed.
       </p>
       <div className="mt-3 space-y-2">
         {items.map((item) => (

@@ -2,7 +2,7 @@ const CHAPA_API_BASE = "https://api.chapa.co/v1";
 
 if (!process.env.CHAPA_SECRET_KEY) {
   console.warn(
-    "CHAPA_SECRET_KEY is not set — checkout will fail until it's added to .env"
+    "CHAPA_SECRET_KEY is not set, checkout will fail until it's added to .env"
   );
 }
 
