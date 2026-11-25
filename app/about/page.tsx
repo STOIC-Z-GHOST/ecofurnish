@@ -60,13 +60,13 @@ export default async function AboutPage() {
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             <Link
               href="/"
-              className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="rounded-md bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Browse the catalog
             </Link>
             <Link
               href="/contact"
-              className="rounded-xl border border-border px-6 py-3 font-medium transition-colors hover:bg-muted"
+              className="rounded-md border border-border px-6 py-3 font-medium transition-colors hover:bg-muted"
             >
               Contact us
             </Link>

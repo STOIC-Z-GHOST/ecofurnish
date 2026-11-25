@@ -220,7 +220,7 @@ export function ProductForm({
       setUploading(false);
       URL.revokeObjectURL(objectUrl);
       setPreviewUrl(null);
-      toast.error("Upload failed — please try again.");
+      toast.error("Upload failed, please try again.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -256,7 +256,7 @@ export function ProductForm({
     }
     const toUpload = files.slice(0, remainingSlots);
     if (files.length > toUpload.length) {
-      toast.error(`Only added ${toUpload.length} — that's the max of ${MAX_EXTRA_PHOTOS} extra photos.`);
+      toast.error(`Only added ${toUpload.length}, that's the max of ${MAX_EXTRA_PHOTOS} extra photos.`);
     }
 
     setUploadingExtra(true);
@@ -273,7 +273,7 @@ export function ProductForm({
         }
         setValues((v) => ({ ...v, images: [...v.images, result.url] }));
       } catch {
-        toast.error(`${file.name}: upload failed — please try again.`);
+        toast.error(`${file.name}: upload failed, please try again.`);
       }
     }
     setUploadingExtra(false);
@@ -349,7 +349,7 @@ export function ProductForm({
     // Guest sandbox: keep the change in this browser only, never the server.
     if (sandbox) {
       saveSandboxProduct(productId ?? localId ?? `local-${Date.now()}`, payload);
-      toast.success("Saved — in this browser only");
+      toast.success("Saved, in this browser only");
       router.push("/admin/products");
       return;
     }
@@ -520,7 +520,7 @@ export function ProductForm({
       <div className="space-y-1.5">
         <Label>Rooms</Label>
         <p className="text-xs text-muted-foreground">
-          Which room(s) this fits — a piece can belong to more than one. Leave every box unchecked
+          Which room(s) this fits, a piece can belong to more than one. Leave every box unchecked
           if it fits anywhere; that&apos;s saved as fitting all rooms automatically.
         </p>
         <div className="flex flex-wrap gap-4 pt-1">
@@ -658,7 +658,7 @@ export function ProductForm({
                 : "Add photos"}
           </Button>
           <p className="mt-1 text-xs text-muted-foreground">
-            {values.images.length}/{MAX_EXTRA_PHOTOS} added — select multiple files at once, or
+            {values.images.length}/{MAX_EXTRA_PHOTOS} added, select multiple files at once, or
             add them one by one.
           </p>
         </div>
@@ -673,10 +673,10 @@ export function ProductForm({
             Colors &amp; sizes <span className="font-normal text-muted-foreground">(optional)</span>
           </Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            Add one row for each combination customers can order — for example Red / Large and Red /
+            Add one row for each combination customers can order, for example Red / Large and Red /
             Small. Shoppers must choose one before they can add the product to their cart, and each row
             has its own stock. The price difference is added to the price above (use a minus for
-            cheaper). Pick a photo to show it when that option is chosen — or tag the photos above as a
+            cheaper). Pick a photo to show it when that option is chosen, or tag the photos above as a
             color. Photos tagged &quot;Different view&quot; are only for looking around and never change
             what gets ordered. Leave this empty for a product with no options.
           </p>
@@ -770,8 +770,7 @@ export function ProductForm({
           Discount <span className="font-normal text-muted-foreground">(optional)</span>
         </Label>
         <p className="text-xs text-muted-foreground">
-          Leave at 0% for no discount. By default it runs until you change it back —
-          set an end time below to turn it into a flash sale with a countdown.
+          Leave at 0% for no discount. By default it runs until you change it back, set an end time below to turn it into a flash sale with a countdown.
         </p>
         <div className="grid grid-cols-2 gap-4 pt-1">
           <div className="space-y-1.5">

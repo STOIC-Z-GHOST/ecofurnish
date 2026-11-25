@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, Heart, Leaf, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { showCartToast } from "@/components/ui/cart-toast";
+import { showCartToast } from "@/lib/cart-toast";
 import { Badge } from "@/components/ui/badge";
 import { useCart, useCartRoom } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -16,9 +16,8 @@ import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { Product } from "@/types/product";
 import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
 import DiscountLine from "./DiscountLine";
-import CardRating from "./CardRating";
-import ImageOverlay from "./ImageOverlay";
 import StockBadge from "./StockBadge";
+import ImageOverlay from "./ImageOverlay";
 import RestockOverlay from "./RestockOverlay";
 
 export default function ProductHoverDetail({
@@ -78,7 +77,7 @@ export default function ProductHoverDetail({
       imageUrl: product.imageUrl,
       stock: effectiveStock,
     });
-    if (added > 0) showCartToast({ name: product.name, imageUrl: product.imageUrl });
+    if (added > 0) showCartToast(product.name, product.imageUrl);
     else toast.info(`All ${effectiveStock} in stock are already in your cart`);
   }
 
@@ -100,7 +99,7 @@ export default function ProductHoverDetail({
     // what's below rather than pushing anything, and never clips the
     // Add to Cart row off the bottom.
     <div
-      className="absolute -inset-x-2 -top-2 z-30 hidden min-h-[calc(100%+1rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl duration-150 animate-in fade-in-0 zoom-in-95 sm:-inset-x-3 sm:-top-3 sm:min-h-[calc(100%+1.5rem)] md:flex"
+      className="absolute -inset-x-2 -top-2 z-30 flex min-h-[calc(100%+1rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl duration-200 animate-in fade-in-0 slide-in-from-bottom-2 sm:-inset-x-3 sm:-top-3 sm:min-h-[calc(100%+1.5rem)]"
       // Purely supplementary — the card underneath already exposes the
       // same name/link/actions to the keyboard & screen-reader tab order,
       // so this expanded preview doesn't need its own stop in it.
@@ -118,18 +117,19 @@ export default function ProductHoverDetail({
               src={displayImage}
               alt={product.name}
               fill
-              className="object-contain"
+              className="object-contain p-3"
               sizes="(max-width: 767px) 55vw, (max-width: 1024px) 38vw, 28vw"
             />
             <RestockOverlay productId={product.id} stock={product.stock} restockAt={product.restockAt} />
-            <Badge className="absolute left-2 top-2 flex items-center gap-1 bg-emerald-700 px-1.5 py-0.5 text-[0.65rem] text-white hover:bg-emerald-800 sm:left-3 sm:top-3 sm:px-2 sm:py-0.5 sm:text-xs">
+            <Badge className="absolute left-2 top-2 flex items-center gap-1 bg-emerald-700 px-1.5 py-0.5 text-[0.65rem] text-white hover:bg-emerald-700 sm:left-3 sm:top-3 sm:px-2 sm:py-0.5 sm:text-xs">
               <Leaf className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               {product.plasticWeightKg}kg Diverted
             </Badge>
           </div>
 
-          {/* Flash-sale countdown, same spot as on the card. Lifted a little
-              when the photo dots are showing so the two don't overlap. */}
+          {/* Same badges, same spot as on the card itself, so nothing jumps
+              when the preview opens. Lifted a little when the photo dots
+              are showing so the two don't overlap. */}
           <ImageOverlay product={product} className={hasMultiplePhotos ? "bottom-4 sm:bottom-5" : undefined} />
 
           {hasMultiplePhotos && (
@@ -175,8 +175,7 @@ export default function ProductHoverDetail({
               {formatPrice(getEffectivePrice(product), currency)}
             </span>
           </div>
-          <DiscountLine product={product} currency={currency} className="mt-0.5" />
-          <CardRating rating={product.avgRating} count={product.reviewCount} className="mt-1" />
+          <DiscountLine product={product} currency={currency} className="mt-0.5 justify-start" />
           <StockBadge
             productId={product.id}
             stock={product.stock}
@@ -208,7 +207,7 @@ export default function ProductHoverDetail({
           tabIndex={-1}
           disabled={product.hasVariants ? product.stock <= 0 : effectiveStock <= 0 || allInCart || !ready}
           onClick={handleAddToCart}
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 h-9 md:h-10 sm:text-sm"
         >
           {allInCart ? (
             <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -231,10 +230,8 @@ export default function ProductHoverDetail({
           aria-pressed={liked}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
           onClick={handleWishlist}
-          className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors hover:bg-muted ${
-            liked
-              ? "text-emerald-700 dark:text-emerald-400"
-              : "text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400"
+          className={`flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors ${
+            liked ? "text-primary" : "text-muted-foreground hover:text-primary"
           }`}
         >
           <Heart size={20} strokeWidth={1.75} fill={liked ? "currentColor" : "none"} />

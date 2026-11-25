@@ -110,27 +110,35 @@ export default function InstallAppBanner() {
 
   if (dismissed || (!deferredPrompt && !manualHint)) return null
 
+  // A slim bar (50px) at the very top of the page. It sits in the normal
+  // flow, so it pushes the header and everything below it down by its own
+  // height instead of floating over the logo. Dismiss with the X.
   return (
-    // A slim bar (50px) in the normal page flow at the very top. Because it
-    // is not floating, it pushes the navbar and the page down by its own
-    // height while it is showing, so it never covers the logo.
     <div
-      className="flex h-[50px] items-center gap-3 border-b border-border bg-muted px-3 sm:px-6"
+      className="flex h-[50px] w-full items-center gap-3 border-b border-border bg-muted px-3 sm:px-6"
       role="region"
       aria-label="Install EcoFurnish"
     >
       <Image
         src="/icon-192.png"
         alt=""
-        width={28}
-        height={28}
-        className="size-7 shrink-0 rounded-md"
+        width={32}
+        height={32}
+        className="size-8 shrink-0 rounded-md"
       />
-      <p className="min-w-0 flex-1 truncate text-sm text-foreground">
-        {manualHint === 'ios' && 'Tap Share, then Add to Home Screen'}
-        {manualHint === 'safari' && 'Click Share, then Add to Dock'}
-        {!manualHint && 'Add EcoFurnish to your Home Screen'}
-      </p>
+      <div className="min-w-0 flex-1 leading-tight">
+        <p className="truncate text-sm font-medium">Add EcoFurnish to your Home Screen</p>
+        {manualHint === 'ios' && (
+          <p className="truncate text-[11px] text-muted-foreground">
+            Tap Share, then Add to Home Screen
+          </p>
+        )}
+        {manualHint === 'safari' && (
+          <p className="truncate text-[11px] text-muted-foreground">
+            Click Share in the toolbar, then Add to Dock
+          </p>
+        )}
+      </div>
       {!manualHint && (
         <Button size="sm" className="shrink-0" onClick={handleInstall}>
           Install

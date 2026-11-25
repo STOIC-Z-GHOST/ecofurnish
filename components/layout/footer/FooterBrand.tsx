@@ -6,8 +6,7 @@ export default function FooterBrand() {
       <Logo />
 
       <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-        Furniture from recycled plastic and reclaimed wood, built in Addis
-        Ababa and delivered across Ethiopia.
+        Furniture made from recycled plastic and reclaimed wood, finished by hand in Addis Ababa.
       </p>
     </div>
   );

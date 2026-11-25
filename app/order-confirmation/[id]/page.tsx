@@ -173,7 +173,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Order confirmed</h1>
             <p className="mt-2 text-muted-foreground">
-              Thanks, {order.customerName.split(" ")[0]}, payment received and we&apos;ll be in
+              Thanks, {order.customerName.split(" ")[0]} , payment received and we&apos;ll be in
               touch at {order.customerEmail} to confirm delivery.
             </p>
           </>

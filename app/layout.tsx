@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, Geist_Mono, Playfair_Display } from 'next/font/google'
+import { DM_Sans, Playfair_Display } from 'next/font/google'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { products } from '@/db/schema'
@@ -19,21 +19,13 @@ import MobileBottomNav from '@/components/layout/navbar/MobileBottomNav'
 import SupportChatWidget from '@/components/support/SupportChatWidget'
 import './globals.css'
 
-// Headings use a serif (Playfair Display), body text a clean sans (DM Sans).
-// Geist Mono stays only for the few monospaced bits in the admin screens.
+// Serif for headings, clean sans for body text (warm and editorial rather
+// than the default developer-tool look).
+const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'], display: 'swap' })
 const playfair = Playfair_Display({
   variable: '--font-playfair',
   subsets: ['latin'],
   display: 'swap',
-})
-const dmSans = DM_Sans({
-  variable: '--font-dm-sans',
-  subsets: ['latin'],
-  display: 'swap',
-})
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
 })
 
 // No dynamic APIs (headers/cookies) here, so this stays static/ISR —
@@ -44,7 +36,7 @@ const geistMono = Geist_Mono({
 // takes full effect independently.
 export const revalidate = 300
 
-const title = `${siteConfig.name}: Sustainable furniture from recycled materials`
+const title = `${siteConfig.name} | Sustainable furniture from recycled materials`
 const description =
   'Furniture built from recycled plastic and reclaimed wood, shipped from Addis Ababa.'
 
@@ -98,7 +90,7 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F9F9F6' },
+    { media: '(prefers-color-scheme: light)', color: '#f9f9f6' },
     { media: '(prefers-color-scheme: dark)', color: '#121212' },
   ],
 }
@@ -120,15 +112,13 @@ export default async function RootLayout({
   const categories = categoryRows.map((r) => r.category)
 
   return (
-    <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${dmSans.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <CurrencyProvider>
             <CartProvider>
               <WishlistProvider>
                 <RecentlyViewedProvider>
-                  {/* A slim bar in the normal page flow: when it shows, it
-                      pushes the navbar and everything below it down. */}
                   <InstallAppBanner />
                   <Navbar categories={categories} />
                   <div className="flex-1">{children}</div>

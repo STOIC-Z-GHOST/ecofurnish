@@ -20,14 +20,14 @@ export default function ProductPrice({
   const discounted = hasActiveDiscount({ discountPercent, dealEndsAt });
 
   if (!discounted) {
-    return <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatPrice(price, currency)}</p>;
+    return <p className="text-2xl font-bold text-primary">{formatPrice(price, currency)}</p>;
   }
 
   const effective = getEffectivePrice({ price, discountPercent });
   return (
     <div className="space-y-1">
       <div className="flex flex-wrap items-baseline gap-2">
-        <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatPrice(effective, currency)}</p>
+        <p className="text-2xl font-bold text-primary">{formatPrice(effective, currency)}</p>
         <p className="text-base text-muted-foreground line-through">
           {formatPrice(price, currency)}
         </p>

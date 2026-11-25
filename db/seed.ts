@@ -42,7 +42,7 @@ const productData = [
   {
     name: "Recycled Coffee Table",
     description:
-      "A round coffee table on a sculptural spider-leg base — oak from the tabletop down through the upper leg, transitioning to a flecked recycled-plastic composite for the lower half of each leg.",
+      "A round coffee table on a sculptural spider-leg base, oak from the tabletop down through the upper leg, transitioning to a flecked recycled-plastic composite for the lower half of each leg.",
     price: "8500.00",
     imageUrl: "/products/recycled-coffee-table.jpg",
     category: "Tables",

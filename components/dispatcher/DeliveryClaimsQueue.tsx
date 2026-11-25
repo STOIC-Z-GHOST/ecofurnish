@@ -58,8 +58,8 @@ export function DeliveryClaimsQueue({ claims: initialClaims }: { claims: Pending
       setClaims((prev) => prev.filter((c) => c.claimId !== claim.claimId));
       toast.success(
         type === "approve"
-          ? `Approved — order #${claim.orderId.slice(0, 8)} moved forward`
-          : `Declined — ${claim.driverName} was flagged`
+          ? `Approved, order #${claim.orderId.slice(0, 8)} moved forward`
+          : `Declined, ${claim.driverName} was flagged`
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't update this claim");
@@ -71,7 +71,7 @@ export function DeliveryClaimsQueue({ claims: initialClaims }: { claims: Pending
   if (claims.length === 0) {
     return (
       <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        No pending claims — nothing waiting for review.
+        No pending claims, nothing waiting for review.
       </p>
     );
   }
@@ -169,7 +169,7 @@ export function DeliveryClaimsQueue({ claims: initialClaims }: { claims: Pending
                 ? "The order moves to the next stage and the customer gets notified."
                 : `The driver gets flagged and can see this note on their portal. ${
                     action && action.claim.driverFlagCount === 2
-                      ? "This will be their 3rd flag — they'll be auto-blacklisted."
+                      ? "This will be their 3rd flag, they'll be auto-blacklisted."
                       : ""
                   }`}
             </DialogDescription>
@@ -183,8 +183,8 @@ export function DeliveryClaimsQueue({ claims: initialClaims }: { claims: Pending
               rows={2}
               placeholder={
                 action?.type === "decline"
-                  ? "e.g. You're too far from the address — try again once you arrive."
-                  : "Not shown to anyone — for your own reference."
+                  ? "e.g. You're too far from the address, try again once you arrive."
+                  : "Not shown to anyone, for your own reference."
               }
               value={note}
               onChange={(e) => setNote(e.target.value)}

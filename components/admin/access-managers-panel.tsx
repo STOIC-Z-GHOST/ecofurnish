@@ -53,7 +53,7 @@ export function AccessManagersPanel({
       <h2 className="font-semibold">Access managers</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Someone you trust to invite read-only guests <em>for you</em>. They can only use this Guests
-        page — they can&apos;t see orders, change anything, or make other managers. You pick how long
+        page, they can&apos;t see orders, change anything, or make other managers. You pick how long
         each guest may stay and how many can be active at once, and you&apos;re messaged on Telegram
         for every invite.
       </p>
@@ -116,7 +116,7 @@ export function AccessManagersPanel({
                   const result = await addAccessManager(email, maxDays, maxActive);
                   if (result.success) setEmail("");
                   return result;
-                }, "Saved — they've been emailed.")
+                }, "Saved, they've been emailed.")
               }
             >
               Save manager
@@ -160,7 +160,7 @@ export function AccessManagersPanel({
                                   `Remove ${m.email}? Every guest they invited loses access too.`
                                 )
                               ) {
-                                run(() => removeAccessManager(m.email), "Removed — their guests are cut off.");
+                                run(() => removeAccessManager(m.email), "Removed, their guests are cut off.");
                               }
                             }}
                           >

@@ -188,9 +188,7 @@ export function CatalogView({ products }: { products: Product[] }) {
           <p className="text-muted-foreground">Try a different search term or category.</p>
         </div>
       ) : (
-        /* Phones: one column of horizontal cards (Amazon search style) so a
-            full product name has room. md and up: the grid, 3 then 4 wide. */
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4 lg:gap-8">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
           {filtered.map((product, index) => {
             // Past the first couple of rows, nobody is watching the
             // stagger anyway — skip the animation class and inline
@@ -208,7 +206,7 @@ export function CatalogView({ products }: { products: Product[] }) {
                 }
                 style={animated ? { animationDelay: `${index * 40}ms` } : undefined}
               >
-                <ProductCard product={product} currency={currency} layout="row" />
+                <ProductCard product={product} currency={currency} layout="list" />
               </div>
             );
           })}

@@ -108,10 +108,10 @@ export default function UserMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[280px] p-2">
           <DropdownMenuItem
-            className="items-start gap-3 rounded-xl px-2 py-2.5"
+            className="items-start gap-3 rounded-md px-2 py-2.5"
             render={<Link href="/account" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-primary">
               <UserCog className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -120,10 +120,10 @@ export default function UserMenu() {
             </span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="items-start gap-3 rounded-xl px-2 py-2.5"
+            className="items-start gap-3 rounded-md px-2 py-2.5"
             render={<Link href="/account/orders" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-primary">
               <PackageSearch className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -132,10 +132,10 @@ export default function UserMenu() {
             </span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="items-start gap-3 rounded-xl px-2 py-2.5"
+            className="items-start gap-3 rounded-md px-2 py-2.5"
             render={<Link href="/account/referrals" />}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-primary">
               <Gift className="h-4.5 w-4.5" />
             </span>
             <span className="flex flex-col gap-0.5 pt-0.5">
@@ -145,10 +145,10 @@ export default function UserMenu() {
           </DropdownMenuItem>
           {shownGuestAccess && (
             <DropdownMenuItem
-              className="items-start gap-3 rounded-xl px-2 py-2.5"
+              className="items-start gap-3 rounded-md px-2 py-2.5"
               render={<Link href={shownGuestAccess === "manager" ? "/admin/guests" : "/admin"} />}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-primary">
                 {shownGuestAccess === "manager" ? <Users className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </span>
               <span className="flex flex-col gap-0.5 pt-0.5">
@@ -163,10 +163,10 @@ export default function UserMenu() {
           )}
           {isAdmin && (
             <DropdownMenuItem
-              className="items-start gap-3 rounded-xl px-2 py-2.5"
+              className="items-start gap-3 rounded-md px-2 py-2.5"
               render={<Link href="/admin" />}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-emerald-700 dark:text-emerald-400">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700/10 text-primary">
                 <ShieldCheck className="h-4.5 w-4.5" />
               </span>
               <span className="flex flex-col gap-0.5 pt-0.5">
@@ -177,7 +177,7 @@ export default function UserMenu() {
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="items-start gap-3 rounded-xl px-2 py-2.5"
+            className="items-start gap-3 rounded-md px-2 py-2.5"
             onClick={() => setConfirmOpen(true)}
             variant="destructive"
           >

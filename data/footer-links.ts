@@ -20,12 +20,12 @@ export const FOOTER_LINKS = {
       href: "/about",
     },
     {
-      title: "Contact",
-      href: "/contact",
-    },
-    {
       title: "How it's made",
       href: "/how-its-made",
+    },
+    {
+      title: "Contact",
+      href: "/contact",
     },
     {
       title: "Drive for Us",

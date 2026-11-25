@@ -134,7 +134,7 @@ export default function ProductReviews({
                 </div>
                 <span className="text-sm font-medium">{displayName(review.userName)}</span>
                 {/* Every review here came from a gated, delivered-order
-                    check (see canReviewProduct in lib/reviews.ts), so
+                    check (see canReviewProduct in lib/reviews.ts) — so
                     this badge is unconditional, not a per-review flag. */}
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <BadgeCheck size={14} className="text-primary" />

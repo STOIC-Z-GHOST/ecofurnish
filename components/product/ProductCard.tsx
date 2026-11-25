@@ -9,38 +9,35 @@ import ProductImage from "./ProductImage";
 import ProductInfo from "./ProductInfo";
 import ProductActions from "./ProductActions";
 import ProductHoverDetail from "./ProductHoverDetail";
+import WishlistButton from "./WishlistButton";
 import type { Currency } from "@/lib/currency";
 
 interface ProductCardProps {
   product: Product;
   currency?: Currency;
   /**
-   * "grid" (default): picture on top, then title, price and button. Used in
-   * the 2-column (phone) and 4-column (desktop) grids.
-   * "row": picture on the left, details on the right, like Amazon's search
-   * results. On a phone this is the one-column shop list; from the md
-   * breakpoint up it turns back into the normal grid card.
+   * "grid" (default): image on top, text below, on every screen size. Used
+   * for the homepage's 2-column discovery grid.
+   * "list": on phones the card turns into one horizontal row (square image
+   * on the left, name, price and a small button on the right), like
+   * Amazon's search results. From md up it is the same as "grid".
    */
-  layout?: "grid" | "row";
+  layout?: "grid" | "list";
 }
 
-// The hover preview only makes sense with a mouse on a wide screen. Phones
-// and tablets have no cursor, so there a card stays static and a tap goes
-// straight to the product page.
-const HOVER_QUERY = "(hover: hover) and (min-width: 768px)";
+// The expanded hover preview only makes sense with a real mouse on a wide
+// screen. Phones and tablets have no hover, and a "preview" that opens on
+// the first tap makes people tap twice to buy something.
+const HOVER_QUERY = "(min-width: 768px) and (hover: hover)";
 
 function canHover() {
   return typeof window !== "undefined" && window.matchMedia(HOVER_QUERY).matches;
 }
 
-export default function ProductCard({
-  product,
-  currency = "ETB",
-  layout = "grid",
-}: ProductCardProps) {
+export default function ProductCard({ product, currency = "ETB", layout = "grid" }: ProductCardProps) {
   const [open, setOpen] = useState(false);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const row = layout === "row";
+  const isList = layout === "list";
 
   useEffect(() => {
     return () => {
@@ -64,14 +61,7 @@ export default function ProductCard({
 
   return (
     <div
-      // A small lift (not a scale) on desktop: text and photos stay sharp
-      // and the neighbouring cards are never overlapped by a growing box.
-      // z-20 while the preview is open keeps it above the next cards in the
-      // grid, because the lift gives this wrapper its own stacking context.
-      className={cn(
-        "relative h-full motion-safe:transition-transform motion-safe:duration-200 md:hover:-translate-y-1",
-        open && "z-20"
-      )}
+      className="relative h-full"
       onMouseEnter={scheduleOpen}
       onMouseLeave={cancelOpen}
       onFocus={() => {
@@ -85,20 +75,27 @@ export default function ProductCard({
     >
       <Card
         className={cn(
-          "h-full gap-0 overflow-hidden py-0 transition-shadow duration-200 md:hover:shadow-xl",
-          row
-            ? "grid grid-cols-[8.75rem_minmax(0,1fr)] content-start items-start md:flex md:flex-col"
-            : "flex flex-col"
+          "flex h-full flex-col gap-0 overflow-hidden py-0 transition-[transform,box-shadow] duration-200",
+          // Desktop hover: float up and deepen the shadow instead of
+          // growing, so nothing blurs or overlaps the neighbouring cards.
+          "md:hover:-translate-y-1 md:hover:shadow-xl",
+          isList && "max-md:flex-row"
         )}
       >
-        {/* Clicking the image or text takes you to the product details page */}
-        <Link href={`/products/${product.id}`} className="contents">
-          <ProductImage product={product} row={row} />
-          <ProductInfo product={product} currency={currency} row={row} />
-        </Link>
+        <div className={cn("relative", isList && "max-md:w-[40%] max-md:shrink-0")}>
+          {/* Clicking the picture or the text takes you to the product page */}
+          <Link href={`/products/${product.id}`} tabIndex={-1} aria-hidden="true" className="block">
+            <ProductImage product={product} />
+          </Link>
+          <WishlistButton product={product} className="absolute right-1 top-1 z-10 sm:right-2 sm:top-2" />
+        </div>
 
-        {/* The interactive button section */}
-        <ProductActions product={product} row={row} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Link href={`/products/${product.id}`} className="flex flex-1 flex-col">
+            <ProductInfo product={product} currency={currency} />
+          </Link>
+          <ProductActions product={product} />
+        </div>
       </Card>
 
       {open && <ProductHoverDetail product={product} currency={currency} />}

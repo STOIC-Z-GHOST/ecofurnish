@@ -20,7 +20,7 @@ const KEEP_REVISIONS = 25;
 type Result = { success: true } | { success: false; error: string };
 
 const SETUP_ERROR =
-  "Couldn't save — has the site_pages table been created in the database? (Run batch-b-run-in-neon-first.sql.)";
+  "Couldn't save, has the site_pages table been created in the database? (Run batch-b-run-in-neon-first.sql.)";
 
 async function saveRow(slug: SitePageSlug, title: string, body: string, by: string): Promise<Result> {
   try {

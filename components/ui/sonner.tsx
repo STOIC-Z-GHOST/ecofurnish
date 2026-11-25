@@ -13,7 +13,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       icons={{
         success: (
-          <CircleCheckIcon className="size-4 text-emerald-700 dark:text-emerald-400" />
+          <CircleCheckIcon className="size-5 text-primary" />
         ),
         info: (
           <InfoIcon className="size-4" />
@@ -33,12 +33,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
-          "--border-radius": "0.75rem",
+          "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast shadow-lg",
+          toast: "cn-toast",
+          title: "text-sm font-medium",
+          description: "text-xs text-muted-foreground",
         },
       }}
       {...props}

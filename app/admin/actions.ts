@@ -24,7 +24,7 @@ export async function uploadProductImage(formData: FormData) {
     return { success: false as const, error: "Please upload a JPEG, PNG, or WebP image." };
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    return { success: false as const, error: "Image is too large — please keep it under 4MB." };
+    return { success: false as const, error: "Image is too large, please keep it under 4MB." };
   }
 
   try {
@@ -35,7 +35,7 @@ export async function uploadProductImage(formData: FormData) {
     return { success: true as const, url: blob.url };
   } catch (err) {
     console.error("Product image upload failed:", err);
-    return { success: false as const, error: "Upload failed — please try again." };
+    return { success: false as const, error: "Upload failed, please try again." };
   }
 }
 

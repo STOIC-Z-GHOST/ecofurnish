@@ -8,9 +8,8 @@ import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
 import Testimonials from "@/components/home/Testimonials";
-import ImpactCards from "@/components/home/ImpactCards";
+import Impact from "@/components/home/Impact";
 import AboutMaker from "@/components/home/AboutMaker";
-import SectionHeading from "@/components/home/SectionHeading";
 import ContinueBrowsing from "@/components/home/ContinueBrowsing";
 import RecentFinds from "@/components/home/RecentFinds";
 import { CatalogView } from "@/components/catalog-view";
@@ -42,9 +41,7 @@ export default async function Home() {
   const rawCatalog = await db.select().from(products);
   const catalog = await attachRatings(rawCatalog);
   const featured = catalog.slice(0, 4);
-  // Figures for the "Our impact" cards, worked out from the real catalog.
-  const plasticKg =
-    Math.round(catalog.reduce((sum, p) => sum + Number(p.plasticWeightKg || 0), 0) * 10) / 10;
+  const plasticKg = catalog.reduce((sum, p) => sum + (Number(p.plasticWeightKg) || 0), 0);
 
   // Tells Google the site's name is "EcoFurnish" (not the shared host name
   // "de5.net" it falls back to). Google only reads this from the home page;
@@ -66,19 +63,21 @@ export default async function Home() {
       />
       <Hero />
 
-      <ContinueBrowsing />
-
       <FeaturedProducts products={featured} />
-
-      <RecentFinds />
 
       <Categories />
 
-      <div id="all-products" className="container mx-auto max-w-7xl scroll-mt-24 px-4 py-12 sm:py-16">
-        <SectionHeading
-          title="All products"
-          subtitle="Sustainable furniture that cleans our streets."
-        />
+      <ContinueBrowsing />
+
+      <RecentFinds />
+
+      <div id="all-products" className="container mx-auto max-w-7xl px-4 py-12">
+        <div className="mb-10">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Full Catalog</h2>
+          <p className="mt-2 text-lg text-muted-foreground">
+            Every piece, from recycled plastic or reclaimed wood.
+          </p>
+        </div>
 
         {catalog.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed bg-muted/20 py-24 text-center">
@@ -95,13 +94,14 @@ export default async function Home() {
         )}
       </div>
 
-      <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
+      <Impact plasticKg={plasticKg} productCount={catalog.length} />
 
-      <ImpactCards plasticKg={plasticKg} pieces={catalog.length} />
+      <Testimonials />
 
       <AboutMaker />
 
-      <Testimonials />
+      <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
+
       <Newsletter />
     </main>
   );

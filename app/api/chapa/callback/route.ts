@@ -23,7 +23,7 @@ import { confirmPayment } from "@/app/actions/orders";
 function verifyWebhookSignature(rawBody: string, signature: string): boolean {
   const secret = process.env.CHAPA_WEBHOOK_SECRET;
   if (!secret) {
-    console.error("CHAPA_WEBHOOK_SECRET is not set — refusing all webhook calls");
+    console.error("CHAPA_WEBHOOK_SECRET is not set, refusing all webhook calls");
     return false;
   }
 

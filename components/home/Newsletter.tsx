@@ -62,12 +62,12 @@ export default function Newsletter() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl border-0 bg-white px-5 py-3 text-zinc-900 outline-none"
+              className="flex-1 rounded-md border-0 bg-white px-5 py-3 text-zinc-900 outline-none"
             />
             <button
               type="submit"
               disabled={status === "submitting"}
-              className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-emerald-700 dark:text-emerald-400 transition hover:bg-zinc-100 disabled:opacity-70"
+              className="flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 font-semibold text-primary transition hover:bg-zinc-100 disabled:opacity-70"
             >
               {status === "submitting" && <Loader2 className="h-4 w-4 animate-spin" />}
               Subscribe

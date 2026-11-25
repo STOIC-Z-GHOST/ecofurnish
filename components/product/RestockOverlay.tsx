@@ -66,7 +66,7 @@ export default function RestockOverlay({
           />
         )}
         {restocking ? "Restocking" : "Out of stock"}
-        {countdown && <span className="tabular-nums text-amber-200">, {countdown}</span>}
+        {countdown && <span className="tabular-nums text-amber-200">· {countdown}</span>}
       </div>
     );
   }
@@ -76,25 +76,24 @@ export default function RestockOverlay({
       role="status"
       aria-label={label}
       className={cn(
-        "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/55 text-center text-white backdrop-blur-[3px]",
+        "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/50 text-center backdrop-blur-[3px]",
         className
       )}
     >
       {restocking && (
         <>
           <RefreshCw
-            className="h-8 w-8 text-emerald-300 motion-safe:animate-spin [animation-duration:2.6s] sm:h-10 sm:w-10"
+            className="h-8 w-8 text-primary motion-safe:animate-spin [animation-duration:2.6s] sm:h-10 sm:w-10 dark:text-emerald-400"
             aria-hidden="true"
           />
           <span className="text-xs font-semibold text-white sm:text-sm">Restocking</span>
           {countdown && (
-            <span className="text-xs font-medium tabular-nums text-white/85">
+            <span className="text-xs font-medium tabular-nums text-white/90">
               Back in {countdown}
             </span>
           )}
         </>
       )}
-      {!restocking && <span className="text-xs font-semibold text-white sm:text-sm">Out of stock</span>}
     </div>
   );
 }

@@ -48,16 +48,24 @@ export default function StockBadge({
 }) {
   const effectiveStock = useEffectiveStock(productId, stock);
   const overlay = variant === "overlay";
+  const line = variant === "line";
 
-  // variant="line": plain small red text under the price on the cards. Only
-  // appears when stock is low; sold-out pictures are covered by
-  // RestockOverlay, and plain "in stock" needs no note on a card.
-  if (variant === "line") {
+  // "line": a small red text line under a card's price. Only says something
+  // when the product is nearly gone; sold-out products are handled by the
+  // overlay on the picture, in stock products show nothing.
+  if (line) {
     if (effectiveStock <= 0 || effectiveStock > LOW_STOCK_THRESHOLD) return null;
     return (
       <span
-        className={cn("block text-xs font-medium text-red-600 dark:text-red-400", className)}
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400",
+          className
+        )}
       >
+        <Flame
+          className={cn("h-3 w-3 shrink-0", effectiveStock <= 2 && "animate-pulse")}
+          aria-hidden="true"
+        />
         {lowStockMessage(effectiveStock)}
       </span>
     );
@@ -88,6 +96,9 @@ export default function StockBadge({
   }
 
   if (effectiveStock <= LOW_STOCK_THRESHOLD) {
+    // Cards show this as a red line under the price now (variant "line"),
+    // so nothing is drawn on the picture.
+    if (overlay) return null;
     // The outer span takes whatever layout classes the caller passes; the
     // inner span keeps the icon and text on ONE line no matter what the
     // outer one is doing — without it, a narrow card could wrap the icon

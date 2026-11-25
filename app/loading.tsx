@@ -16,7 +16,7 @@ export default function Loading() {
 
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <Skeleton className="mb-8 h-8 w-56" />
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
@@ -26,7 +26,7 @@ export default function Loading() {
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <Skeleton className="mb-2 h-8 w-48" />
         <Skeleton className="mb-8 h-5 w-64" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}

@@ -15,14 +15,14 @@ export async function buildStockReply(): Promise<string> {
 
   const lines = rows.map((p) => {
     const dot = p.stock <= 5 ? "🔴" : p.stock <= 15 ? "🟡" : "🟢";
-    return `${dot} ${p.name} — ${p.stock} left`;
+    return `${dot} ${p.name}, ${p.stock} left`;
   });
 
   const legend = [
     `\n<b>Legend</b>`,
-    `🔴 Under 5 — restock soon or you'll run out`,
-    `🟡 Under 15 — you're okay, but worth restocking soon`,
-    `🟢 15 or more — plenty in stock`,
+    `🔴 Under 5, restock soon or you'll run out`,
+    `🟡 Under 15, you're okay, but worth restocking soon`,
+    `🟢 15 or more, plenty in stock`,
   ];
 
   return [`<b>📦 Stock levels</b>`, ...lines, ...legend].join("\n");
@@ -38,9 +38,9 @@ export async function buildDigestReply(): Promise<string> {
 export function buildHelpReply(): string {
   return [
     `<b>EcoFurnish bot</b>`,
-    `/stock — current stock for every product`,
-    `/digest — today's revenue, orders, and top seller (same as the 7am summary)`,
-    `/help — this message`,
+    `/stock, current stock for every product`,
+    `/digest, today's revenue, orders, and top seller (same as the 7am summary)`,
+    `/help, this message`,
   ].join("\n");
 }
 
@@ -71,6 +71,6 @@ export async function handleCommand(text: string): Promise<string> {
     }
   } catch (err) {
     console.error("Telegram command failed:", command, err);
-    return "Something went wrong pulling that up — check the Vercel function logs for details.";
+    return "Something went wrong pulling that up, check the Vercel function logs for details.";
   }
 }

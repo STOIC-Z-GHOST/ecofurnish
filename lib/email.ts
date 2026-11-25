@@ -23,19 +23,19 @@ function appUrl() {
 function spamNoticeHtml(): string {
   return `
         <p style="color:#9a9890;font-size:12px;margin-top:24px;border-top:1px solid #e0ddd0;padding-top:16px;">
-          Can't find this in your inbox? Check your spam or junk folder — if it's there, mark it
+          Can't find this in your inbox? Check your spam or junk folder, if it's there, mark it
           "Not spam" so future EcoFurnish emails land where you'll see them.
           <a href="${appUrl()}/help/check-spam" style="color:#9a9890;">More help</a>
         </p>`;
 }
 
 function spamNoticeText(): string {
-  return `\n\nCan't find this in your inbox? Check your spam or junk folder — if it's there, mark it "Not spam" so future EcoFurnish emails land where you'll see them. More help: ${appUrl()}/help/check-spam`;
+  return `\n\nCan't find this in your inbox? Check your spam or junk folder, if it's there, mark it "Not spam" so future EcoFurnish emails land where you'll see them. More help: ${appUrl()}/help/check-spam`;
 }
 
 export async function sendNewsletterWelcomeEmail(toEmail: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — newsletter welcome email was not sent.");
+    console.warn("RESEND_API_KEY is not set, newsletter welcome email was not sent.");
     return { success: false as const };
   }
 
@@ -52,12 +52,12 @@ export async function sendNewsletterWelcomeEmail(toEmail: string) {
         "List-Unsubscribe": `<${unsubscribeUrl}>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
-      text: `You're subscribed!\n\nThanks for joining the EcoFurnish newsletter — expect the occasional email about new pieces, offers, and what your plastic-diverted total is doing for the planet.\n\nUnsubscribe: ${unsubscribeUrl}${spamNoticeText()}`,
+      text: `You're subscribed!\n\nThanks for joining the EcoFurnish newsletter, expect the occasional email about new pieces, offers, and what your plastic-diverted total is doing for the planet.\n\nUnsubscribe: ${unsubscribeUrl}${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">You're subscribed!</h2>
           <p style="color:#3a3f38;">
-            Thanks for joining the EcoFurnish newsletter — expect the occasional email about
+            Thanks for joining the EcoFurnish newsletter, expect the occasional email about
             new pieces, offers, and what your plastic-diverted total is doing for the planet.
           </p>
           <p style="color:#9a9890;font-size:12px;margin-top:32px;border-top:1px solid #e0ddd0;padding-top:16px;">
@@ -75,7 +75,7 @@ export async function sendNewsletterWelcomeEmail(toEmail: string) {
 
 export async function sendVerificationEmail(toEmail: string, url: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — verification email was not sent.");
+    console.warn("RESEND_API_KEY is not set, verification email was not sent.");
     return;
   }
   try {
@@ -108,7 +108,7 @@ export async function sendVerificationEmail(toEmail: string, url: string) {
 
 export async function sendResetPasswordEmail(toEmail: string, url: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — reset-password email was not sent.");
+    console.warn("RESEND_API_KEY is not set, reset-password email was not sent.");
     return;
   }
   try {
@@ -116,13 +116,13 @@ export async function sendResetPasswordEmail(toEmail: string, url: string) {
       from: FROM_ADDRESS,
       to: toEmail,
       subject: "Reset your EcoFurnish password",
-      text: `Reset your password\n\nSomeone requested a password reset for this EcoFurnish account. If that was you, use the link below — it expires soon.\n\n${url}\n\nIf this wasn't you, ignore this email — your password hasn't been changed.${spamNoticeText()}`,
+      text: `Reset your password\n\nSomeone requested a password reset for this EcoFurnish account. If that was you, use the link below, it expires soon.\n\n${url}\n\nIf this wasn't you, ignore this email, your password hasn't been changed.${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Reset your password</h2>
           <p style="color:#3a3f38;">
             Someone requested a password reset for this EcoFurnish account. If that was you,
-            click below to choose a new one — this link expires soon.
+            click below to choose a new one, this link expires soon.
           </p>
           <p style="margin:24px 0;">
             <a href="${url}" style="background:#33472e;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">
@@ -130,7 +130,7 @@ export async function sendResetPasswordEmail(toEmail: string, url: string) {
             </a>
           </p>
           <p style="color:#6b6a5c;font-size:13px;">
-            If this wasn't you, ignore this email — your password hasn't been changed.
+            If this wasn't you, ignore this email, your password hasn't been changed.
           </p>${spamNoticeHtml()}
         </div>
       `,
@@ -142,7 +142,7 @@ export async function sendResetPasswordEmail(toEmail: string, url: string) {
 
 export async function sendDeleteAccountEmail(toEmail: string, url: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — delete-account email was not sent.");
+    console.warn("RESEND_API_KEY is not set, delete-account email was not sent.");
     return;
   }
   try {
@@ -150,13 +150,13 @@ export async function sendDeleteAccountEmail(toEmail: string, url: string) {
       from: FROM_ADDRESS,
       to: toEmail,
       subject: "Confirm account deletion",
-      text: `Confirm account deletion\n\nSomeone requested to permanently delete this EcoFurnish account. If that was you, use the link below to confirm — this can't be undone.\n\n${url}\n\nIf this wasn't you, ignore this email — your account is safe.${spamNoticeText()}`,
+      text: `Confirm account deletion\n\nSomeone requested to permanently delete this EcoFurnish account. If that was you, use the link below to confirm, this can't be undone.\n\n${url}\n\nIf this wasn't you, ignore this email, your account is safe.${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#b3432d;">Confirm account deletion</h2>
           <p style="color:#3a3f38;">
             Someone requested to permanently delete this EcoFurnish account. If that was you,
-            click below to confirm — this can't be undone.
+            click below to confirm, this can't be undone.
           </p>
           <p style="margin:24px 0;">
             <a href="${url}" style="background:#b3432d;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">
@@ -164,7 +164,7 @@ export async function sendDeleteAccountEmail(toEmail: string, url: string) {
             </a>
           </p>
           <p style="color:#6b6a5c;font-size:13px;">
-            If this wasn't you, ignore this email — your account is safe.
+            If this wasn't you, ignore this email, your account is safe.
           </p>${spamNoticeHtml()}
         </div>
       `,
@@ -176,7 +176,7 @@ export async function sendDeleteAccountEmail(toEmail: string, url: string) {
 
 export async function sendWelcomeEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — welcome email was not sent.");
+    console.warn("RESEND_API_KEY is not set, welcome email was not sent.");
     return;
   }
 
@@ -203,7 +203,7 @@ export async function sendWelcomeEmail(toEmail: string, name: string) {
 
 export async function sendPasswordChangedEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — password-changed email was not sent.");
+    console.warn("RESEND_API_KEY is not set, password-changed email was not sent.");
     return;
   }
 
@@ -232,7 +232,7 @@ export async function sendPasswordChangedEmail(toEmail: string, name: string) {
 
 export async function sendPasswordAddedEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — password-added email was not sent.");
+    console.warn("RESEND_API_KEY is not set, password-added email was not sent.");
     return;
   }
 
@@ -263,7 +263,7 @@ export async function sendPasswordAddedEmail(toEmail: string, name: string) {
 
 export async function sendExistingAccountSignUpAttemptEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — existing-account notice email was not sent.");
+    console.warn("RESEND_API_KEY is not set, existing-account notice email was not sent.");
     return;
   }
 
@@ -275,13 +275,13 @@ export async function sendExistingAccountSignUpAttemptEmail(toEmail: string, nam
       from: FROM_ADDRESS,
       to: toEmail,
       subject: "Someone tried to sign up with your EcoFurnish email",
-      text: `Hi ${name.split(" ")[0]},\n\nSomeone just tried to create a new EcoFurnish account using this email address, which already has an account.\n\nIf that was you, you don't need a new account — just sign in: ${signInUrl}\n\nForgot your password? Reset it here: ${forgotPasswordUrl}\n\nIf this wasn't you, no action is needed — your account is safe and no new account was created.${spamNoticeText()}`,
+      text: `Hi ${name.split(" ")[0]},\n\nSomeone just tried to create a new EcoFurnish account using this email address, which already has an account.\n\nIf that was you, you don't need a new account, just sign in: ${signInUrl}\n\nForgot your password? Reset it here: ${forgotPasswordUrl}\n\nIf this wasn't you, no action is needed, your account is safe and no new account was created.${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">Someone tried to sign up with your email</h2>
           <p style="color:#3a3f38;">
             Hi ${escapeHtml(name.split(" ")[0])}, someone just tried to create a new EcoFurnish account
-            using this email address — but you already have one.
+            using this email address, but you already have one.
           </p>
           <p style="color:#3a3f38;">
             If that was you, you don't need a new account. Just sign in below:
@@ -295,7 +295,7 @@ export async function sendExistingAccountSignUpAttemptEmail(toEmail: string, nam
             Forgotten your password? <a href="${forgotPasswordUrl}" style="color:#33472e;">Reset it here</a>.
           </p>
           <p style="color:#6b6a5c;font-size:13px;margin-top:16px;border-top:1px solid #e0ddd0;padding-top:16px;">
-            If this wasn't you, no action is needed — your account is safe and no new account was created.
+            If this wasn't you, no action is needed, your account is safe and no new account was created.
           </p>${spamNoticeHtml()}
         </div>
       `,
@@ -311,13 +311,13 @@ export async function sendContactMessage(input: {
   message: string;
 }) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — contact message was not sent.");
+    console.warn("RESEND_API_KEY is not set, contact message was not sent.");
     return { success: false as const };
   }
 
   const ownerEmail = process.env.CONTACT_FORM_TO_EMAIL;
   if (!ownerEmail) {
-    console.warn("CONTACT_FORM_TO_EMAIL is not set — contact message was not sent.");
+    console.warn("CONTACT_FORM_TO_EMAIL is not set, contact message was not sent.");
     return { success: false as const };
   }
 
@@ -364,7 +364,7 @@ interface OrderConfirmationEmailInput {
 
 export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailInput) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — skipping order confirmation email.");
+    console.warn("RESEND_API_KEY is not set, skipping order confirmation email.");
     return;
   }
 
@@ -381,7 +381,7 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
     .join("");
 
   const itemsText = input.items
-    .map((item) => `${item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName} × ${item.quantity} — Br${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`)
+    .map((item) => `${item.variantLabel ? `${item.productName} (${item.variantLabel})` : item.productName} × ${item.quantity}, Br${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`)
     .join("\n");
 
   const html = `
@@ -433,11 +433,11 @@ export async function sendOrderConfirmationEmail(input: OrderConfirmationEmailIn
 export async function sendLowStockAlertEmail(productName: string, stock: number) {
   const ownerEmail = process.env.CONTACT_FORM_TO_EMAIL;
   if (!ownerEmail) {
-    console.warn("CONTACT_FORM_TO_EMAIL is not set — low-stock alert was not sent.");
+    console.warn("CONTACT_FORM_TO_EMAIL is not set, low-stock alert was not sent.");
     return;
   }
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — low-stock alert was not sent.");
+    console.warn("RESEND_API_KEY is not set, low-stock alert was not sent.");
     return;
   }
 
@@ -475,7 +475,7 @@ const STATUS_EMAIL_COPY = {
     subject: "Delivered! Thanks for shopping with EcoFurnish",
     heading: "Delivered! 🎉",
     body: (_trackingNote?: string | null) =>
-      "Your order has arrived — we hope you love it. Thank you for shopping with EcoFurnish, and for choosing sustainable furniture over something new and disposable. If anything's off, just reply to this email.",
+      "Your order has arrived, we hope you love it. Thank you for shopping with EcoFurnish, and for choosing sustainable furniture over something new and disposable. If anything's off, just reply to this email.",
   },
   cancelled: {
     subject: "Your order has been cancelled",
@@ -501,7 +501,7 @@ export async function sendOrderStatusUpdateEmail(
   if (!copy) return;
 
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — order status email was not sent.");
+    console.warn("RESEND_API_KEY is not set, order status email was not sent.");
     return;
   }
 
@@ -512,7 +512,7 @@ export async function sendOrderStatusUpdateEmail(
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: toEmail,
-      subject: `${copy.subject} — order #${orderId.slice(0, 8)}`,
+      subject: `${copy.subject}, order #${orderId.slice(0, 8)}`,
       text: `${copy.heading}\n\nHi ${firstName}, ${bodyText}\n\nOrder #${orderId.slice(0, 8)}${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
@@ -533,7 +533,7 @@ export async function sendOrderStatusUpdateEmail(
 // a templated transactional email or a batch send.
 export async function sendAdminMessage(toEmail: string, subject: string, body: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — message was not sent.");
+    console.warn("RESEND_API_KEY is not set, message was not sent.");
     return { success: false as const, error: "Email sending isn't configured." };
   }
 
@@ -566,7 +566,7 @@ export async function sendAdminMessage(toEmail: string, subject: string, body: s
  * works (make-admin.ts is instant too). */
 export async function sendDispatcherPromotedEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — dispatcher promotion email was not sent.");
+    console.warn("RESEND_API_KEY is not set, dispatcher promotion email was not sent.");
     return;
   }
   const firstName = name.split(" ")[0];
@@ -575,14 +575,14 @@ export async function sendDispatcherPromotedEmail(toEmail: string, name: string)
       from: FROM_ADDRESS,
       to: toEmail,
       subject: "You've been made a dispatcher on EcoFurnish",
-      text: `Hi ${firstName}, an admin has given your account dispatcher access on EcoFurnish. You can now review driver applications, assign deliveries, and manage the delivery pipeline — just sign in as usual and you'll see the dispatcher tools.${spamNoticeText()}`,
+      text: `Hi ${firstName}, an admin has given your account dispatcher access on EcoFurnish. You can now review driver applications, assign deliveries, and manage the delivery pipeline, just sign in as usual and you'll see the dispatcher tools.${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">You're now a dispatcher</h2>
           <p style="color:#3a3f38;">
             Hi ${escapeHtml(firstName)}, an admin has given your account dispatcher access on EcoFurnish.
             You can now review driver applications, assign deliveries, and manage the delivery
-            pipeline — just sign in as usual and you'll see the dispatcher tools.
+            pipeline, just sign in as usual and you'll see the dispatcher tools.
           </p>${spamNoticeHtml()}
         </div>
       `,
@@ -595,7 +595,7 @@ export async function sendDispatcherPromotedEmail(toEmail: string, name: string)
 /** Fired when an admin removes someone's dispatcher access. */
 export async function sendDispatcherRemovedEmail(toEmail: string, name: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — dispatcher removal email was not sent.");
+    console.warn("RESEND_API_KEY is not set, dispatcher removal email was not sent.");
     return;
   }
   const firstName = name.split(" ")[0];
@@ -633,7 +633,7 @@ export async function sendDriverAssignmentEmail(
   portalUrl: string
 ) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — driver assignment email was not sent.");
+    console.warn("RESEND_API_KEY is not set, driver assignment email was not sent.");
     return;
   }
   const firstName = driverName.split(" ")[0];
@@ -642,14 +642,14 @@ export async function sendDriverAssignmentEmail(
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: toEmail,
-      subject: `New delivery — order #${orderId.slice(0, 8)}`,
-      text: `Hi ${firstName}, you've been assigned a delivery. Use this link to update your status as you go — no account or app needed: ${portalUrl}${spamNoticeText()}`,
+      subject: `New delivery, order #${orderId.slice(0, 8)}`,
+      text: `Hi ${firstName}, you've been assigned a delivery. Use this link to update your status as you go, no account or app needed: ${portalUrl}${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">New delivery assigned</h2>
           <p style="color:#3a3f38;">
             Hi ${escapeHtml(firstName)}, you've been assigned order #${orderId.slice(0, 8)}. Use the link
-            below to update your status as you go — no account or app needed.
+            below to update your status as you go, no account or app needed.
           </p>
           <p style="margin:24px 0; text-align:center;">
             <a href="${portalUrl}" style="display:inline-block;background:#33472e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
@@ -669,7 +669,7 @@ export async function sendDriverAssignmentEmail(
  * (see sendDriverApplicationDecisionEmail below for that). */
 export async function sendDriverApplicationReceivedEmail(toEmail: string, fullName: string) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — driver application receipt was not sent.");
+    console.warn("RESEND_API_KEY is not set, driver application receipt was not sent.");
     return;
   }
   const firstName = fullName.split(" ")[0];
@@ -701,13 +701,13 @@ export async function sendDriverApplicationDecisionEmail(
   approved: boolean
 ) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — driver application decision email was not sent.");
+    console.warn("RESEND_API_KEY is not set, driver application decision email was not sent.");
     return;
   }
   const firstName = fullName.split(" ")[0];
   const heading = approved ? "You're approved to drive" : "Application update";
   const body = approved
-    ? "Your driver application has been approved. You'll get a link by email whenever you're assigned a delivery — no account or app install needed."
+    ? "Your driver application has been approved. You'll get a link by email whenever you're assigned a delivery, no account or app install needed."
     : "Thanks for your interest, but we're not able to approve your driver application at this time.";
 
   try {
@@ -739,7 +739,7 @@ export async function sendDeliveryAssignedEmail(
   buyerPin: string
 ) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — delivery assignment email was not sent.");
+    console.warn("RESEND_API_KEY is not set, delivery assignment email was not sent.");
     return;
   }
   const firstName = customerName.split(" ")[0];
@@ -748,8 +748,8 @@ export async function sendDeliveryAssignedEmail(
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: toEmail,
-      subject: `Your delivery PIN — order #${orderId.slice(0, 8)}`,
-      text: `Hi ${firstName}, a driver has been assigned to your order. Your delivery PIN is ${buyerPin} — give this to the driver only once your order actually arrives, so they can confirm the handoff. Don't share it before then.\n\nOrder #${orderId.slice(0, 8)}${spamNoticeText()}`,
+      subject: `Your delivery PIN, order #${orderId.slice(0, 8)}`,
+      text: `Hi ${firstName}, a driver has been assigned to your order. Your delivery PIN is ${buyerPin}, give this to the driver only once your order actually arrives, so they can confirm the handoff. Don't share it before then.\n\nOrder #${orderId.slice(0, 8)}${spamNoticeText()}`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
           <h2 style="color:#33472e;">A driver is on the way</h2>
@@ -782,7 +782,7 @@ export async function sendOrderNoticeEmail(input: {
   cta?: { label: string; path: string };
 }) {
   if (!resend) {
-    console.warn("RESEND_API_KEY is not set — order notice was not sent.");
+    console.warn("RESEND_API_KEY is not set, order notice was not sent.");
     return { success: false as const };
   }
   const ctaUrl = input.cta ? `${appUrl()}${input.cta.path}` : null;

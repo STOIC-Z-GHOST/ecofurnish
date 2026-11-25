@@ -110,7 +110,7 @@ export function GuestAccessManager({
                 const result = await grantGuestAccess(email, days);
                 if (result.success) setEmail("");
                 return result;
-              }, "Access granted — they've been emailed.")
+              }, "Access granted, they've been emailed.")
             }
           >
             Grant access
@@ -150,7 +150,7 @@ export function GuestAccessManager({
                       })}
                     </td>
                     {showInvitedBy && (
-                      <td className="p-3 text-muted-foreground">{g.grantedBy ?? "—"}</td>
+                      <td className="p-3 text-muted-foreground">{g.grantedBy ?? "-"}</td>
                     )}
                     <td className="p-3 text-right">
                       <div className="flex justify-end gap-2">

@@ -200,7 +200,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="space-y-3 rounded-lg border border-emerald-700/30 bg-emerald-700/5 p-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-400">
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
               <Gift className="h-4 w-4" />
               Referral rewards
             </div>
@@ -226,8 +226,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
-            You&apos;ll complete payment on Chapa&apos;s secure checkout page next -
-            card, mobile money, or bank transfer, charged in ETB. This is
+            You&apos;ll complete payment on Chapa&apos;s secure checkout page next, card, mobile money, or bank transfer, charged in ETB. This is
             running in test mode, so no real money moves.
           </div>
 
@@ -255,7 +254,7 @@ export default function CheckoutPage() {
             ))}
           </div>
           {creditToApply > 0 && (
-            <div className="mt-3 flex justify-between text-sm text-emerald-700 dark:text-emerald-400">
+            <div className="mt-3 flex justify-between text-sm text-primary">
               <span>Store credit applied</span>
               <span>−{formatPrice(creditToApply.toFixed(2), "ETB")}</span>
             </div>

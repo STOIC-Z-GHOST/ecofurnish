@@ -8,24 +8,15 @@ import { useCart, useCartRoom } from "@/lib/cart-context";
 import { getEffectivePrice } from "@/lib/pricing";
 import { useEffectiveStock } from "@/lib/use-effective-stock";
 import { toast } from "sonner";
-import { showCartToast } from "@/components/ui/cart-toast";
+import { showCartToast } from "@/lib/cart-toast";
 import { Product } from "@/types/product";
-import { cn } from "@/lib/utils";
-import WishlistButton from "./WishlistButton";
 
-// One height and one set of paddings for every button in every card, so
-// "Add to Cart" and "Choose options" line up exactly across a row.
-const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-5 sm:pt-2";
-const BUTTON = "h-10 flex-1 items-center justify-center gap-1.5 text-sm";
+// "Add to Cart" and "Choose options" share one class string so they always
+// have exactly the same height, padding and shape.
+const BUTTON_CLASS =
+  "h-9 w-full flex-1 items-center gap-1.5 rounded-md px-3 text-xs md:h-10 md:text-sm";
 
-export default function ProductActions({
-  product,
-  row = false,
-}: {
-  product: Product;
-  /** Phone shop list: the button sits under the details, left aligned. */
-  row?: boolean;
-}) {
+export default function ProductActions({ product }: { product: Product }) {
   const { addItem } = useCart();
   const effectiveStock = useEffectiveStock(product.id, product.stock);
   const { allInCart, ready } = useCartRoom(product.id, effectiveStock);
@@ -42,40 +33,41 @@ export default function ProductActions({
       imageUrl: product.imageUrl,
       stock: effectiveStock,
     });
-    if (added > 0) showCartToast({ name: product.name, imageUrl: product.imageUrl });
+    if (added > 0) showCartToast(product.name, product.imageUrl);
     else toast.info(`All ${effectiveStock} in stock are already in your cart`);
   }
 
-  // A product that comes in colors/sizes can't be added from the card — the
+  const footerClass = "mt-auto border-t-0 bg-transparent p-3 pt-1 md:p-5 md:pt-2";
+
+  // A product that comes in colors/sizes can't be added from the card: the
   // buyer has to choose on its page, so the card sends them there.
   if (product.hasVariants) {
     return (
-      <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
+      <CardFooter className={footerClass}>
         {product.stock <= 0 ? (
-          <Button size="lg" className={BUTTON} disabled>
+          <Button size="lg" className={BUTTON_CLASS} disabled>
             Out of Stock
           </Button>
         ) : (
           <Button
             size="lg"
-            className={BUTTON}
+            className={BUTTON_CLASS}
             render={<Link href={`/products/${product.id}`} />}
             nativeButton={false}
           >
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
             Choose options
           </Button>
         )}
-        <WishlistButton product={product} />
       </CardFooter>
     );
   }
 
   return (
-    <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
+    <CardFooter className={footerClass}>
       <Button
         size="lg"
-        className={BUTTON}
+        className={BUTTON_CLASS}
         disabled={effectiveStock <= 0 || allInCart || !ready}
         onClick={handleAddToCart}
       >
@@ -83,17 +75,16 @@ export default function ProductActions({
           "Out of Stock"
         ) : allInCart ? (
           <>
-            <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <Check className="h-3.5 w-3.5 md:h-4 md:w-4" />
             All in cart
           </>
         ) : (
           <>
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
             Add to Cart
           </>
         )}
       </Button>
-      <WishlistButton product={product} />
     </CardFooter>
   );
 }

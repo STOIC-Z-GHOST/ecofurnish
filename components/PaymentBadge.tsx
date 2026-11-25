@@ -15,9 +15,9 @@ export default function PaymentBadge({ className }: { className?: string }) {
         className
       )}
     >
-      <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+      <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
       <span>
-        Payments secured by <span className="font-medium text-foreground">Chapa</span>, we never
+        Payments secured by <span className="font-medium text-foreground">Chapa</span> , we never
         see or store your card details.
       </span>
     </div>

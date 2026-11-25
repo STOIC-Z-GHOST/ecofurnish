@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Not seeing our emails?, EcoFurnish",
+  title: "Not seeing our emails? | EcoFurnish",
 };
 
 const PROVIDER_STEPS: { name: string; steps: string[] }[] = [
@@ -46,7 +46,7 @@ export default function CheckSpamHelpPage() {
       <h1 className="text-3xl font-extrabold tracking-tight">Not seeing our emails?</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Account verification, order updates, and delivery PINs all come from{" "}
-        <span className="font-medium text-foreground">admin@ecofurnish.abrdns.com</span>, here&apos;s
+        <span className="font-medium text-foreground">admin@ecofurnish.abrdns.com</span> , here&apos;s
         how to find one that landed in spam, and how to stop it happening again.
       </p>
 

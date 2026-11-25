@@ -88,7 +88,7 @@ export function DispatcherManager({
         </h3>
         {dispatcherList.length === 0 ? (
           <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            No dispatchers yet — search for a user below to add one.
+            No dispatchers yet, search for a user below to add one.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -121,7 +121,7 @@ export function DispatcherManager({
       <div>
         <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Add a dispatcher</h3>
         <p className="mb-3 text-xs text-muted-foreground">
-          They need an existing account first — search by name or email.
+          They need an existing account first, search by name or email.
         </p>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

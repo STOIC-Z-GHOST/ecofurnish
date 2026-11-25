@@ -135,7 +135,7 @@ export function TelegramAdminsList({ admins: initialAdmins }: { admins: Telegram
               id="new-label"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="e.g. Abebe — dispatcher"
+              placeholder="e.g. Abebe, dispatcher"
               className="w-56"
             />
           </div>

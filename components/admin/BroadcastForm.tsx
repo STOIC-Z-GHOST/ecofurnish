@@ -134,7 +134,7 @@ export function BroadcastForm({
               Newsletter subscribers
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {counts.subscribers} opted in — for regular updates, offers, new arrivals. Includes
+              {counts.subscribers} opted in, for regular updates, offers, new arrivals. Includes
               an unsubscribe link.
             </p>
           </button>
@@ -152,7 +152,7 @@ export function BroadcastForm({
               All customers
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {counts.allCustomers} accounts — reserve this for genuinely important, infrequent
+              {counts.allCustomers} accounts, reserve this for genuinely important, infrequent
               notices, not routine updates. No unsubscribe link, same as your order emails.
             </p>
           </button>
@@ -171,7 +171,7 @@ export function BroadcastForm({
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {counts.driversWithEmail} of {counts.driversTotal} approved drivers have an email
-              on file — phone is their required contact, so this won&apos;t reach everyone.
+              on file, phone is their required contact, so this won&apos;t reach everyone.
             </p>
           </button>
           <button
@@ -188,7 +188,7 @@ export function BroadcastForm({
               One customer
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Pick a single account holder — for a one-off, personal message to just them.
+              Pick a single account holder, for a one-off, personal message to just them.
             </p>
           </button>
           <button
@@ -205,7 +205,7 @@ export function BroadcastForm({
               Any address
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Type in any email, no EcoFurnish account needed — for reaching someone outside your
+              Type in any email, no EcoFurnish account needed, for reaching someone outside your
               customer list entirely.
             </p>
           </button>
@@ -299,7 +299,7 @@ export function BroadcastForm({
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={8}
-          placeholder="Write the update here — plain text is fine, line breaks are kept."
+          placeholder="Write the update here, plain text is fine, line breaks are kept."
         />
       </div>
 
@@ -330,7 +330,7 @@ export function BroadcastForm({
                 {audience === "single-customer"
                   ? `This goes out immediately to ${selectedCustomer?.email}.`
                   : audience === "custom-address"
-                    ? `This goes out immediately to ${customAddress.trim()} — they don't need an EcoFurnish account for this to land.`
+                    ? `This goes out immediately to ${customAddress.trim()}, they don't need an EcoFurnish account for this to land.`
                     : `This goes out immediately to ${
                         audience === "subscribers"
                           ? "everyone on the newsletter list"

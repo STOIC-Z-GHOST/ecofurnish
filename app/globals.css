@@ -5,20 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Serif for headings, clean sans for everything else. The font variables
-     come from app/layout.tsx (Playfair Display and DM Sans). */
-  --font-heading: var(--font-playfair), Georgia, 'Times New Roman', serif;
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
-  --color-emerald-50: var(--brand-50);
-  --color-emerald-100: var(--brand-100);
-  --color-emerald-300: var(--brand-300);
-  --color-emerald-400: var(--brand-400);
-  --color-emerald-500: var(--brand-500);
-  --color-emerald-600: var(--brand-600);
-  --color-emerald-700: var(--brand-700);
-  --color-emerald-800: var(--brand-800);
-  --color-emerald-900: var(--brand-900);
+  --font-heading: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-emerald-700: var(--brand-solid);
+  --color-emerald-800: var(--brand-solid-hover);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -61,153 +52,120 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Colors live in these variables only, so the Light / Dark / System toggle
-   switches everything at once. Light is a warm off-white with deep forest
-   green. Dark is an off-black (#121212, not pure black) with a muted sage
-   green instead of a neon one. */
 :root {
   color-scheme: light;
-  --background: #F9F9F6;
-  --foreground: #1B2A22;
-  --card: #FFFFFF;
-  --card-foreground: #1B2A22;
-  --popover: #FFFFFF;
-  --popover-foreground: #1B2A22;
-  --primary: #1F4D36;
-  --primary-foreground: #F9F9F6;
-  --secondary: #EDEDE5;
-  --secondary-foreground: #24382C;
-  --muted: #F0F0E9;
-  --muted-foreground: #5A655D;
-  --accent: #E7EDE2;
-  --accent-foreground: #1F4D36;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #E3E3DA;
-  --input: #DADAD0;
-  --ring: #4C7C5F;
+  /* Light: warm off-white paper, deep forest green for text and buttons. */
+  --background: #f9f9f6;
+  --foreground: #1c2a22;
+  --card: #fdfdfb;
+  --card-foreground: #1c2a22;
+  --popover: #fdfdfb;
+  --popover-foreground: #1c2a22;
+  --primary: #1f4d36;
+  --primary-foreground: #f9f9f6;
+  --secondary: #eeeee6;
+  --secondary-foreground: #1f4d36;
+  --muted: #f0f0ea;
+  --muted-foreground: #5a645d;
+  --accent: #e7eee6;
+  --accent-foreground: #1f4d36;
+  --destructive: #b42318;
+  --border: #e1e1d7;
+  --input: #d9d9ce;
+  --ring: #3c7a58;
+  --brand-solid: #1f4d36;
+  --brand-solid-hover: #173b29;
   --brand-clay: oklch(0.55 0.14 35);
   --brand-clay-foreground: oklch(0.98 0.01 40);
-  /* Brand green scale. Every emerald-* class in the app resolves to these
-     (see the --color-emerald-* lines in @theme above), so the whole site
-     follows the theme: deep forest green in light mode, muted sage in dark. */
-  --brand-50: #F2F6EE;
-  --brand-100: #E4EDDF;
-  --brand-300: #9FB89C;
-  --brand-400: #7A9B79;
-  --brand-500: #3F7A57;
-  --brand-600: #2B6045;
-  --brand-700: #1F4D36;
-  --brand-800: #173D2A;
-  --brand-900: #12301F;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  --sidebar: #f4f4ef;
+  --sidebar-foreground: #1c2a22;
+  --sidebar-primary: #1f4d36;
+  --sidebar-primary-foreground: #f9f9f6;
+  --sidebar-accent: #e7eee6;
+  --sidebar-accent-foreground: #1f4d36;
+  --sidebar-border: #e1e1d7;
+  --sidebar-ring: #3c7a58;
 }
 
+/* Dark: soft off-black instead of pure black, muted sage instead of neon
+   green. Defined once and reused for both an explicit "Dark" choice and
+   "System" resolving to dark, so the toggle switches everything at once. */
 .dark {
   color-scheme: dark;
   --background: #121212;
-  --foreground: #ECECE6;
-  --card: #1A1A19;
-  --card-foreground: #ECECE6;
-  --popover: #1E1E1C;
-  --popover-foreground: #ECECE6;
-  --primary: #A5BBA1;
-  --primary-foreground: #121712;
-  --secondary: #242523;
-  --secondary-foreground: #ECECE6;
-  --muted: #222321;
-  --muted-foreground: #A5A9A2;
-  --accent: #2A2C28;
-  --accent-foreground: #ECECE6;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: rgb(255 255 255 / 9%);
-  --input: rgb(255 255 255 / 13%);
-  --ring: #7E9B7B;
+  --foreground: #ecebe6;
+  --card: #1a1b1a;
+  --card-foreground: #ecebe6;
+  --popover: #1f201f;
+  --popover-foreground: #ecebe6;
+  --primary: #8fb094;
+  --primary-foreground: #0f1511;
+  --secondary: #262826;
+  --secondary-foreground: #ecebe6;
+  --muted: #232523;
+  --muted-foreground: #a7aea8;
+  --accent: #2a2e2a;
+  --accent-foreground: #ecebe6;
+  --destructive: #f0867b;
+  --border: #ffffff1f;
+  --input: #ffffff26;
+  --ring: #6f9a78;
+  --brand-solid: #4f7a5a;
+  --brand-solid-hover: #5d8c69;
   --brand-clay: oklch(0.62 0.13 35);
   --brand-clay-foreground: oklch(0.98 0.01 40);
-  --brand-50: #1B221B;
-  --brand-100: #222B22;
-  --brand-300: #B4C9B0;
-  --brand-400: #A5BBA1;
-  --brand-500: #5B8A68;
-  --brand-600: #4A7A5F;
-  --brand-700: #3D6650;
-  --brand-800: #335742;
-  --brand-900: #2A4A37;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #181918;
+  --sidebar-foreground: #ecebe6;
+  --sidebar-primary: #8fb094;
+  --sidebar-primary-foreground: #0f1511;
+  --sidebar-accent: #2a2e2a;
+  --sidebar-accent-foreground: #ecebe6;
+  --sidebar-border: #ffffff1f;
+  --sidebar-ring: #6f9a78;
 }
 
-/* No-JS / first-paint fallback: follow the OS setting until the theme
-   provider has put a class on <html>. Keep these values identical to .dark. */
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.light):not(.dark) {
     color-scheme: dark;
     --background: #121212;
-    --foreground: #ECECE6;
-    --card: #1A1A19;
-    --card-foreground: #ECECE6;
-    --popover: #1E1E1C;
-    --popover-foreground: #ECECE6;
-    --primary: #A5BBA1;
-    --primary-foreground: #121712;
-    --secondary: #242523;
-    --secondary-foreground: #ECECE6;
-    --muted: #222321;
-    --muted-foreground: #A5A9A2;
-    --accent: #2A2C28;
-    --accent-foreground: #ECECE6;
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: rgb(255 255 255 / 9%);
-    --input: rgb(255 255 255 / 13%);
-    --ring: #7E9B7B;
-    --brand-clay: oklch(0.62 0.13 35);
-    --brand-clay-foreground: oklch(0.98 0.01 40);
-    --brand-50: #1B221B;
-    --brand-100: #222B22;
-    --brand-300: #B4C9B0;
-    --brand-400: #A5BBA1;
-    --brand-500: #5B8A68;
-    --brand-600: #4A7A5F;
-    --brand-700: #3D6650;
-    --brand-800: #335742;
-    --brand-900: #2A4A37;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --foreground: #ecebe6;
+    --card: #1a1b1a;
+    --card-foreground: #ecebe6;
+    --popover: #1f201f;
+    --popover-foreground: #ecebe6;
+    --primary: #8fb094;
+    --primary-foreground: #0f1511;
+    --secondary: #262826;
+    --secondary-foreground: #ecebe6;
+    --muted: #232523;
+    --muted-foreground: #a7aea8;
+    --accent: #2a2e2a;
+    --accent-foreground: #ecebe6;
+    --destructive: #f0867b;
+    --border: #ffffff1f;
+    --input: #ffffff26;
+    --ring: #6f9a78;
+    --brand-solid: #4f7a5a;
+    --brand-solid-hover: #5d8c69;
+    --sidebar: #181918;
+    --sidebar-foreground: #ecebe6;
+    --sidebar-primary: #8fb094;
+    --sidebar-primary-foreground: #0f1511;
+    --sidebar-accent: #2a2e2a;
+    --sidebar-accent-foreground: #ecebe6;
+    --sidebar-border: #ffffff1f;
+    --sidebar-ring: #6f9a78;
   }
 }
 
@@ -218,25 +176,26 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
   html {
     @apply font-sans;
     /* Safety net against any element (now or added later) that ends up
-       wider than the viewport on narrow screens. This only clips
+       wider than the viewport on narrow screens — this only clips
        genuine overflow bugs. Deliberately-scrollable rows (the admin
        nav, a product carousel, etc.) use their own nested
        overflow-x-auto container, which this doesn't affect at all.
        Deliberately only on html, NOT body: setting overflow-x on body
        changes which element the browser treats as the page's actual
        scrolling container, which breaks position:sticky for children
-       like the navbar (sticky computes relative to that container). html
-       alone is the true root scroller and doesn't have that side effect. */
+       like the navbar (sticky computes relative to that container) —
+       html alone is the true root scroller and doesn't have that
+       side effect. */
     overflow-x: hidden;
-  }
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-heading);
-    letter-spacing: -0.01em;
   }
 }
 
@@ -248,4 +207,24 @@
   [data-sonner-toaster] {
     display: none !important;
   }
+}
+
+/* Cart and info toasts: match the active theme, rounded-md, with a small
+   green check or product thumbnail. Only styling, no behaviour. */
+[data-sonner-toaster] [data-sonner-toast] {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.35);
+  padding: 0.75rem 0.875rem;
+  font-family: var(--font-sans);
+}
+[data-sonner-toaster] [data-sonner-toast][data-type='success'] [data-icon] {
+  color: var(--primary);
+}
+[data-sonner-toaster] [data-sonner-toast] [data-icon] {
+  width: auto;
+  height: auto;
+  margin-inline: 0 0.5rem;
 }

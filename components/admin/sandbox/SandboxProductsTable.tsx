@@ -99,7 +99,7 @@ export function SandboxProductsTable({ rows }: { rows: SandboxProductRow[] }) {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (window.confirm(`Delete "${p.name}"? (Only for you — the real product stays.)`)) {
+                        if (window.confirm(`Delete "${p.name}"? (Only for you, the real product stays.)`)) {
                           deleteSandboxProduct(p.id);
                         }
                       }}

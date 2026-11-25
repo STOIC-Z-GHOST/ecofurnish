@@ -21,7 +21,11 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
             variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            className={`border-transparent bg-transparent text-foreground hover:bg-muted ${compact ? "size-7" : "size-9"}`}
+            className={
+              compact
+                ? "size-7 border-transparent bg-transparent hover:bg-muted"
+                : "border-transparent bg-transparent hover:bg-muted"
+            }
           />
         }
       >

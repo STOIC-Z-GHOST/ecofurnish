@@ -73,7 +73,7 @@ export default async function DriverPortalPage({
         </p>
       ) : order.status === "delivered" ? (
         <p className="rounded-lg border border-border/60 p-4 text-center text-muted-foreground">
-          Delivered — thanks for driving!
+          Delivered, thanks for driving!
         </p>
       ) : (
         <DriverActionPanel

@@ -9,7 +9,7 @@ export const siteConfig = {
   description:
     "Premium sustainable furniture crafted from recycled materials.",
 
-  tagline: "Furniture built to last generations.",
+  tagline: "Furniture made from what used to be thrown away.",
 
   // Must match wherever the site is actually deployed — this is what
   // metadataBase resolves the manifest link, icons, and OG/Twitter image
@@ -43,4 +43,10 @@ export const HERO_IMAGE = {
   // every load.
   src: "/images/products/eco-lounge-chair.jpg",
   alt: "Eco Lounge Chair, recycled-plastic shell, oak frame",
+};
+
+// Homepage hero: a lifestyle photo of a finished living room.
+export const HOME_HERO = {
+  src: "/images/hero-living-room.jpg",
+  alt: "A warm, modern living room in Addis Ababa furnished with EcoFurnish pieces",
 };

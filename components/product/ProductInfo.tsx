@@ -1,71 +1,45 @@
-import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { getEffectivePrice } from "@/lib/pricing";
 import { Product } from "@/types/product";
-import { cn } from "@/lib/utils";
-import CardRating from "./CardRating";
 import DiscountLine from "./DiscountLine";
 import StockBadge from "./StockBadge";
 
 /**
- * Order of things, top to bottom, the same on every card: full product name
- * (it wraps, never cut off), rating, price (with the old price next to it
- * when discounted), a red "Almost gone" line when stock is low, and, from
- * the sm breakpoint up, a three-line description.
+ * Text block of a product card, Amazon style: full name (it wraps, it is
+ * never cut off), price under it, a red "Almost gone" line under the price,
+ * and on larger screens a three-line description. The description area
+ * grows, so the Add to Cart buttons below line up across a row of cards.
  */
 export default function ProductInfo({
   product,
   currency = "ETB",
-  row = false,
 }: {
   product: Product;
   currency?: Currency;
-  row?: boolean;
 }) {
   return (
-    <>
-      <CardHeader className={cn("gap-0 p-3 pb-0 sm:p-5 sm:pb-0", row && "pl-4 sm:pl-5 md:pl-5")}>
-        <CardTitle className="select-text font-sans text-sm leading-snug font-medium sm:text-base md:min-h-11">
-          {product.name}
-        </CardTitle>
+    <div className="flex flex-1 flex-col gap-1.5 p-3 pb-2 md:gap-2 md:p-5 md:pb-3">
+      <h3 className="select-text font-sans text-sm leading-snug font-medium text-foreground md:min-h-[2.75em] md:text-base">
+        {product.name}
+      </h3>
 
-        <CardRating
-          rating={product.avgRating}
-          count={product.reviewCount}
-          className="mt-1.5"
-        />
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-base font-bold text-primary md:text-lg">
+          {formatPrice(getEffectivePrice(product), currency)}
+        </span>
+        <DiscountLine product={product} currency={currency} className="h-auto justify-start" />
+      </div>
 
-        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="whitespace-nowrap text-base font-bold text-primary sm:text-lg">
-            {formatPrice(getEffectivePrice(product), currency)}
-          </span>
-          <DiscountLine product={product} currency={currency} className="h-auto justify-start" />
-        </div>
+      <StockBadge
+        productId={product.id}
+        stock={product.stock}
+        restockAt={product.restockAt}
+        variant="line"
+      />
 
-        {/* Keeps its height on desktop so descriptions start at the same
-            spot on every card in a row, even when only some are low. */}
-        <div className="mt-1 md:min-h-4">
-          <StockBadge
-            productId={product.id}
-            stock={product.stock}
-            restockAt={product.restockAt}
-            variant="line"
-          />
-        </div>
-      </CardHeader>
-
-      <CardContent
-        className={cn(
-          "hidden grow p-3 pt-2 sm:block sm:p-5 sm:pb-3 sm:pt-2",
-          row && "md:col-auto"
-        )}
-      >
-        {/* min-h-15 = 3 lines at text-sm's line-height, so a short blurb
-            doesn't leave this card shorter than a neighbour with a long one. */}
-        <p className="line-clamp-3 min-h-15 select-text text-sm leading-5 text-muted-foreground">
-          {product.description || "Sustainable furniture crafted from recycled materials."}
-        </p>
-      </CardContent>
-    </>
+      <p className="line-clamp-3 select-text text-sm leading-relaxed text-muted-foreground max-md:hidden">
+        {product.description || "Sustainable furniture crafted from recycled materials."}
+      </p>
+    </div>
   );
 }

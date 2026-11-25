@@ -97,7 +97,7 @@ export default function CartPage() {
                     which is what makes the pop-in animation replay each
                     time instead of only on first render. Decreasing to 0
                     removes the whole item (see updateQuantity in
-                    cart-context.tsx), which takes this badge with it -
+                    cart-context.tsx), which takes this badge with it —
                     nothing extra needed for it to "disappear". */}
                 <span
                   key={item.quantity}

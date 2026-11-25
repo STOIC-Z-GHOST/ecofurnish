@@ -14,17 +14,15 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
   if (products.length === 0) return null;
 
   return (
-    <section id="shop" className="py-12 sm:py-20">
+    <section id="shop" className="py-10 sm:py-16">
       <div className="container mx-auto max-w-7xl px-4">
         <SectionHeading
-          title="Featured products"
-          subtitle="Our current favorites, ready to ship from Addis Ababa."
+          title="Featured Products"
           href="/#all-products"
+          subtitle="Our most loved pieces, made from recycled and reclaimed materials."
         />
 
-        {/* 2 columns on phones, 4 on desktop. Square picture, name, price,
-            then the button, in that order on every card. */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 lg:gap-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {products.map((product, index) => (
             <div
               key={product.id}

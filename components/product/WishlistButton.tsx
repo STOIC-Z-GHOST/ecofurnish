@@ -4,8 +4,20 @@ import { Heart } from "lucide-react";
 import { useWishlist } from "@/lib/wishlist-context";
 import { Product } from "@/types/product";
 import { getEffectivePrice } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
 
-export default function WishlistButton({ product }: { product: Product }) {
+/**
+ * Plain outline heart, no box and no border. It fills with the brand green
+ * once the product is on the wishlist. It sits on the white product picture,
+ * so its colors are fixed rather than theme-dependent.
+ */
+export default function WishlistButton({
+  product,
+  className,
+}: {
+  product: Product;
+  className?: string;
+}) {
   const { isWishlisted, toggleItem } = useWishlist();
   const liked = isWishlisted(product.id);
 
@@ -25,11 +37,11 @@ export default function WishlistButton({ product }: { product: Product }) {
           hasVariants: product.hasVariants,
         });
       }}
-      className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors hover:bg-muted ${
-        liked
-          ? "text-emerald-700 dark:text-emerald-400"
-          : "text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400"
-      }`}
+      className={cn(
+        "flex size-9 items-center justify-center rounded-full bg-transparent transition-colors",
+        liked ? "text-primary" : "text-zinc-500 hover:text-primary",
+        className
+      )}
     >
       <Heart
         key={liked ? "liked" : "unliked"}

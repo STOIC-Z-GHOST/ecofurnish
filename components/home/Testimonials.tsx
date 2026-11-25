@@ -4,11 +4,11 @@ import TestimonialCard from "./TestimonialCard";
 
 export default function Testimonials() {
   return (
-    <section className="bg-muted py-12 sm:py-20">
+    <section className="bg-muted/60 py-12 md:py-20">
       <div className="container mx-auto max-w-7xl px-4">
-        <SectionHeading title="What customers say" badge="Demo data" />
+        <SectionHeading title="What customers say" />
 
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
+        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
           {TESTIMONIALS.map((testimonial) => (
             <TestimonialCard
               key={testimonial.id}

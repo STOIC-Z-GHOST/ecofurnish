@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   // product doesn't exist — the page itself calls notFound() separately.
   if (!product) return {};
 
-  const title = `${product.name}, ${siteConfig.name}`;
+  const title = `${product.name} | ${siteConfig.name}`;
   const description =
     product.description ?? `${product.name}, sustainable furniture from ${siteConfig.name}.`;
 
@@ -87,7 +87,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <main className="container mx-auto px-4 py-20">
       {/* Fixed instead of inline so it's still reachable while scrolled deep
-          into the page, same neumorphic pill as the Home/Shop/etc. nav
+          into the page — same neumorphic pill as the Home/Shop/etc. nav
           buttons (NAV_HOVER_LINK), not a separate one-off style. Sits just
           under the sticky navbar (which is h-16/h-20 + z-50) so it never
           overlaps it.
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           !fixed, not plain fixed: NAV_HOVER_LINK's own base styling
           includes `relative` (it needs a positioning context for its own
           hover effects). `.relative` and `.fixed` are equal-specificity
-          utilities, and Tailwind generates them alphabetically, so
+          utilities, and Tailwind generates them alphabetically — so
           `.relative` comes after `.fixed` in the stylesheet and silently
           wins, leaving the button positioned in normal document flow
           instead of pinned to the viewport. The `!` forces this fixed to

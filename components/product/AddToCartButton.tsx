@@ -18,7 +18,7 @@ export default function AddToCartButton({ onClick, disabled, maxed, loading, pro
       type="button"
       onClick={onClick}
       disabled={disabled || maxed || loading || !!prompt}
-      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-medium text-white transition-all hover:bg-emerald-800 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex flex-1 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-3 font-medium text-white transition-all hover:bg-emerald-800 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
     >
       {maxed ? <Check size={18} /> : <ShoppingCart size={18} />}
       {prompt ? prompt : disabled ? "Out of Stock" : maxed ? "All in your cart" : "Add to Cart"}
