@@ -1,6 +1,8 @@
 "use client";
 
 import { noDash } from "@/lib/copy";
+import { Truck } from "lucide-react";
+import { DELIVERY_TOTAL } from "@/config/delivery";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -198,6 +200,14 @@ export default function ProductSummary({
         />
         <WishlistButton product={product} />
       </div>
+
+      <p className="flex items-start gap-2 text-sm text-muted-foreground">
+        <Truck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <span>
+          Delivery in {DELIVERY_TOTAL.addis} business days in Addis Ababa, {DELIVERY_TOTAL.elsewhere}{" "}
+          elsewhere in Ethiopia.
+        </span>
+      </p>
 
       {allInCart && (
         <p className="text-sm text-muted-foreground">

@@ -22,7 +22,7 @@ export default function ProductImage({
     <div
       className={cn(
         "relative aspect-square overflow-hidden bg-white",
-        row && "row-span-3 self-start md:row-auto"
+        row && "row-span-3 self-start md:row-auto md:self-auto"
       )}
     >
       <Image

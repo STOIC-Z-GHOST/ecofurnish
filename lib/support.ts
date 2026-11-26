@@ -1,3 +1,4 @@
+import { DELIVERY_SUMMARY } from "@/config/delivery";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { count } from "drizzle-orm";
@@ -28,11 +29,9 @@ export async function getSupportFacts(): Promise<SupportFacts> {
     tagline: siteConfig.tagline,
     productCount,
 
-    // PLACEHOLDER — no real delivery estimate exists anywhere on the site
-    // yet (checked; About and the homepage only say "fast", no figure).
-    // Replace with a real number before treating this as live/accurate.
-    deliveryEstimate:
-      "Most orders ship within 1-2 business days from Addis Ababa. Delivery typically takes 2-5 business days within Addis Ababa, and 5-10 business days elsewhere in Ethiopia.",
+    // Read from config/delivery.ts, the same place the product page gets
+    // its delivery line from, so the bot and the website always agree.
+    deliveryEstimate: DELIVERY_SUMMARY,
 
     paymentSteps:
       "Add items to your cart, go to checkout, sign in (or create a free account), enter your shipping details, then pay securely through Chapa, cards, Telebirr, CBE Birr, or bank transfer are all supported. We never see or store your card details.",
