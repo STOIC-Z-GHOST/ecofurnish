@@ -53,29 +53,29 @@ function settleLeft(left: number, tucked: "left" | "right" | null) {
   return left + SIZE / 2 < window.innerWidth / 2 ? EDGE : window.innerWidth - SIZE - EDGE;
 }
 
-// The assistant's face: a speech bubble holding a leaf with two eyes, so it
-// reads as "a chatbot" and as EcoFurnish at the same time. Drawn as SVG (not
-// a picture) so it stays sharp at any size and needs no extra download.
-function BotLogo({ className }: { className?: string }) {
+// The assistant's face: just a leaf with two eyes that blink now and then.
+// Drawn as SVG (not a picture) so it stays sharp at any size. Deep green on
+// a light page, soft sage on a dark one so it never disappears; `onDark` is
+// for the green chat header, where it is white instead.
+function BotLogo({ className, onDark = false }: { className?: string; onDark?: boolean }) {
+  const body = onDark ? "fill-white" : "fill-[#265A43] dark:fill-[#A5BBA1]";
+  const stem = onDark ? "stroke-white" : "stroke-[#265A43] dark:stroke-[#A5BBA1]";
+  const eye = onDark ? "fill-[#265A43]" : "fill-white dark:fill-[#121212]";
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <path
-        d="M16 8h32a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H31L18 58.4V48h-2A10 10 0 0 1 6 38V18A10 10 0 0 1 16 8z"
-        fill="#fff"
-      />
+    <svg viewBox="12 4 40 42" className={className} aria-hidden="true">
       <path
         d="M15.4 42.8C14.2 36 14.4 28 20 21.5C24 17.5 30 15.5 36 14.8C40 14.4 44 13.4 48 11.3C49 19 48.5 27 44 33C41 37 37 39 33.3 39.2C28 39.6 22 39.8 15.4 42.8Z"
-        fill="#265A43"
+        className={body}
       />
       <path
         d="M32.4 15.4C31.6 11 33.4 8 38.6 7"
         fill="none"
-        stroke="#265A43"
         strokeWidth="2.3"
         strokeLinecap="round"
+        className={stem}
       />
-      <circle cx="26" cy="26.5" r="2.7" fill="#fff" />
-      <circle cx="37.9" cy="26.2" r="2.7" fill="#fff" />
+      <circle cx="26" cy="26.5" r="2.7" className={`bot-eye ${eye}`} />
+      <circle cx="37.9" cy="26.2" r="2.7" className={`bot-eye ${eye}`} />
     </svg>
   );
 }
@@ -215,7 +215,7 @@ export default function SupportChatWidget() {
         >
           <div className="flex items-center justify-between border-b border-border bg-emerald-700 px-4 py-3 text-white">
             <span className="flex items-center gap-2 text-sm font-semibold">
-              <BotLogo className="size-7" />
+              <BotLogo className="size-7" onDark />
               EcoFurnish assistant
             </span>
             <button
@@ -317,7 +317,7 @@ export default function SupportChatWidget() {
           open ? "max-md:hidden" : "",
         ].join(" ")}
       >
-        <BotLogo className="size-14 drop-shadow-[0_3px_8px_rgb(0_0_0/0.35)]" />
+        <BotLogo className="size-14 drop-shadow-[0_3px_6px_rgb(0_0_0/0.3)]" />
       </button>
     </>
   );

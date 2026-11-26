@@ -240,6 +240,32 @@
   }
 }
 
+/* The chat assistant's eyes: open most of the time, a quick blink every few
+   seconds. Switched off for people who ask their device for less motion. */
+@keyframes bot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95.5% {
+    transform: scaleY(0.1);
+  }
+}
+.bot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bot-blink 4.5s ease-in-out infinite;
+}
+.bot-eye + .bot-eye {
+  animation-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bot-eye {
+    animation: none;
+  }
+}
+
 /* Printing a receipt: only the page content, not the site chrome around it. */
 @media print {
   header,

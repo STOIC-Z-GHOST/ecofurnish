@@ -102,7 +102,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                   <Link
                     href={item.href}
                     onClick={(e) => handleItemClick(e, item.href)}
-                    className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                    className="flex items-center gap-3 rounded-xl bg-emerald-100/80 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-emerald-100"
                   >
                     <Icon className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                     <span className="flex-1">{item.title}</span>
@@ -118,7 +118,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                   type="button"
                   onClick={() => setCategoriesOpen((v) => !v)}
                   aria-expanded={categoriesOpen}
-                  className="flex w-full items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                  className="flex w-full items-center gap-3 rounded-xl bg-emerald-100/80 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-emerald-100"
                 >
                   <LayoutGrid className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                   <span className="flex-1 text-left">Categories</span>
@@ -158,7 +158,7 @@ export default function MobileNav({ categories }: { categories: string[] }) {
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                  className="flex items-center gap-3 rounded-xl bg-emerald-100/80 px-4 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-emerald-100"
                 >
                   <ShieldCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                   <span className="flex-1">Admin</span>
