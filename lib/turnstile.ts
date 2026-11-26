@@ -7,10 +7,10 @@ export async function verifyTurnstileToken(token: string): Promise<boolean> {
     // would turn the captcha off without anyone noticing. Refuse instead.
     // (In local development, with no key configured, let it through.)
     if (process.env.NODE_ENV === "production") {
-      console.error("No Turnstile secret key is set (TURNSTILE_SECRET_KEY or CLOUDFLARE_TURNSTILE_SECRET_KEY) — refusing the request.");
+      console.error("No Turnstile secret key is set (TURNSTILE_SECRET_KEY or CLOUDFLARE_TURNSTILE_SECRET_KEY), refusing the request.");
       return false;
     }
-    console.warn("No Turnstile secret key is set — captcha check skipped (development only).");
+    console.warn("No Turnstile secret key is set, captcha check skipped (development only).");
     return true;
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { noDash } from "@/lib/copy";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -186,7 +187,7 @@ export default function ProductHoverDetail({
           />
 
           <p className="mt-2 line-clamp-3 text-muted-foreground">
-            {product.description || "Sustainable furniture crafted from recycled materials."}
+            {noDash(product.description) || "Sustainable furniture crafted from recycled materials."}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -208,7 +209,7 @@ export default function ProductHoverDetail({
           tabIndex={-1}
           disabled={product.hasVariants ? product.stock <= 0 : effectiveStock <= 0 || allInCart || !ready}
           onClick={handleAddToCart}
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           {allInCart ? (
             <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

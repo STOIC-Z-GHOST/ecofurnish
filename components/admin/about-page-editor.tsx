@@ -54,13 +54,13 @@ export function AboutPageEditor({
       try {
         const result = await saveAboutPage(about);
         if (result.success) {
-          toast.success("Saved — the About page is updated.");
+          toast.success("Saved, the About page is updated.");
           router.refresh();
         } else {
           toast.error(result.error);
         }
       } catch {
-        toast.error("Something went wrong — try again.");
+        toast.error("Something went wrong, try again.");
       }
     });
   }
@@ -78,7 +78,7 @@ export function AboutPageEditor({
           toast.error(result.error);
         }
       } catch {
-        toast.error("Something went wrong — try again.");
+        toast.error("Something went wrong, try again.");
       }
     });
   }

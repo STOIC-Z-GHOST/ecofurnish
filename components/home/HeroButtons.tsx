@@ -6,7 +6,7 @@ export default function HeroButtons() {
     <div className="mt-8">
       <Link
         href="/#all-products"
-        className="inline-flex h-12 items-center rounded-md bg-primary px-7 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        className="inline-flex h-12 items-center rounded-md bg-white px-7 text-base font-medium text-[#1B2A22] transition-colors hover:bg-white/90"
       >
         Shop the collection
       </Link>

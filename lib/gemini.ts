@@ -94,7 +94,7 @@ export async function callAI(prompt: string): Promise<string | null> {
 // enable this; without either, the digest just sends the plain-text
 // version from lib/insights.ts.
 export async function narrateDigest(digest: DailyDigest): Promise<string | null> {
-  const prompt = `You write a short, casual daily business summary for the owner of a small furniture store, to be sent over Telegram. Use plain text with simple emoji, no markdown headers. Keep it under 120 words. Only use the numbers given below — never estimate or invent a number that isn't here.
+  const prompt = `You write a short, casual daily business summary for the owner of a small furniture store, to be sent over Telegram. Use plain text with simple emoji, no markdown headers. Keep it under 120 words. Only use the numbers given below, never estimate or invent a number that isn't here.
 
 Data:
 ${JSON.stringify(digest, null, 2)}
@@ -111,7 +111,7 @@ ${JSON.stringify(digest, null, 2)}
 export async function chatReply(userMessage: string): Promise<string | null> {
   const digest = await computeDailyDigest();
 
-  const prompt = `You are a helpful assistant for the owner of EcoFurnish, a small sustainable-furniture store, chatting over Telegram. Answer their message conversationally and briefly — a few sentences, plain text, no markdown headers. You only know what's in the store data below; if answering needs a number that isn't there, say plainly that you don't have that figure rather than guessing.
+  const prompt = `You are a helpful assistant for the owner of EcoFurnish, a small sustainable-furniture store, chatting over Telegram. Answer their message conversationally and briefly, a few sentences, plain text, no markdown headers. You only know what's in the store data below; if answering needs a number that isn't there, say plainly that you don't have that figure rather than guessing.
 
 Store data:
 ${JSON.stringify(digest, null, 2)}

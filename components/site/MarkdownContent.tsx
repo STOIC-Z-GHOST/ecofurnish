@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { noDash } from "@/lib/copy";
 
 /**
  * Renders the Markdown an admin typed into the page editor.
@@ -70,7 +71,7 @@ export function MarkdownContent({ children }: { children: string }) {
           td: ({ children }) => <td className="border-b border-border/40 p-2">{children}</td>,
         }}
       >
-        {children}
+        {noDash(children)}
       </ReactMarkdown>
     </div>
   );

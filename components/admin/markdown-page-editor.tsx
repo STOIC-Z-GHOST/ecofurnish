@@ -46,13 +46,13 @@ export function MarkdownPageEditor({
       try {
         const result = await savePage(slug, title, body);
         if (result.success) {
-          toast.success("Saved — the page is updated.");
+          toast.success("Saved, the page is updated.");
           router.refresh();
         } else {
           toast.error(result.error);
         }
       } catch {
-        toast.error("Something went wrong — try again.");
+        toast.error("Something went wrong, try again.");
       }
     });
   }
@@ -77,7 +77,7 @@ export function MarkdownPageEditor({
           toast.error(result.error);
         }
       } catch {
-        toast.error("Something went wrong — try again.");
+        toast.error("Something went wrong, try again.");
       }
     });
   }
@@ -106,7 +106,7 @@ export function MarkdownPageEditor({
           <p className="mt-2 text-xs text-muted-foreground">
             <code>## Heading</code> · <code>**bold**</code> · <code>- list item</code> ·{" "}
             <code>[link text](/contact)</code> · <code>&gt; note box</code>. Raw HTML isn&apos;t
-            allowed — it&apos;s shown as plain text.
+            allowed, it&apos;s shown as plain text.
           </p>
         </div>
         <div>
@@ -143,7 +143,7 @@ export function MarkdownPageEditor({
       <div className="rounded-lg border border-border/60 p-5">
         <h3 className="font-semibold">History</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Every save is kept (the last 25). &quot;Load&quot; puts an older version in the editor — it only
+          Every save is kept (the last 25). &quot;Load&quot; puts an older version in the editor, it only
           goes live when you press Save.
         </p>
         <ul className="mt-3 divide-y divide-border/60 text-sm">

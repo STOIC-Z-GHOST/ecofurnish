@@ -18,7 +18,7 @@ export default async function AdminInboxPage() {
 
       {emails.length === 0 ? (
         <p className="text-muted-foreground">
-          Nothing here yet — emails sent to your @ecofurnish.abrdns.com addresses will show up
+          Nothing here yet, emails sent to your @ecofurnish.abrdns.com addresses will show up
           once someone writes in.
         </p>
       ) : (

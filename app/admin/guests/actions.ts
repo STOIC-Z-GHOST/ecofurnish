@@ -60,12 +60,12 @@ export async function grantGuestAccess(emailInput: string, days: number): Promis
       if (!renewing && n >= limits.maxActive) {
         return {
           success: false,
-          error: `You already have ${n} active guest(s) — the limit is ${limits.maxActive}. Revoke one first.`,
+          error: `You already have ${n} active guest(s), the limit is ${limits.maxActive}. Revoke one first.`,
         };
       }
     } catch (error) {
       console.error("Couldn't check guest limits:", error);
-      return { success: false, error: "Couldn't check your limits — try again." };
+      return { success: false, error: "Couldn't check your limits, try again." };
     }
   }
 
@@ -89,7 +89,7 @@ export async function grantGuestAccess(emailInput: string, days: number): Promis
     console.error("Couldn't save guest access:", error);
     return {
       success: false,
-      error: "Couldn't save — has the admin_guests table been created in the database?",
+      error: "Couldn't save, has the admin_guests table been created in the database?",
     };
   }
 
@@ -99,7 +99,7 @@ export async function grantGuestAccess(emailInput: string, days: number): Promis
     paragraphs: [
       "Hi,",
       `You've been given read-only access to the EcoFurnish admin dashboard until ${expiresAt.toUTCString()}, so you can see what a finished store's back office looks like.`,
-      "Sign in with this email address (create an account and verify it first if you don't have one), then open the account menu at the top right and choose \"Guest admin\" — or just use the button below. You'll see the dashboard, products and orders. Customer details are masked, and you're free to try changing things — your edits are only saved in your own browser and never touch the real store.",
+      "Sign in with this email address (create an account and verify it first if you don't have one), then open the account menu at the top right and choose \"Guest admin\", or just use the button below. You'll see the dashboard, products and orders. Customer details are masked, and you're free to try changing things, your edits are only saved in your own browser and never touch the real store.",
     ],
     cta: { label: "Open the admin", path: "/admin" },
   });
@@ -183,7 +183,7 @@ export async function addAccessManager(
     console.error("Couldn't save the access manager:", error);
     return {
       success: false,
-      error: "Couldn't save — has the admin_delegates table been created in the database?",
+      error: "Couldn't save, has the admin_delegates table been created in the database?",
     };
   }
 
@@ -192,8 +192,8 @@ export async function addAccessManager(
     subject: "You can now invite guests to the EcoFurnish admin",
     paragraphs: [
       "Hi,",
-      `You've been made an access manager. You can invite people to look around the admin read-only — for up to ${maxDays} day(s) each, with up to ${maxActive} guests at a time.`,
-      "Sign in with this email address, then open the account menu at the top right and choose \"Manage guests\" — or use the button below. That's the only part of the admin you'll see.",
+      `You've been made an access manager. You can invite people to look around the admin read-only, for up to ${maxDays} day(s) each, with up to ${maxActive} guests at a time.`,
+      "Sign in with this email address, then open the account menu at the top right and choose \"Manage guests\", or use the button below. That's the only part of the admin you'll see.",
     ],
     cta: { label: "Open the Guests page", path: "/admin/guests" },
   });

@@ -2,7 +2,7 @@
 
 import { useTheme } from "@teispace/next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { NAV_HOVER_ICON } from "@/components/layout/navbar/nav-hover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +17,12 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            variant="ghost"
-            size="icon"
+          // Same raised pill as the search, wishlist, cart and account
+          // buttons next to it, so it reads as a button and not a stray icon.
+          <button
+            type="button"
             aria-label="Toggle theme"
-            className={`border-transparent bg-transparent text-foreground hover:bg-muted ${compact ? "size-7" : "size-9"}`}
+            className={`${NAV_HOVER_ICON} flex items-center justify-center text-foreground ${compact ? "size-7" : "size-9"}`}
           />
         }
       >
@@ -29,14 +30,14 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
           className={
             compact
               ? "h-3.5 w-3.5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
-              : "h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+              : "h-5 w-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
           }
         />
         <Moon
           className={
             compact
               ? "absolute h-3.5 w-3.5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
-              : "absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+              : "absolute h-5 w-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
           }
         />
       </DropdownMenuTrigger>

@@ -28,7 +28,7 @@ export async function sendTelegramMessage(
   const targetChatId = chatId ?? process.env.TELEGRAM_CHAT_ID?.split(",")[0]?.trim();
 
   if (!token || !targetChatId) {
-    console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not set — Telegram message not sent.");
+    console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not set, Telegram message not sent.");
     return { success: false as const };
   }
 

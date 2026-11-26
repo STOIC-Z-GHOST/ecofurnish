@@ -16,16 +16,16 @@ import type { ClaimType } from "@/lib/driver-portal";
 function getLocation(): Promise<{ lat: number; lng: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Your browser doesn't support location — try a different browser."));
+      reject(new Error("Your browser doesn't support location, try a different browser."));
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       (err) => {
         if (err.code === err.PERMISSION_DENIED) {
-          reject(new Error("Location access is needed for this step — please allow it and try again."));
+          reject(new Error("Location access is needed for this step, please allow it and try again."));
         } else {
-          reject(new Error("Couldn't get your location — check your GPS and try again."));
+          reject(new Error("Couldn't get your location, check your GPS and try again."));
         }
       },
       { enableHighAccuracy: true, timeout: 15000 }
@@ -51,7 +51,7 @@ export function DriverActionPanel({
   if (!expectedType) {
     return (
       <p className="rounded-lg border border-border/60 p-4 text-center text-muted-foreground">
-        Nothing to do right now — check back once the order&apos;s ready.
+        Nothing to do right now, check back once the order&apos;s ready.
       </p>
     );
   }
@@ -59,7 +59,7 @@ export function DriverActionPanel({
   if (pending) {
     return (
       <p className="rounded-lg border border-border/60 bg-muted/20 p-4 text-center text-muted-foreground">
-        Submitted — waiting for dispatcher review.
+        Submitted, waiting for dispatcher review.
       </p>
     );
   }

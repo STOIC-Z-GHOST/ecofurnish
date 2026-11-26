@@ -173,7 +173,7 @@ export function formatDigestAsText(digest: DailyDigest): string {
   lines.push(`👥 ${customers.total} total customers (+${customers.newThisWeek} this week)`);
 
   if (digest.topSeller) {
-    lines.push(`\n🏆 Top seller (14d): ${digest.topSeller.name} — ${digest.topSeller.unitsSold} sold`);
+    lines.push(`\n🏆 Top seller (14d): ${digest.topSeller.name}, ${digest.topSeller.unitsSold} sold`);
   }
 
   if (digest.satisfaction) {
@@ -185,7 +185,7 @@ export function formatDigestAsText(digest: DailyDigest): string {
   if (digest.reorderSoon.length > 0) {
     lines.push(`\n⚠️ <b>Reorder soon:</b>`);
     for (const p of digest.reorderSoon) {
-      lines.push(`• ${p.name} — ${p.stock} left, ~${Math.max(1, Math.round(p.daysRemaining))}d at current pace`);
+      lines.push(`• ${p.name}, ${p.stock} left, ~${Math.max(1, Math.round(p.daysRemaining))}d at current pace`);
     }
   }
 

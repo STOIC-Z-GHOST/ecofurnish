@@ -1,5 +1,6 @@
 "use client";
 
+import { noDash } from "@/lib/copy";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -131,7 +132,7 @@ export default function ProductSummary({
       )}
 
       <p className="text-muted-foreground">
-        {product.description || "Sustainable furniture crafted from recycled materials."}
+        {noDash(product.description) || "Sustainable furniture crafted from recycled materials."}
       </p>
 
       {product.rooms.length > 0 && (

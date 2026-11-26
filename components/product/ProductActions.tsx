@@ -16,7 +16,7 @@ import WishlistButton from "./WishlistButton";
 // One height and one set of paddings for every button in every card, so
 // "Add to Cart" and "Choose options" line up exactly across a row.
 const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-5 sm:pt-2";
-const BUTTON = "h-10 flex-1 items-center justify-center gap-1.5 text-sm";
+const BUTTON = "h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-sm";
 
 export default function ProductActions({
   product,

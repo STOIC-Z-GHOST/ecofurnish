@@ -41,7 +41,7 @@ export async function handleUnauthorizedTextMessage(chatId: string, text: string
       .where(eq(telegramAdmins.id, existing.id));
 
     await sendTelegramMessage(
-      "Thanks — your request has been sent. You'll hear back once it's reviewed.",
+      "Thanks, your request has been sent. You'll hear back once it's reviewed.",
       chatId
     );
     await sendTelegramMessage(
@@ -51,7 +51,7 @@ export async function handleUnauthorizedTextMessage(chatId: string, text: string
   }
 
   if (existing.status === "pending") {
-    await sendTelegramMessage("Your request is still pending review — hang tight.", chatId);
+    await sendTelegramMessage("Your request is still pending review, hang tight.", chatId);
     return;
   }
 
@@ -66,7 +66,7 @@ export async function handleUnauthorizedTextMessage(chatId: string, text: string
   // status === "approved" shouldn't reach here at all (isAuthorizedChat
   // would already be true), but handle it gracefully just in case of a
   // stale read.
-  await sendTelegramMessage("You already have access — try /help.", chatId);
+  await sendTelegramMessage("You already have access, try /help.", chatId);
 }
 
 /** Called when someone taps the "Request Access" inline button. */
@@ -74,7 +74,7 @@ export async function handleAccessRequestButtonTap(chatId: string) {
   const existing = await getRequestRow(chatId);
 
   if (existing?.status === "pending") {
-    await sendTelegramMessage("You already have a pending request — hang tight.", chatId);
+    await sendTelegramMessage("You already have a pending request, hang tight.", chatId);
     return;
   }
   if (existing?.status === "rejected") {
@@ -85,7 +85,7 @@ export async function handleAccessRequestButtonTap(chatId: string) {
     return;
   }
   if (existing?.status === "approved") {
-    await sendTelegramMessage("You already have access — try /help.", chatId);
+    await sendTelegramMessage("You already have access, try /help.", chatId);
     return;
   }
 

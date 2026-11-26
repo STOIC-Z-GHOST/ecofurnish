@@ -221,7 +221,7 @@ export function DriverApplicationsList({
             <Textarea
               id="review-note"
               rows={2}
-              placeholder="Not shown to the applicant — for your own reference."
+              placeholder="Not shown to the applicant, for your own reference."
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />

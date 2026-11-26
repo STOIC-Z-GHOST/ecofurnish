@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
   if (!resend || !process.env.RESEND_WEBHOOK_SECRET) {
-    console.warn("RESEND_API_KEY or RESEND_WEBHOOK_SECRET not set — inbound email dropped.");
+    console.warn("RESEND_API_KEY or RESEND_WEBHOOK_SECRET not set, inbound email dropped.");
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 

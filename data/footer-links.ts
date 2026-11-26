@@ -24,8 +24,8 @@ export const FOOTER_LINKS = {
       href: "/contact",
     },
     {
-      title: "How it's made",
-      href: "/how-its-made",
+      title: "About the maker",
+      href: "/about-the-maker",
     },
     {
       title: "Drive for Us",

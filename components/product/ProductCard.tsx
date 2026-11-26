@@ -87,7 +87,7 @@ export default function ProductCard({
         className={cn(
           "h-full gap-0 overflow-hidden py-0 transition-shadow duration-200 md:hover:shadow-xl",
           row
-            ? "grid grid-cols-[8.75rem_minmax(0,1fr)] content-start items-start md:flex md:flex-col"
+            ? "grid grid-cols-[8.75rem_minmax(0,1fr)] content-start items-start md:flex md:flex-col md:items-stretch"
             : "flex flex-col"
         )}
       >

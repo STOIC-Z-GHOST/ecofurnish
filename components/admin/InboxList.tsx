@@ -70,7 +70,7 @@ export function InboxList({ emails }: { emails: InboundEmail[] }) {
         toast.error(result.error);
       }
     } catch {
-      toast.error("Couldn't send that — please try again.");
+      toast.error("Couldn't send that, please try again.");
     } finally {
       setSendingId(null);
     }

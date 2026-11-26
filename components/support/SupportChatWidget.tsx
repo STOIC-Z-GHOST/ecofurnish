@@ -24,14 +24,17 @@ const SUGGESTIONS = [
   "What is your furniture made from?",
 ];
 
-// Floating button geometry. On phones the button can be dragged anywhere
-// and snaps to the nearest side edge when let go (the way the assistant
-// bubble works in the Bitget app). On desktop it stays in the corner.
+// Floating button geometry. On phones the button can be dragged anywhere and
+// settles against the nearest side edge when let go (like the assistant
+// bubble in the Bitget app). Drag it a little further past the edge and it
+// tucks: half in, half out of the screen, out of the way. Tap it to bring
+// it back and open the chat. On desktop it stays in the corner.
 const SIZE = 56;
 const EDGE = 12; // gap kept from the left/right edge after snapping
 const TOP_LIMIT = 72; // stays below the navbar
 const BOTTOM_LIMIT = 84; // stays above the phone bottom bar
 const DRAG_THRESHOLD = 6; // px of movement before a press counts as a drag
+const TUCK_PULL = 14; // px past the screen edge that counts as "tuck it away"
 
 function isDesktop() {
   return typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches;
@@ -42,22 +45,37 @@ function clampTop(top: number) {
   return Math.min(Math.max(top, TOP_LIMIT), max);
 }
 
-// A speech bubble holding a leaf with two eyes, so it reads as "tap to talk
-// to the assistant" rather than as a decorative leaf.
-function LeafChatIcon({ className }: { className?: string }) {
+// Where the button's left edge goes once it has been let go: against the
+// nearest side (with a small gap), or half off-screen when it is tucked.
+function settleLeft(left: number, tucked: "left" | "right" | null) {
+  if (tucked === "left") return -SIZE / 2;
+  if (tucked === "right") return window.innerWidth - SIZE / 2;
+  return left + SIZE / 2 < window.innerWidth / 2 ? EDGE : window.innerWidth - SIZE - EDGE;
+}
+
+// The assistant's face: a speech bubble holding a leaf with two eyes, so it
+// reads as "a chatbot" and as EcoFurnish at the same time. Drawn as SVG (not
+// a picture) so it stays sharp at any size and needs no extra download.
+function BotLogo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       <path
-        d="M6 4h20a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H15.5L9 28.5V23H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"
-        fill="white"
+        d="M16 8h32a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H31L18 58.4V48h-2A10 10 0 0 1 6 38V18A10 10 0 0 1 16 8z"
+        fill="#fff"
       />
       <path
-        d="M16 6.5c-4.5 0-7.2 2.9-7.2 6.4 0 3.4 2.7 5.6 7.2 5.6s7.2-2.2 7.2-5.6c0-3.5-2.7-6.4-7.2-6.4z"
-        fill="currentColor"
+        d="M15.4 42.8C14.2 36 14.4 28 20 21.5C24 17.5 30 15.5 36 14.8C40 14.4 44 13.4 48 11.3C49 19 48.5 27 44 33C41 37 37 39 33.3 39.2C28 39.6 22 39.8 15.4 42.8Z"
+        fill="#265A43"
       />
-      <path d="M16 6.5c.6-1.7 2-2.7 4-2.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <circle cx="13" cy="12.6" r="1.35" fill="white" />
-      <circle cx="19" cy="12.6" r="1.35" fill="white" />
+      <path
+        d="M32.4 15.4C31.6 11 33.4 8 38.6 7"
+        fill="none"
+        stroke="#265A43"
+        strokeWidth="2.3"
+        strokeLinecap="round"
+      />
+      <circle cx="26" cy="26.5" r="2.7" fill="#fff" />
+      <circle cx="37.9" cy="26.2" r="2.7" fill="#fff" />
     </svg>
   );
 }
@@ -72,6 +90,7 @@ export default function SupportChatWidget() {
   // Where the user dragged the button to (phones only). null = default spot.
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [tucked, setTucked] = useState<"left" | "right" | null>(null);
   const drag = useRef<{
     startX: number;
     startY: number;
@@ -89,18 +108,11 @@ export default function SupportChatWidget() {
   useEffect(() => {
     if (!pos) return;
     const onResize = () => {
-      setPos((p) =>
-        p
-          ? {
-              left: p.left + SIZE / 2 < window.innerWidth / 2 ? EDGE : window.innerWidth - SIZE - EDGE,
-              top: clampTop(p.top),
-            }
-          : p
-      );
+      setPos((p) => (p ? { left: settleLeft(p.left, tucked), top: clampTop(p.top) } : p));
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [pos]);
+  }, [pos, tucked]);
 
   async function send(raw: string) {
     const text = raw.trim();
@@ -151,8 +163,11 @@ export default function SupportChatWidget() {
     if (!d.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
     d.moved = true;
     setDragging(true);
+    setTucked(null);
+    // The button may slide up to half way off either side while dragging,
+    // which is how you "push it into" the edge.
     setPos({
-      left: Math.min(Math.max(d.originLeft + dx, 0), window.innerWidth - SIZE),
+      left: Math.min(Math.max(d.originLeft + dx, -SIZE / 2), window.innerWidth - SIZE / 2),
       top: clampTop(d.originTop + dy),
     });
   }
@@ -161,16 +176,15 @@ export default function SupportChatWidget() {
     const d = drag.current;
     drag.current = null;
     if (!d?.moved) return;
-    // Let go: settle against whichever side edge is closer.
     setDragging(false);
-    setPos((p) =>
-      p
-        ? {
-            left: p.left + SIZE / 2 < window.innerWidth / 2 ? EDGE : window.innerWidth - SIZE - EDGE,
-            top: p.top,
-          }
-        : p
-    );
+    if (!pos) return;
+    // Pushed past an edge: tuck it half in, half out. Otherwise settle
+    // against the nearer side, fully visible.
+    let side: "left" | "right" | null = null;
+    if (pos.left < -TUCK_PULL) side = "left";
+    else if (pos.left + SIZE > window.innerWidth + TUCK_PULL) side = "right";
+    setTucked(side);
+    setPos({ left: settleLeft(pos.left, side), top: pos.top });
     // The click that follows a drag must not open the chat.
     justDragged.current = true;
     setTimeout(() => {
@@ -180,6 +194,14 @@ export default function SupportChatWidget() {
 
   function onButtonClick() {
     if (justDragged.current) return;
+    if (tucked) {
+      // Tapping a tucked button brings it back out against the edge and
+      // opens the chat in one go.
+      setPos((p) => (p ? { left: tucked === "left" ? EDGE : window.innerWidth - SIZE - EDGE, top: p.top } : p));
+      setTucked(null);
+      setOpen(true);
+      return;
+    }
     setOpen((v) => !v);
   }
 
@@ -193,7 +215,7 @@ export default function SupportChatWidget() {
         >
           <div className="flex items-center justify-between border-b border-border bg-emerald-700 px-4 py-3 text-white">
             <span className="flex items-center gap-2 text-sm font-semibold">
-              <LeafChatIcon className="size-6 text-emerald-700" />
+              <BotLogo className="size-7" />
               EcoFurnish assistant
             </span>
             <button
@@ -286,16 +308,16 @@ export default function SupportChatWidget() {
             : undefined
         }
         className={[
-          "fixed z-50 flex size-14 touch-none items-center justify-center rounded-full bg-emerald-700/90 text-white ring-1 ring-white/25 backdrop-blur-md",
-          "shadow-[0_4px_14px_rgb(0_0_0/0.28)] transition-shadow active:shadow-[0_2px_8px_rgb(0_0_0/0.3)] md:right-6 md:bottom-6 md:hover:bg-emerald-700",
+          "fixed z-50 flex size-14 touch-none items-center justify-center md:right-6 md:bottom-6",
           pos
             ? "max-md:top-(--chat-top) max-md:right-auto max-md:bottom-auto max-md:left-(--chat-left)"
             : "right-4 bottom-[90px]",
           pos && !dragging ? "max-md:transition-[left,top] max-md:duration-200" : "",
+          tucked ? "opacity-80" : "",
           open ? "max-md:hidden" : "",
         ].join(" ")}
       >
-        <LeafChatIcon className="size-8 text-emerald-700" />
+        <BotLogo className="size-14 drop-shadow-[0_3px_8px_rgb(0_0_0/0.35)]" />
       </button>
     </>
   );

@@ -1,3 +1,4 @@
+import { noDash } from "@/lib/copy";
 import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatPrice, type Currency } from "@/lib/currency";
 import { getEffectivePrice } from "@/lib/pricing";
@@ -25,7 +26,7 @@ export default function ProductInfo({
   return (
     <>
       <CardHeader className={cn("gap-0 p-3 pb-0 sm:p-5 sm:pb-0", row && "pl-4 sm:pl-5 md:pl-5")}>
-        <CardTitle className="select-text font-sans text-sm leading-snug font-medium sm:text-base md:min-h-11">
+        <CardTitle className="select-text font-sans text-sm leading-snug font-normal sm:text-base md:min-h-11">
           {product.name}
         </CardTitle>
 
@@ -36,7 +37,7 @@ export default function ProductInfo({
         />
 
         <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="whitespace-nowrap text-base font-bold text-primary sm:text-lg">
+          <span className="whitespace-nowrap text-xl font-semibold text-foreground sm:text-2xl">
             {formatPrice(getEffectivePrice(product), currency)}
           </span>
           <DiscountLine product={product} currency={currency} className="h-auto justify-start" />
@@ -63,7 +64,7 @@ export default function ProductInfo({
         {/* min-h-15 = 3 lines at text-sm's line-height, so a short blurb
             doesn't leave this card shorter than a neighbour with a long one. */}
         <p className="line-clamp-3 min-h-15 select-text text-sm leading-5 text-muted-foreground">
-          {product.description || "Sustainable furniture crafted from recycled materials."}
+          {noDash(product.description) || "Sustainable furniture crafted from recycled materials."}
         </p>
       </CardContent>
     </>

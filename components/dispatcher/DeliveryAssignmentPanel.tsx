@@ -59,7 +59,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(
     () => toast.success("Link copied"),
-    () => toast.error("Couldn't copy — copy it manually instead")
+    () => toast.error("Couldn't copy, copy it manually instead")
   );
 }
 
@@ -198,7 +198,7 @@ export function DeliveryAssignmentPanel({
         )}
         {orders.length > 0 && drivers.length === 0 && (
           <p className="mt-2 text-xs text-muted-foreground">
-            No approved drivers available right now — everyone&apos;s either mid-delivery or
+            No approved drivers available right now, everyone&apos;s either mid-delivery or
             there are no approved applications yet.
           </p>
         )}
@@ -283,7 +283,7 @@ export function DeliveryAssignmentPanel({
                 <DialogDescription>
                   {assignTarget && (
                     <>
-                      Order #{assignTarget.id.slice(0, 8)} — {assignTarget.shippingAddress},{" "}
+                      Order #{assignTarget.id.slice(0, 8)}, {assignTarget.shippingAddress},{" "}
                       {assignTarget.city}
                     </>
                   )}
@@ -317,12 +317,12 @@ export function DeliveryAssignmentPanel({
                       onChange={(lat, lng) => setPin({ lat, lng })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      {`Drag the pin (or click the map) to correct it — this starting point ${
+                      {`Drag the pin (or click the map) to correct it, this starting point ${
                         pinSource === "gps"
                           ? "came from the buyer's own device location"
                           : pinSource === "geocoded"
                             ? "comes from an automatic address lookup, which isn't always exact"
-                            : "is just a rough city center — the address lookup didn't find a match"
+                            : "is just a rough city center, the address lookup didn't find a match"
                       }. `}
                       {pin.lat.toFixed(6)}, {pin.lng.toFixed(6)}
                     </p>

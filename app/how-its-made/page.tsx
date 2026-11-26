@@ -52,8 +52,12 @@ export default function HowItsMadePage() {
       <p className="mt-10 text-sm text-muted-foreground">
         This page is for recruiters and clients who want to see how the site was put
         together.{" "}
+        <Link href="/about-the-maker" className="font-medium text-primary underline-offset-4 hover:underline">
+          About the maker
+        </Link>
+        {" or "}
         <Link href="/" className="font-medium text-primary underline-offset-4 hover:underline">
-          Back to the store
+          back to the store
         </Link>
       </p>
     </div>

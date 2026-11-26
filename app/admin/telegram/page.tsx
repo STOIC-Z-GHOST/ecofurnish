@@ -10,7 +10,7 @@ export default async function AdminTelegramPage() {
     <div>
       <h2 className="mb-1 text-lg font-semibold">Telegram Bot Access</h2>
       <p className="mb-6 text-sm text-muted-foreground">
-        Anyone who messages the bot without access can request it — they type a reason, and it
+        Anyone who messages the bot without access can request it, they type a reason, and it
         shows up here to approve or reject. Whoever&apos;s set in the TELEGRAM_CHAT_ID env
         variable always keeps access no matter what happens on this page.
       </p>

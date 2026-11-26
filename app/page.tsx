@@ -9,7 +9,6 @@ import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
 import Testimonials from "@/components/home/Testimonials";
 import ImpactCards from "@/components/home/ImpactCards";
-import AboutMaker from "@/components/home/AboutMaker";
 import SectionHeading from "@/components/home/SectionHeading";
 import ContinueBrowsing from "@/components/home/ContinueBrowsing";
 import RecentFinds from "@/components/home/RecentFinds";
@@ -98,8 +97,6 @@ export default async function Home() {
       <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
 
       <ImpactCards plasticKg={plasticKg} pieces={catalog.length} />
-
-      <AboutMaker />
 
       <Testimonials />
       <Newsletter />

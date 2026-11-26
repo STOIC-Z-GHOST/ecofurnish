@@ -54,7 +54,7 @@ async function guardSubmission(token: string, expectedType: ClaimType): Promise<
     return { ok: false, error: "This delivery link has expired." };
   }
   if (NEXT_CLAIM_TYPE[order.status] !== expectedType) {
-    return { ok: false, error: "This step isn't available right now — try refreshing the page." };
+    return { ok: false, error: "This step isn't available right now, try refreshing the page." };
   }
 
   const [existingPending] = await db
@@ -69,7 +69,7 @@ async function guardSubmission(token: string, expectedType: ClaimType): Promise<
     )
     .limit(1);
   if (existingPending) {
-    return { ok: false, error: "Already submitted — waiting for dispatcher review." };
+    return { ok: false, error: "Already submitted, waiting for dispatcher review." };
   }
 
   return { ok: true, assignment };
@@ -91,7 +91,7 @@ export async function submitNearDestination(token: string, lat: number, lng: num
   const guard = await guardSubmission(token, "near_destination");
   if (!guard.ok) return { success: false as const, error: guard.error };
   if (!isValidCoordinate(lat, lng)) {
-    return { success: false as const, error: "We couldn't read your location — please try again." };
+    return { success: false as const, error: "We couldn't read your location, please try again." };
   }
 
   const distanceMeters = haversineDistanceMeters(
@@ -117,7 +117,7 @@ export async function submitDelivered(token: string, lat: number, lng: number, p
   const guard = await guardSubmission(token, "delivered");
   if (!guard.ok) return { success: false as const, error: guard.error };
   if (!isValidCoordinate(lat, lng) || typeof pin !== "string") {
-    return { success: false as const, error: "We couldn't read your location — please try again." };
+    return { success: false as const, error: "We couldn't read your location, please try again." };
   }
 
   const since = new Date(Date.now() - PIN_WINDOW_MS);
@@ -157,7 +157,7 @@ export async function submitDelivered(token: string, lat: number, lng: number, p
     });
     return {
       success: false as const,
-      error: "That PIN doesn't match — please double check with the customer.",
+      error: "That PIN doesn't match, please double check with the customer.",
     };
   }
 
