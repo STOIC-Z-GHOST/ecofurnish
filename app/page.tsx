@@ -40,7 +40,10 @@ export default async function Home() {
   await runAutoRestock();
   const rawCatalog = await db.select().from(products);
   const catalog = await attachRatings(rawCatalog);
-  const featured = catalog.slice(0, 4);
+  // Products the admin ticked as "Featured" (up to 8); if none are ticked,
+  // fall back to the first four so the row is never empty.
+  const picked = catalog.filter((p) => p.featured);
+  const featured = picked.length > 0 ? picked.slice(0, 8) : catalog.slice(0, 4);
   // Figures for the "Our impact" cards, worked out from the real catalog.
   const plasticKg =
     Math.round(catalog.reduce((sum, p) => sum + Number(p.plasticWeightKg || 0), 0) * 10) / 10;

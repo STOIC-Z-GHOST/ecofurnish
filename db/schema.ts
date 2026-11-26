@@ -26,6 +26,10 @@ export const products = pgTable("products", {
   // in step by the admin save and by takeStock (lib/stock.ts) so the catalog,
   // badges and the Telegram digest keep working off one number.
   hasVariants: boolean("has_variants").notNull().default(false),
+  // Ticked in the admin product form to show this product in the homepage
+  // "Featured products" row. If nothing is ticked the homepage falls back
+  // to the first few products so the row is never empty.
+  featured: boolean("featured").notNull().default(false),
   // Tracking the environmental impact
   plasticWeightKg: numeric("plastic_weight_kg", { precision: 5, scale: 2 }).default('0.00').notNull(),
   // Optional site-run discount (e.g. a launch promo). 0 = no discount.

@@ -5,11 +5,11 @@ import HeroButtons from "./HeroButtons";
 export default function HeroContent() {
   return (
     <div className="max-w-2xl">
-      <h1 className="text-4xl font-bold leading-[1.1] text-white sm:text-5xl lg:text-6xl">
+      <h1 className="text-[2rem] font-bold leading-[1.12] text-white sm:text-5xl lg:text-6xl">
         Give waste a second life in your living room.
       </h1>
 
-      <p className="mt-6 max-w-xl text-lg leading-8 text-white/85">
+      <p className="mt-4 max-w-xl text-base leading-7 text-white/85 sm:mt-6 sm:text-lg sm:leading-8">
         Furniture made from recycled plastic and reclaimed wood, designed for
         homes that feel good to come back to.
       </p>

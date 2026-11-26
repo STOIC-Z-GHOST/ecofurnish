@@ -55,6 +55,7 @@ const emptyProduct: ProductInput = {
   rooms: [],
   stock: 0,
   plasticWeightKg: "0.00",
+  featured: false,
   discountPercent: 0,
   discountReason: "",
   dealEndsAt: null,
@@ -516,6 +517,21 @@ export function ProductForm({
           />
         </div>
       </div>
+
+      <label className="flex items-start gap-3 rounded-lg border border-border p-3 text-sm">
+        <Checkbox
+          checked={values.featured === true}
+          onCheckedChange={(checked) => update("featured", checked === true)}
+          className="mt-0.5"
+        />
+        <span>
+          <span className="font-medium">Show in Featured products</span>
+          <span className="block text-xs text-muted-foreground">
+            Ticked products appear in the homepage Featured row (up to 8). If none are ticked,
+            the first four products are shown instead.
+          </span>
+        </span>
+      </label>
 
       <div className="space-y-1.5">
         <Label>Rooms</Label>

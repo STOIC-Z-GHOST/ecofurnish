@@ -16,7 +16,10 @@ import WishlistButton from "./WishlistButton";
 // One height and one set of paddings for every button in every card, so
 // "Add to Cart" and "Choose options" line up exactly across a row.
 const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-5 sm:pt-2";
-const BUTTON = "h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-sm";
+// min-w-0 + shrink let the button give up width to the heart instead of
+// pushing it out of the card; the cart icon is dropped on phones to save room.
+const BUTTON =
+  "h-10 min-w-0 flex-1 shrink items-center justify-center gap-1.5 rounded-full px-3 text-[13px] sm:px-4 sm:text-sm";
 
 export default function ProductActions({
   product,
@@ -62,8 +65,9 @@ export default function ProductActions({
             render={<Link href={`/products/${product.id}`} />}
             nativeButton={false}
           >
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Choose options
+            <ShoppingCart className="hidden h-4 w-4 sm:block" />
+            <span className="sm:hidden">Options</span>
+            <span className="hidden sm:inline">Choose options</span>
           </Button>
         )}
         <WishlistButton product={product} />
@@ -88,7 +92,7 @@ export default function ProductActions({
           </>
         ) : (
           <>
-            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <ShoppingCart className="hidden h-4 w-4 sm:block" />
             Add to Cart
           </>
         )}

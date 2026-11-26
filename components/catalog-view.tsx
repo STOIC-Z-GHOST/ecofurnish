@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 /** Normalizes a product's `rooms` value defensively. Expected shape is a
  * real string[], but this also handles a raw Postgres array literal
@@ -62,6 +63,9 @@ export function CatalogView({ products }: { products: Product[] }) {
   const [room, setRoom] = useState<string>(searchParams.get("room") || "all");
   const { currency, setCurrency } = useCurrency();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Phones: the three dropdowns hide behind a small filter button next to
+  // the search box. From sm up they sit in the toolbar as before.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Re-sync both filters whenever their URL param changes — e.g. clicking a
   // "Living Room" tile while already on this page doesn't remount
@@ -86,6 +90,9 @@ export function CatalogView({ products }: { products: Product[] }) {
     const id = requestAnimationFrame(() => searchInputRef.current?.focus());
     return () => cancelAnimationFrame(id);
   }, [focusSearchParam]);
+
+  const activeFilters =
+    (room !== "all" ? 1 : 0) + (category !== "all" ? 1 : 0) + (currency !== "ETB" ? 1 : 0);
 
   const categories = useMemo(
     () => Array.from(new Set(products.map((p) => p.category))).sort(),
@@ -125,17 +132,44 @@ export function CatalogView({ products }: { products: Product[] }) {
   return (
     <div>
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            ref={searchInputRef}
-            placeholder="Search products…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex flex-1 items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search products…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 pl-9 sm:h-8"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            aria-controls="catalog-filters"
+            aria-label="Filters"
+            className={cn(
+              "relative inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors hover:bg-muted sm:hidden",
+              filtersOpen && "bg-muted"
+            )}
+          >
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            {activeFilters > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+                {activeFilters}
+              </span>
+            )}
+          </button>
         </div>
 
+        {/* The three dropdowns. Phones: hidden until the filter button is
+            tapped, then stacked. sm and up: always shown, in the toolbar row. */}
+        <div
+          id="catalog-filters"
+          className={cn("gap-3 sm:contents", filtersOpen ? "grid" : "hidden")}
+        >
         <Select value={room} onValueChange={(v) => setRoom(v ?? "all")}>
           <SelectTrigger className="w-full sm:w-40" aria-label="Filter by room">
             <SelectValue placeholder="Room" />
@@ -176,6 +210,7 @@ export function CatalogView({ products }: { products: Product[] }) {
             ))}
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       {currency !== "ETB" && (

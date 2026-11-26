@@ -49,6 +49,8 @@ export interface ProductInput {
   rooms: string[];
   stock: number;
   plasticWeightKg: string;
+  // Show in the homepage "Featured products" row.
+  featured?: boolean;
   discountPercent: number;
   discountReason: string;
   // ISO string from the admin form's datetime-local input, or null to run

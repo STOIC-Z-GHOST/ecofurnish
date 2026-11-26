@@ -15,6 +15,8 @@ export interface Product {
   // True when the product comes in colors/sizes — the buyer must choose on
   // the product page, so cards link there instead of adding straight to cart.
   hasVariants?: boolean;
+  // Chosen in the admin product form: shown in the homepage Featured row.
+  featured?: boolean;
   plasticWeightKg: string;
   discountPercent?: number | null;
   discountReason?: string | null;

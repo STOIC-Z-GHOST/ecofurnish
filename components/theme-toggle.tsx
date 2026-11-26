@@ -22,7 +22,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
           <button
             type="button"
             aria-label="Toggle theme"
-            className={`${NAV_HOVER_ICON} flex items-center justify-center text-foreground ${compact ? "size-7" : "size-9"}`}
+            className={`${NAV_HOVER_ICON} flex items-center justify-center text-foreground outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/40 ${compact ? "size-7" : "size-9"}`}
           />
         }
       >
