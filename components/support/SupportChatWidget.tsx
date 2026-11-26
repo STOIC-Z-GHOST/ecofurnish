@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { askSupportBot } from "@/app/actions/support-chat";
-import LeafChatIcon from "./LeafChatIcon";
+import LeafBot from "./LeafBot";
 
 interface Message {
   role: "user" | "bot";
@@ -23,19 +23,23 @@ const SUGGESTIONS = [
   "What does kg diverted mean?",
 ];
 
-const BUBBLE = 56; // px, a perfect circle
+const BUBBLE = 56; // px, the size of the leaf
 const EDGE = 12; // px gap kept from the screen edge
 const TOP_LIMIT = 84; // stay below the header
 const BOTTOM_LIMIT = 90; // stay above the bottom tab bar
+const VISIBLE_WHEN_DOCKED = 30; // px of the leaf that peek out when minimized
+const DOCK_PULL = 18; // how far past the edge a swipe must go to minimize it
 
 /**
- * Floating support chat.
+ * Floating support chat, shown as a little leaf with a face.
  *
- * On phones (under 768px) the bubble is a 56px leaf-in-a-chat-bubble circle
- * that can be dragged anywhere and snaps to the nearest side when let go
- * (like the Bitget assistant), so it never covers what you are reading.
- * Opening it shows a normal chat window; minimizing shrinks it back to the
- * bubble. On desktop it stays a fixed button in the bottom-right corner.
+ * On phones (under 768px) the leaf starts fully visible in the bottom-right
+ * corner and can be dragged anywhere. Let go near a side and it snaps to that
+ * edge. Swipe it further past the edge and it minimizes: only part of the
+ * leaf peeks in from the side (not fully in, not fully out). Tap the peeking
+ * leaf to bring it back and open the chat. Opening the chat shows a normal
+ * chat window, and minimizing that window brings the leaf back. On desktop
+ * it stays a fixed leaf in the bottom-right corner.
  */
 export default function SupportChatWidget() {
   const pathname = usePathname();
@@ -49,12 +53,17 @@ export default function SupportChatWidget() {
   const [isMobile, setIsMobile] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [dock, setDock] = useState<"left" | "right" | null>(null);
+  const [vw, setVw] = useState(0);
   const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(mq.matches);
+    const update = () => {
+      setIsMobile(mq.matches);
+      setVw(window.innerWidth);
+    };
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
@@ -63,6 +72,7 @@ export default function SupportChatWidget() {
   // Keep the bubble on screen after a rotation or resize.
   useEffect(() => {
     function clampToScreen() {
+      setVw(window.innerWidth);
       setPos((p) =>
         p
           ? {
@@ -104,7 +114,8 @@ export default function SupportChatWidget() {
       setDragging(true);
     }
     setPos({
-      x: Math.min(Math.max(d.originX + dx, EDGE), window.innerWidth - BUBBLE - EDGE),
+      // May go past the edge, that is how you push it into the side.
+      x: Math.min(Math.max(d.originX + dx, -BUBBLE / 2), window.innerWidth - BUBBLE / 2),
       y: Math.min(Math.max(d.originY + dy, TOP_LIMIT), window.innerHeight - BUBBLE - BOTTOM_LIMIT + 10),
     });
   }
@@ -115,11 +126,19 @@ export default function SupportChatWidget() {
     if (!d?.moved) return;
     suppressClick.current = true;
     setDragging(false);
-    // Snap to whichever side is closer.
     setPos((p) => {
       if (!p) return p;
-      const snapRight = p.x + BUBBLE / 2 > window.innerWidth / 2;
-      return { x: snapRight ? window.innerWidth - BUBBLE - EDGE : EDGE, y: p.y };
+      const rightLimit = window.innerWidth - BUBBLE - EDGE;
+      if (p.x > rightLimit + DOCK_PULL) {
+        setDock("right");
+      } else if (p.x < EDGE - DOCK_PULL) {
+        setDock("left");
+      } else {
+        // Not pushed far enough to minimize: snap to the closer side.
+        setDock(null);
+        return { x: p.x + BUBBLE / 2 > window.innerWidth / 2 ? rightLimit : EDGE, y: p.y };
+      }
+      return p;
     });
   }
 
@@ -128,8 +147,27 @@ export default function SupportChatWidget() {
       suppressClick.current = false;
       return;
     }
+    if (dock) {
+      // Tapping the peeking leaf brings it back out and opens the chat.
+      setPos((p) => ({
+        x: dock === "right" ? window.innerWidth - BUBBLE - EDGE : EDGE,
+        y: p?.y ?? window.innerHeight - BUBBLE - BOTTOM_LIMIT,
+      }));
+      setDock(null);
+      setOpen(true);
+      return;
+    }
     setOpen((v) => !v);
   }
+
+  // Where the leaf sits horizontally right now (phones, after the first drag).
+  const leftPx = !pos
+    ? undefined
+    : dock === "right"
+      ? vw - VISIBLE_WHEN_DOCKED
+      : dock === "left"
+        ? -(BUBBLE - VISIBLE_WHEN_DOCKED)
+        : pos.x;
 
   // Names the product the visitor is looking at, so a question like "is this
   // in stock?" has something to refer to.
@@ -173,7 +211,7 @@ export default function SupportChatWidget() {
         <div className="fixed inset-x-3 bottom-[calc(90px+env(safe-area-inset-bottom))] z-50 flex h-[60vh] max-h-[480px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl sm:inset-x-auto sm:right-6 sm:w-96 md:bottom-24">
           <div className="flex items-center justify-between border-b border-border bg-primary px-4 py-3 text-primary-foreground">
             <span className="flex items-center gap-2 text-sm font-semibold">
-              <LeafChatIcon className="size-5" />
+              <LeafBot className="size-6 text-primary-foreground" halo={false} eyeColor="var(--primary)" />
               EcoFurnish Support
             </span>
             <button
@@ -258,14 +296,14 @@ export default function SupportChatWidget() {
         aria-label={open ? "Minimize support chat" : "Open support chat"}
         style={
           isMobile && pos
-            ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+            ? { left: leftPx, top: pos.y, right: "auto", bottom: "auto" }
             : undefined
         }
-        className={`fixed right-4 bottom-[calc(90px+env(safe-area-inset-bottom))] z-50 flex size-14 touch-none items-center justify-center rounded-full bg-primary/90 text-primary-foreground shadow-[0_6px_20px_rgba(0,0,0,0.3)] ring-1 ring-white/20 backdrop-blur-md select-none ${
-          dragging ? "scale-105 cursor-grabbing" : "transition-[left,top,transform] duration-200"
+        className={`fixed right-4 bottom-[calc(90px+env(safe-area-inset-bottom))] z-50 flex size-14 touch-none items-center justify-center text-primary drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] select-none ${
+          dragging ? "scale-110 cursor-grabbing" : "transition-[left,top,transform] duration-300 ease-out md:hover:scale-105"
         } ${open ? "max-md:hidden" : ""} md:bottom-6 md:right-6 md:touch-auto`}
       >
-        {open ? <X className="size-6" /> : <LeafChatIcon className="size-7" />}
+        <LeafBot className="size-14" />
       </button>
     </>
   );

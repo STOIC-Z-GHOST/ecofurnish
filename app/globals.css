@@ -228,3 +228,28 @@
   height: auto;
   margin-inline: 0 0.5rem;
 }
+
+/* The assistant's eyes: open most of the time, a quick blink every few seconds. */
+.leaf-bot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leaf-bot-blink 5s infinite;
+}
+.leaf-bot-eye:nth-of-type(2) {
+  animation-delay: 0.04s;
+}
+@keyframes leaf-bot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaf-bot-eye {
+    animation: none;
+  }
+}

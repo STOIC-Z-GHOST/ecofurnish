@@ -9,7 +9,7 @@ const productData = [
   {
     name: "Eco Bar Stool",
     description:
-      "A compact bar stool with a seat molded from recycled ocean plastic and a solid oak frame.",
+      "A compact bar stool with a seat molded from 1.2 kg of recycled ocean plastic, set on a solid oak frame. Easy to wipe clean and sturdy enough for daily use.",
     price: "3500.00",
     imageUrl: "/products/eco-bar-stool.jpg",
     category: "Seating",
@@ -20,7 +20,7 @@ const productData = [
   {
     name: "Eco Lounge Chair",
     description:
-      "A relaxed lounge chair with a recycled-plastic shell, oak frame, and a removable linen cushion set.",
+      "A deep, relaxed lounge chair with a shell made from 2.8 kg of recycled plastic and an oak frame. The linen cushion set lifts off for washing.",
     price: "9500.00",
     imageUrl: "/products/eco-lounge-chair.jpg",
     category: "Seating",
@@ -31,7 +31,7 @@ const productData = [
   {
     name: "Garden Bench",
     description:
-      "A weather-resistant outdoor bench built from reclaimed hardwood and recycled composite slats.",
+      "An outdoor bench built to stay out in the rain. Reclaimed hardwood and recycled composite slats keep 3.5 kg of plastic out of the landfill.",
     price: "7500.00",
     imageUrl: "/products/garden-bench.jpg",
     category: "Seating",
@@ -42,7 +42,7 @@ const productData = [
   {
     name: "Recycled Coffee Table",
     description:
-      "A round coffee table on a sculptural spider-leg base, oak from the tabletop down through the upper leg, transitioning to a flecked recycled-plastic composite for the lower half of each leg.",
+      "A round coffee table with a sculptural spider-leg base. The oak top flows into upper legs of oak, while the lower legs are a flecked composite made from 4.1 kg of recycled plastic.",
     price: "8500.00",
     imageUrl: "/products/recycled-coffee-table.jpg",
     category: "Tables",
@@ -53,7 +53,7 @@ const productData = [
   {
     name: "Work Desk",
     description:
-      "A clean-lined work desk with a dark speckled recycled-plastic composite top and legs, built to last.",
+      "A clean-lined desk with a dark, speckled top and legs made from 3.9 kg of recycled plastic. Built for long working days and easy to keep tidy.",
     price: "11000.00",
     imageUrl: "/products/work-desk.jpg",
     category: "Tables",
@@ -64,7 +64,7 @@ const productData = [
   {
     name: "Modular Shelf",
     description:
-      "A stackable, modular shelving unit made from recycled plastic panels and oak trim.",
+      "A shelf that grows with you. Stack the recycled plastic panels, trimmed in oak, to fit your wall. Each unit diverts 5.2 kg of plastic.",
     price: "6000.00",
     imageUrl: "/products/modular-shelf.jpg",
     category: "Storage & Decor",
@@ -75,7 +75,7 @@ const productData = [
   {
     name: "Plant Stand",
     description:
-      "A minimalist plant stand made from recycled ocean plastic, finished in a soft terracotta tone.",
+      "A minimalist stand in soft terracotta, molded from 0.6 kg of recycled ocean plastic. Gives a favorite plant a little height.",
     price: "1800.00",
     imageUrl: "/products/plant-stand.jpg",
     category: "Storage & Decor",

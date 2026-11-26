@@ -9,7 +9,6 @@ import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Categories from "@/components/home/Categories";
 import Testimonials from "@/components/home/Testimonials";
 import Impact from "@/components/home/Impact";
-import AboutMaker from "@/components/home/AboutMaker";
 import ContinueBrowsing from "@/components/home/ContinueBrowsing";
 import RecentFinds from "@/components/home/RecentFinds";
 import { CatalogView } from "@/components/catalog-view";
@@ -97,8 +96,6 @@ export default async function Home() {
       <Impact plasticKg={plasticKg} productCount={catalog.length} />
 
       <Testimonials />
-
-      <AboutMaker />
 
       <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
 
