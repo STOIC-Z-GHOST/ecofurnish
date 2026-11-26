@@ -29,7 +29,20 @@ async function callGemini(prompt: string): Promise<string | null> {
     }
 
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidate = data?.candidates?.[0];
+    // A reply can arrive split into several parts (and newer models may add
+    // a "thought" part first). Reading only the first part is what produced
+    // answers cut off after two words, so join every real text part.
+    const parts: unknown = candidate?.content?.parts;
+    const text = Array.isArray(parts)
+      ? parts
+          .filter((p) => p && !p.thought && typeof p.text === "string")
+          .map((p) => p.text as string)
+          .join("")
+      : null;
+    if (candidate?.finishReason && candidate.finishReason !== "STOP") {
+      console.warn("Gemini finished early:", candidate.finishReason);
+    }
     return typeof text === "string" && text.trim() ? text.trim() : null;
   } catch (err) {
     console.error("Failed to call Gemini API:", err);

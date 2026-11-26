@@ -218,6 +218,13 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Tailwind 4 stopped giving buttons the pointing-hand cursor. Put it back
+     for every enabled button so clickable things always look clickable. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
   html {
     @apply font-sans;
     /* Safety net against any element (now or added later) that ends up

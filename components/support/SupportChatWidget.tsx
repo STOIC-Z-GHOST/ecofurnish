@@ -308,7 +308,7 @@ export default function SupportChatWidget() {
             : undefined
         }
         className={[
-          "fixed z-50 flex size-14 touch-none items-center justify-center md:right-6 md:bottom-6",
+          "group fixed z-50 flex size-14 cursor-pointer touch-none items-center justify-center md:right-6 md:bottom-6 md:transition-transform md:hover:scale-110",
           pos
             ? "max-md:top-(--chat-top) max-md:right-auto max-md:bottom-auto max-md:left-(--chat-left)"
             : "right-4 bottom-[90px]",
@@ -317,7 +317,7 @@ export default function SupportChatWidget() {
           open ? "max-md:hidden" : "",
         ].join(" ")}
       >
-        <BotLogo className="size-14 drop-shadow-[0_3px_6px_rgb(0_0_0/0.3)]" />
+        <BotLogo className="size-14 drop-shadow-[0_3px_6px_rgb(0_0_0/0.3)] transition-[filter] duration-200 group-hover:drop-shadow-[0_0_12px_rgb(74_160_115/0.9)]" />
       </button>
     </>
   );
