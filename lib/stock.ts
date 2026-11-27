@@ -1,3 +1,4 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import { and, asc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { orderItems, orders, orderStockHolds, products } from "@/db/schema";
@@ -115,7 +116,7 @@ async function putStockBack(line: { productId: string; variantId: string | null;
  * time. `at` is the earliest known time, if any — used only for display.
  */
 export async function restockExpectedFor(productIds: string[]) {
-  const autoRestock = process.env.AUTO_RESTOCK !== "off";
+  const autoRestock = (await getSiteSettings()).autoRestock;
   let at: Date | null = null;
   if (productIds.length > 0) {
     const rows = await db

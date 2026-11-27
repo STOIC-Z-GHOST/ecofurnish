@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { recoverFromStaleCache } from "@/lib/stale-cache";
 import "./globals.css";
 
 /**
@@ -21,6 +22,9 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Stale saved copies are the usual cause of an error that only happens in
+    // one browser: clear them and reload once before showing anything.
+    if (recoverFromStaleCache()) return;
     console.error("Root layout error boundary caught:", error);
   }, [error]);
 

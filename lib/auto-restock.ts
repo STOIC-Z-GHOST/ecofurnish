@@ -1,3 +1,4 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import { and, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { productVariants, products } from "@/db/schema";
@@ -33,7 +34,7 @@ export async function runAutoRestock(
   options: { force?: boolean } = {}
 ): Promise<{ refilled: number; clocksStarted: number }> {
   const none = { refilled: 0, clocksStarted: 0 };
-  if (process.env.AUTO_RESTOCK === "off") return none;
+  if (!(await getSiteSettings()).autoRestock) return none;
 
   const now = Date.now();
   if (!options.force && now - lastCheck < CHECK_EVERY_MS) return none;

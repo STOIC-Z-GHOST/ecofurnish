@@ -16,6 +16,8 @@ import { siteConfig } from '@/config/site'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import InstallAppBanner from '@/components/pwa/InstallAppBanner'
 import MobileBottomNav from '@/components/layout/navbar/MobileBottomNav'
+import SiteModeSync from '@/components/SiteModeSync'
+import { getSiteSettings } from '@/lib/site-settings'
 import SupportChatWidget from '@/components/support/SupportChatWidget'
 import './globals.css'
 
@@ -118,6 +120,7 @@ export default async function RootLayout({
     .from(products)
     .orderBy(sql`${products.category} asc`)
   const categories = categoryRows.map((r) => r.category)
+  const settings = await getSiteSettings()
 
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
@@ -129,13 +132,14 @@ export default async function RootLayout({
                 <RecentlyViewedProvider>
                   {/* A slim bar in the normal page flow: when it shows, it
                       pushes the navbar and everything below it down. */}
-                  <InstallAppBanner />
+                  {settings.installBanner && <InstallAppBanner />}
+                  <SiteModeSync realStock={settings.realStock} />
                   <Navbar categories={categories} />
                   <div className="flex-1">{children}</div>
                   <Footer />
                   <Toaster />
                   <MobileBottomNav />
-                  <SupportChatWidget />
+                  {settings.chatbot && <SupportChatWidget />}
                 </RecentlyViewedProvider>
               </WishlistProvider>
             </CartProvider>

@@ -13,6 +13,7 @@ const ADMIN_LINKS: GlowNavLink[] = [
   { href: "/admin/dispatchers", label: "Dispatchers" },
   { href: "/admin/telegram", label: "Telegram Access" },
   { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/settings", label: "Settings" },
   { href: "/admin/guests", label: "Guests" },
   { href: "/dispatcher", label: "Dispatcher Panel ↗" },
 ];

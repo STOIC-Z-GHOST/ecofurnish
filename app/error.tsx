@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { recoverFromStaleCache } from "@/lib/stale-cache";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,9 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Stale saved copies are the usual cause of an error that only happens in
+    // one browser: clear them and reload once before showing anything.
+    if (recoverFromStaleCache()) return;
     console.error("Page-level error boundary caught:", error);
   }, [error]);
 

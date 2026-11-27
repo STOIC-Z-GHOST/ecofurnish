@@ -1,5 +1,6 @@
 "use server";
 
+import { getSiteSettings } from "@/lib/site-settings";
 import { headers } from "next/headers";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
@@ -462,7 +463,7 @@ export async function confirmPayment(orderId: string, txRef: string) {
   // is asked what they'd like — refund, wait for the restock, or store
   // credit (see holdOrderForChoice) — instead of being sold something that
   // no longer exists.
-  if (process.env.DECREMENT_STOCK_ON_PAYMENT === "true") {
+  if ((await getSiteSettings()).realStock) {
     const taken = await takeStock(items);
     if (!taken.ok) {
       await holdOrderForChoice(order, taken.productName);

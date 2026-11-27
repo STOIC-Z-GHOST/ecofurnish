@@ -71,7 +71,16 @@ function readState(now = Date.now()): State {
  * that render this should follow the useSyncExternalStore pattern in
  * useEffectiveStock to avoid a hydration mismatch.
  */
+// Set from Admin > Settings (see components/SiteModeSync.tsx). In real-stock
+// mode the database number already drops when someone pays, so this browser's
+// own "bought it" tally must be switched off or every purchase would count twice.
+let realStockMode = false;
+export function setRealStockMode(on: boolean) {
+  realStockMode = on;
+}
+
 export function getSimulatedStock(productId: string, realStock: number): number {
+  if (realStockMode) return realStock;
   const tally = readState().items[productId];
   return Math.max(0, realStock - (tally?.q ?? 0));
 }
@@ -84,6 +93,7 @@ export function getSimulatedStock(productId: string, realStock: number): number 
  * browser only.
  */
 export function getSimulatedRestockAt(productId: string): number | null {
+  if (realStockMode) return null;
   const tally = readState().items[productId];
   if (!tally) return null;
   return tally.o !== undefined ? tally.o + SOLD_OUT_MS : tally.t + RESET_MS;
@@ -108,7 +118,7 @@ export function recordSimulatedPurchase(
   orderId?: string,
   purchasedAt: number = Date.now()
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || realStockMode) return;
   const now = Date.now();
   if (now - purchasedAt >= RESET_MS) return;
 

@@ -149,6 +149,16 @@ export const sitePages = pgTable("site_pages", {
   updatedBy: text("updated_by"),
 });
 
+// On/off switches the owner flips from Admin, Settings (see
+// lib/site-settings.ts for the list). One row per switch the owner has
+// changed; anything without a row uses its built-in default.
+export const siteSettings = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: text("updated_by"),
+});
+
 // One row per save of a page, so a bad edit to legal text can be undone.
 export const sitePageRevisions = pgTable(
   "site_page_revisions",

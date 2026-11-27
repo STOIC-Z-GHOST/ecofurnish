@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { getSiteSettings } from "@/lib/site-settings";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -16,7 +18,11 @@ const STACK = [
   { name: "Sonner and Leaflet", note: "Cart notifications and live delivery maps" },
 ];
 
-export default function HowItsMadePage() {
+export default async function HowItsMadePage() {
+  // Switched off in Admin > Settings: behave as if the page does not exist.
+  const settings = await getSiteSettings();
+  if (!settings.howItsMade) notFound();
+
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12 sm:py-20">
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">The making of EcoFurnish</h1>
@@ -52,10 +58,14 @@ export default function HowItsMadePage() {
       <p className="mt-10 text-sm text-muted-foreground">
         This page is for recruiters and clients who want to see how the site was put
         together.{" "}
-        <Link href="/about-the-maker" className="font-medium text-primary underline-offset-4 hover:underline">
-          About the maker
-        </Link>
-        {" or "}
+        {settings.aboutMaker && (
+          <>
+            <Link href="/about-the-maker" className="font-medium text-primary underline-offset-4 hover:underline">
+              About the maker
+            </Link>
+            {" or "}
+          </>
+        )}
         <Link href="/" className="font-medium text-primary underline-offset-4 hover:underline">
           back to the store
         </Link>

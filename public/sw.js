@@ -3,7 +3,9 @@
 // experience. Anything touching money, auth, or personalized/admin data is deliberately
 // left untouched so it always goes straight to the network.
 
-const CACHE_VERSION = 'ecofurnish-v2';
+// Bump this number whenever caching rules change: every device deletes the
+// older caches the next time it loads the site.
+const CACHE_VERSION = 'ecofurnish-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 
@@ -74,13 +76,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Next.js fetches a page's data (the "RSC payload") in the background when
+  // you move between pages. That data changes with every deploy and with
+  // every product edit, so it must never come from a cache: serving an old
+  // copy next to new code is what made some product pages show an error in a
+  // normal tab but not in a private one.
+  if (request.headers.get('RSC') || url.searchParams.has('_rsc')) {
+    return;
+  }
+
   // Page navigations: network-first, falling back to a cached copy, then the offline page.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(PAGE_CACHE).then((cache) => cache.put(request, copy));
+          // Only keep good pages, so an error page is never replayed later.
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(PAGE_CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(async () => {
@@ -97,7 +111,6 @@ self.addEventListener('fetch', (event) => {
     url.origin === self.location.origin &&
     (url.pathname.startsWith('/_next/static/') ||
       url.pathname.startsWith('/icon') ||
-      url.pathname.startsWith('/products/') ||
       url.pathname.startsWith('/images/') ||
       /\.(png|jpg|jpeg|svg|webp|woff2?)$/.test(url.pathname));
 

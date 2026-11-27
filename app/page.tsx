@@ -1,3 +1,4 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { Suspense } from "react";
@@ -38,6 +39,7 @@ export default async function Home() {
   // Refill anything that's been sold out long enough BEFORE reading the
   // catalog, so this build of the page already reflects it.
   await runAutoRestock();
+  const settings = await getSiteSettings();
   const rawCatalog = await db.select().from(products);
   const catalog = await attachRatings(rawCatalog);
   // Products the admin ticked as "Featured" (up to 8); if none are ticked,
@@ -97,12 +99,12 @@ export default async function Home() {
         )}
       </div>
 
-      <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />
+      {settings.adBanner && <AdBanner videoSrc="/ads/ad-1.mp4" posterSrc="/ads/ad-1-poster.jpg" />}
 
       <ImpactCards plasticKg={plasticKg} pieces={catalog.length} />
 
-      <Testimonials />
-      <Newsletter />
+      {settings.testimonials && <Testimonials />}
+      {settings.newsletter && <Newsletter />}
     </main>
   );
 }

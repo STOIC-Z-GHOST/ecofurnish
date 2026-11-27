@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 // The body of the "About the maker" page (app/about-the-maker/page.tsx).
-export default function AboutMaker() {
+export default function AboutMaker({ showHowItsMade = true }: { showHowItsMade?: boolean }) {
   return (
     <div className="max-w-3xl">
       <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
@@ -19,12 +19,14 @@ export default function AboutMaker() {
         sustainable furniture retail.
       </p>
 
-      <Link
-        href="/how-its-made"
-        className="mt-8 inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-      >
-        See how it&apos;s made
-      </Link>
+      {showHowItsMade && (
+        <Link
+          href="/how-its-made"
+          className="mt-8 inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          See how it&apos;s made
+        </Link>
+      )}
     </div>
   );
 }
