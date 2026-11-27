@@ -25,8 +25,8 @@ export default function ProductInfo({
 }) {
   return (
     <>
-      <CardHeader className={cn("gap-0 p-3 pb-0 sm:p-5 sm:pb-0", row && "pl-4 sm:pl-5 md:pl-5")}>
-        <CardTitle className="select-text font-sans text-sm leading-snug font-normal sm:text-base md:min-h-11">
+      <CardHeader className={cn("gap-0 p-3 pb-0 sm:p-4 sm:pb-0", row && "pl-4 sm:pl-4 md:pl-4")}>
+        <CardTitle className="select-text font-sans text-sm leading-snug font-normal sm:text-base">
           {product.name}
         </CardTitle>
 
@@ -36,34 +36,29 @@ export default function ProductInfo({
           className="mt-1.5"
         />
 
-        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="whitespace-nowrap text-xl font-semibold text-foreground sm:text-2xl">
             {formatPrice(getEffectivePrice(product), currency)}
           </span>
           <DiscountLine product={product} currency={currency} className="h-auto justify-start" />
         </div>
 
-        {/* Keeps its height on desktop so descriptions start at the same
-            spot on every card in a row, even when only some are low. */}
-        <div className="mt-1 md:min-h-4">
-          <StockBadge
-            productId={product.id}
-            stock={product.stock}
-            restockAt={product.restockAt}
-            variant="line"
-          />
-        </div>
+        <StockBadge
+          productId={product.id}
+          stock={product.stock}
+          restockAt={product.restockAt}
+          variant="line"
+          className="mt-1"
+        />
       </CardHeader>
 
       <CardContent
         className={cn(
-          "hidden grow p-3 pt-2 sm:block sm:p-5 sm:pb-3 sm:pt-2",
+          "hidden grow p-3 pt-2 sm:block sm:p-4 sm:pb-2 sm:pt-2",
           row && "md:col-auto"
         )}
       >
-        {/* min-h-15 = 3 lines at text-sm's line-height, so a short blurb
-            doesn't leave this card shorter than a neighbour with a long one. */}
-        <p className="line-clamp-3 min-h-15 select-text text-sm leading-5 text-muted-foreground">
+        <p className="line-clamp-3 select-text text-sm leading-5 text-muted-foreground">
           {noDash(product.description) || "Sustainable furniture crafted from recycled materials."}
         </p>
       </CardContent>

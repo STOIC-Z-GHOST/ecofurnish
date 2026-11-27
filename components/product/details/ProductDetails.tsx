@@ -56,7 +56,7 @@ export default function ProductDetails({ product, variants }: ProductDetailsProp
     : null;
 
   return (
-    <div className="grid gap-16 lg:grid-cols-2">
+    <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
       <ProductGallery product={product} focusImage={focusImage} />
       <ProductSummary
         product={product}

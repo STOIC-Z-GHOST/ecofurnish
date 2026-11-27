@@ -15,7 +15,7 @@ import WishlistButton from "./WishlistButton";
 
 // One height and one set of paddings for every button in every card, so
 // "Add to Cart" and "Choose options" line up exactly across a row.
-const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-5 sm:pt-2";
+const FOOTER = "mt-auto flex items-center gap-1 border-0 bg-transparent p-3 pt-1 sm:gap-2 sm:p-4 sm:pt-1";
 // min-w-0 + shrink let the button give up width to the heart instead of
 // pushing it out of the card; the cart icon is dropped on phones to save room.
 const BUTTON =
@@ -53,7 +53,7 @@ export default function ProductActions({
   // buyer has to choose on its page, so the card sends them there.
   if (product.hasVariants) {
     return (
-      <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
+      <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-4 md:pl-4")}>
         {product.stock <= 0 ? (
           <Button size="lg" className={BUTTON} disabled>
             Out of Stock
@@ -76,7 +76,7 @@ export default function ProductActions({
   }
 
   return (
-    <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-5 md:pl-5")}>
+    <CardFooter className={cn(FOOTER, row && "pl-4 sm:pl-4 md:pl-4")}>
       <Button
         size="lg"
         className={BUTTON}

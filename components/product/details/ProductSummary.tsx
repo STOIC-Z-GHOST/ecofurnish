@@ -114,7 +114,7 @@ export default function ProductSummary({
         >
           {product.category}
         </Link>
-        <h1 className="mt-1 text-4xl font-bold">{product.name}</h1>
+        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">{product.name}</h1>
       </div>
 
       <ProductMeta

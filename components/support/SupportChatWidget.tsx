@@ -86,6 +86,8 @@ export default function SupportChatWidget() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
 
   // Where the user dragged the button to (phones only). null = default spot.
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -103,6 +105,26 @@ export default function SupportChatWidget() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, sending]);
+
+  // Tapping anywhere outside the chat (or pressing Esc) minimizes it, the way
+  // a popup normally closes. The launcher button handles its own taps.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target) || launcherRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   // Keep a dragged button on screen when the phone is rotated or resized.
   useEffect(() => {
@@ -209,6 +231,7 @@ export default function SupportChatWidget() {
     <>
       {open && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label="EcoFurnish support chat"
           className="fixed inset-x-3 bottom-20 z-50 flex h-[min(70dvh,520px)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl duration-200 animate-in fade-in-0 slide-in-from-bottom-4 md:inset-x-auto md:right-6 md:bottom-24 md:w-96"
@@ -295,6 +318,7 @@ export default function SupportChatWidget() {
           while the chat is open (the chat has its own minimize button).
           Desktop: same button in the bottom right corner, not draggable. */}
       <button
+        ref={launcherRef}
         type="button"
         onClick={onButtonClick}
         onPointerDown={onPointerDown}

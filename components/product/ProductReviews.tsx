@@ -83,7 +83,7 @@ export default function ProductReviews({
   }
 
   return (
-    <section className="mt-24 max-w-2xl">
+    <section className="mt-14 max-w-2xl sm:mt-24">
       <h2 className="text-2xl font-bold tracking-tight">Reviews</h2>
 
       {canReview && formOpen && (

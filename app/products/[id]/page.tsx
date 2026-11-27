@@ -85,7 +85,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     : [false, null];
 
   return (
-    <main className="container mx-auto px-4 py-20">
+    <main className="container mx-auto px-4 py-16 sm:py-20">
       {/* Fixed instead of inline so it's still reachable while scrolled deep
           into the page, same neumorphic pill as the Home/Shop/etc. nav
           buttons (NAV_HOVER_LINK), not a separate one-off style. Sits just

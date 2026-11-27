@@ -15,10 +15,10 @@ export default function RelatedProducts({ products, category }: RelatedProductsP
   if (products.length === 0) return null;
 
   return (
-    <section className="mt-24">
+    <section className="mt-14 sm:mt-24">
       <h2 className="text-2xl font-bold tracking-tight">You might also like</h2>
       <p className="mt-1 text-muted-foreground">More from {category}</p>
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6 lg:grid-cols-4">
         {products.map((item) => (
           <ProductCard key={item.id} product={item} currency={currency} />
         ))}
