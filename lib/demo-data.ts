@@ -98,3 +98,35 @@ export function demoSettings(): SiteSettings {
   out.maintenanceMessage = "We are updating the shop and will be back soon. (sample text)";
   return out;
 }
+
+// ---- Sample data for the other guest screens (Inbox, Dispatchers, ...) ----
+
+export const DEMO_EMAILS = [
+  { id: "demo-mail-1", from: "sample.customer1@example.com", subject: "Question about delivery", body: "Hello, this is a sample message. How long does delivery take to my area?", receivedAt: "2026-11-24T08:15:00Z", read: false },
+  { id: "demo-mail-2", from: "sample.shop@example.com", subject: "Wholesale enquiry", body: "Hi, this is a sample message from a made-up shop asking about bulk prices.", receivedAt: "2026-11-23T14:40:00Z", read: false },
+  { id: "demo-mail-3", from: "sample.customer2@example.com", subject: "Thank you", body: "A sample thank-you note. The table arrived and looks great.", receivedAt: "2026-11-21T10:05:00Z", read: true },
+  { id: "demo-mail-4", from: "sample.customer3@example.com", subject: "Wrong colour?", body: "A sample complaint about a colour. Nothing here is real.", receivedAt: "2026-11-19T17:30:00Z", read: true },
+];
+
+export const DEMO_AUDIENCE = { all: 128, recent: 41, repeat: 17 };
+
+export const DEMO_DISPATCHERS = [
+  { id: "demo-dispatcher-1", name: "Sample Dispatcher One", email: "dispatcher1@example.com" },
+  { id: "demo-dispatcher-2", name: "Sample Dispatcher Two", email: "dispatcher2@example.com" },
+];
+export const DEMO_DISPATCHER_CANDIDATES = [
+  { id: "demo-user-1", name: "Sample Person A", email: "person.a@example.com" },
+  { id: "demo-user-2", name: "Sample Person B", email: "person.b@example.com" },
+  { id: "demo-user-3", name: "Sample Person C", email: "person.c@example.com" },
+];
+
+export const DEMO_TELEGRAM_REQUESTS = [
+  { id: "demo-tg-1", name: "Sample Requester One", reason: "I help with deliveries (sample reason).", status: "pending" as const },
+  { id: "demo-tg-2", name: "Sample Requester Two", reason: "I manage the shop floor (sample reason).", status: "pending" as const },
+  { id: "demo-tg-3", name: "Sample Approved Person", reason: "Sample reason.", status: "approved" as const },
+];
+
+export const DEMO_GUESTS = [
+  { email: "guest.one@example.com", expiresAt: "2026-12-05T12:00:00Z", active: true },
+  { email: "guest.two@example.com", expiresAt: "2026-11-10T12:00:00Z", active: false },
+];

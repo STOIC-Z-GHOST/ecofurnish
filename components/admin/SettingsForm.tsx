@@ -21,6 +21,49 @@ interface TextDef {
   max: number;
 }
 
+const GUEST_GROUP = "Guest settings";
+
+// The Guest settings group has ten switches, so it folds away to keep the
+// page short. Every other group is always open.
+function GroupShell({
+  group,
+  count,
+  total,
+  children,
+}: {
+  group: string;
+  count: number;
+  total: number;
+  children: React.ReactNode;
+}) {
+  if (group !== GUEST_GROUP) {
+    return (
+      <section>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{group}</h3>
+        {children}
+      </section>
+    );
+  }
+  return (
+    <details className="group rounded-lg border border-border/60 p-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+        <span>
+          <span className="block text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {group}
+          </span>
+          <span className="mt-1 block text-sm text-muted-foreground">
+            What a temporary read-only guest can open. They only ever see made-up sample data, and
+            nothing they try touches the real store. {count} of {total} on.
+          </span>
+        </span>
+        <span className="text-xs text-muted-foreground group-open:hidden">Show</span>
+        <span className="hidden text-xs text-muted-foreground group-open:inline">Hide</span>
+      </summary>
+      <div className="mt-4">{children}</div>
+    </details>
+  );
+}
+
 export default function SettingsForm({
   defs,
   texts,
@@ -65,10 +108,12 @@ export default function SettingsForm({
   return (
     <div className="max-w-2xl space-y-8">
       {groups.map((group) => (
-        <section key={group}>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {group}
-          </h3>
+        <GroupShell
+          key={group}
+          group={group}
+          count={defs.filter((d) => d.group === group && values[d.key]).length}
+          total={defs.filter((d) => d.group === group).length}
+        >
           <div className="divide-y divide-border/60 rounded-lg border border-border/60">
             {defs
               .filter((d) => d.group === group)
@@ -117,7 +162,7 @@ export default function SettingsForm({
                 );
               })}
           </div>
-        </section>
+        </GroupShell>
       ))}
 
       <div className="flex items-center gap-3">

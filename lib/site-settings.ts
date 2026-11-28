@@ -66,30 +66,82 @@ export const SETTING_DEFS = [
   },
   {
     key: "guestDashboard",
-    group: "Guest admin access",
+    group: "Guest settings",
     label: "Dashboard",
-    description: "Guests can see the order, revenue and stock counts. Nothing on it can be changed.",
+    description:
+      "The order, revenue and stock counts. Sample numbers only.",
     default: true,
   },
   {
     key: "guestProducts",
-    group: "Guest admin access",
+    group: "Guest settings",
     label: "Products",
-    description: "Guests can browse products and try edits. Their edits stay in their own browser and never reach the real store.",
+    description:
+      "Browse, add and edit products. Sample products; changes stay in their own browser.",
     default: true,
   },
   {
     key: "guestOrders",
-    group: "Guest admin access",
+    group: "Guest settings",
     label: "Orders",
-    description: "Guests can see orders with customer details hidden, and try changing a status. Changes stay in their own browser.",
+    description:
+      "See orders and try changing a status. Sample orders; changes stay in their own browser.",
     default: true,
   },
   {
+    key: "guestInbox",
+    group: "Guest settings",
+    label: "Inbox",
+    description:
+      "Read, mark and delete emails. Sample emails; nothing real is shown.",
+    default: false,
+  },
+  {
+    key: "guestBroadcast",
+    group: "Guest settings",
+    label: "Broadcast",
+    description:
+      "Write a message and press Send. Nothing is ever sent.",
+    default: false,
+  },
+  {
+    key: "guestDispatchers",
+    group: "Guest settings",
+    label: "Dispatchers",
+    description:
+      "Promote and remove dispatchers. Sample people; nothing is changed.",
+    default: false,
+  },
+  {
+    key: "guestTelegram",
+    group: "Guest settings",
+    label: "Telegram Access",
+    description:
+      "Approve or reject bot access requests. Sample requests; nothing is changed.",
+    default: false,
+  },
+  {
+    key: "guestPages",
+    group: "Guest settings",
+    label: "Pages",
+    description:
+      "Open and edit the wording of the site pages. Nothing is saved.",
+    default: false,
+  },
+  {
     key: "guestSettings",
-    group: "Guest admin access",
+    group: "Guest settings",
     label: "Settings",
-    description: "Guests can look at these switches and try them. Nothing they change is saved, so the real site is never affected.",
+    description:
+      "Look at these switches and try them. Sample values; nothing is saved.",
+    default: false,
+  },
+  {
+    key: "guestGuests",
+    group: "Guest settings",
+    label: "Guests",
+    description:
+      "Invite and revoke guest access. Sample guests; nobody is really invited.",
     default: false,
   },
   {

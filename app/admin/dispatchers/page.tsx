@@ -1,9 +1,11 @@
 import { getUsersForDispatcherManagement } from "@/app/admin/actions";
 import { DispatcherManager } from "@/components/admin/DispatcherManager";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { DemoDispatchers } from "@/components/admin/demo/DemoAdmin";
 
 export default async function AdminDispatchersPage() {
-  await requireAdminPage();
+  const { isGuest } = await requireAdminViewPage("guestDispatchers");
+  if (isGuest) return <DemoDispatchers />;
   const users = await getUsersForDispatcherManagement();
   const dispatchers = users.filter((u) => u.role === "dispatcher");
   const candidates = users.filter((u) => u.role !== "dispatcher");

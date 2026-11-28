@@ -2,10 +2,12 @@ import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { inboundEmails } from "@/db/schema";
 import { InboxList } from "@/components/admin/InboxList";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { DemoInbox } from "@/components/admin/demo/DemoAdmin";
 
 export default async function AdminInboxPage() {
-  await requireAdminPage();
+  const { isGuest } = await requireAdminViewPage("guestInbox");
+  if (isGuest) return <DemoInbox />;
   const emails = await db.select().from(inboundEmails).orderBy(desc(inboundEmails.receivedAt));
   const unreadCount = emails.filter((e) => !e.read).length;
 

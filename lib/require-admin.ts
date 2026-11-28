@@ -8,7 +8,17 @@ import { auth } from "@/lib/auth";
 import { getSiteSettings } from "@/lib/site-settings";
 
 /** The Settings switches that decide what a read-only guest may open. */
-export type GuestFeature = "guestDashboard" | "guestProducts" | "guestOrders" | "guestSettings";
+export type GuestFeature =
+  | "guestDashboard"
+  | "guestProducts"
+  | "guestOrders"
+  | "guestInbox"
+  | "guestBroadcast"
+  | "guestDispatchers"
+  | "guestTelegram"
+  | "guestPages"
+  | "guestSettings"
+  | "guestGuests";
 
 // One session lookup per request, shared by the admin layout and the page
 // under it (they both call requireAdminPage below), so guarding every page

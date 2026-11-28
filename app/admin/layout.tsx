@@ -26,7 +26,13 @@ const GUEST_LINKS: (GlowNavLink & { feature: GuestFeature })[] = [
   { href: "/admin", label: "Dashboard", exact: true, feature: "guestDashboard" },
   { href: "/admin/products", label: "Products", feature: "guestProducts" },
   { href: "/admin/orders", label: "Orders", feature: "guestOrders" },
+  { href: "/admin/inbox", label: "Inbox", feature: "guestInbox" },
+  { href: "/admin/broadcast", label: "Broadcast", feature: "guestBroadcast" },
+  { href: "/admin/dispatchers", label: "Dispatchers", feature: "guestDispatchers" },
+  { href: "/admin/telegram", label: "Telegram Access", feature: "guestTelegram" },
+  { href: "/admin/pages", label: "Pages", feature: "guestPages" },
   { href: "/admin/settings", label: "Settings", feature: "guestSettings" },
+  { href: "/admin/guests", label: "Guests", feature: "guestGuests" },
 ];
 
 // An access manager (someone allowed to invite guests) sees only this.

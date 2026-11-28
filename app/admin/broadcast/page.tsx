@@ -1,9 +1,11 @@
 import { getBroadcastAudienceCounts, getAllCustomers } from "@/app/actions/broadcast";
 import { BroadcastForm } from "@/components/admin/BroadcastForm";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { DemoBroadcast } from "@/components/admin/demo/DemoAdmin";
 
 export default async function AdminBroadcastPage() {
-  await requireAdminPage();
+  const { isGuest } = await requireAdminViewPage("guestBroadcast");
+  if (isGuest) return <DemoBroadcast />;
   const [counts, customers] = await Promise.all([getBroadcastAudienceCounts(), getAllCustomers()]);
 
   return (

@@ -3,12 +3,13 @@ import { db } from "@/db";
 import { sitePages } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { DemoPagesList } from "@/components/admin/demo/DemoAdmin";
 import { PAGE_LABELS, PAGE_SLUGS } from "@/lib/site-page-defaults";
 
 export default async function AdminPagesPage() {
-  // Admin only: guests can't see or edit the site's wording.
-  await requireAdminPage();
+const { isGuest } = await requireAdminViewPage("guestPages");
+  if (isGuest) return <DemoPagesList />;
 
   const edited = new Map<string, { updatedAt: Date; updatedBy: string | null }>();
   let setupNeeded = false;

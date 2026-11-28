@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireAdminPage } from "@/lib/require-admin";
+import { requireAdminViewPage } from "@/lib/require-admin";
+import { DemoPageEditor } from "@/components/admin/demo/DemoAdmin";
 import { getPageRevisions, getSitePage, parseAboutContent } from "@/lib/site-pages";
 import {
   DEFAULT_ABOUT,
@@ -13,9 +14,11 @@ import { AboutPageEditor } from "@/components/admin/about-page-editor";
 import { MarkdownPageEditor } from "@/components/admin/markdown-page-editor";
 
 export default async function EditPagePage({ params }: { params: Promise<{ slug: string }> }) {
-  await requireAdminPage();
+  const { isGuest } = await requireAdminViewPage("guestPages");
   const { slug } = await params;
   if (!isSitePageSlug(slug)) notFound();
+  // A guest gets the built-in text in an editor that can't save anything.
+  if (isGuest) return <DemoPageEditor slug={slug} />;
 
   const [page, revisions] = await Promise.all([getSitePage(slug), getPageRevisions(slug)]);
 

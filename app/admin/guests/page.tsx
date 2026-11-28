@@ -1,9 +1,18 @@
-import { requireGuestManagerPage } from "@/lib/require-admin";
+import { getAdminAccess, requireAdminViewPage, requireGuestManagerPage } from "@/lib/require-admin";
+import { DemoGuests } from "@/components/admin/demo/DemoAdmin";
 import { listDelegates, listGuests } from "@/lib/admin-guests";
 import { GuestAccessManager, type GuestRow } from "@/components/admin/guest-access-manager";
 import { AccessManagersPanel, type ManagerRow } from "@/components/admin/access-managers-panel";
 
 export default async function AdminGuestsPage() {
+  // A plain guest (not an access manager) can look at a made-up version of
+  // this screen when the owner has switched it on.
+  const access = await getAdminAccess();
+  if (access?.level === "guest" && !access.delegate) {
+    await requireAdminViewPage("guestGuests");
+    return <DemoGuests />;
+  }
+
   // The owner, or an access manager the owner appointed. Everyone else —
   // including ordinary guests — gets "Page not found".
   const { session, isAdmin, delegate } = await requireGuestManagerPage();
