@@ -28,6 +28,43 @@ export const SETTING_DEFS = [
     default: process.env.AUTO_RESTOCK !== "off",
   },
   {
+    key: "maintenance",
+    group: "Visitors",
+    label: "Maintenance mode",
+    description:
+      "Visitors see a \"back soon\" page instead of the shop. You stay able to use /admin and sign in. Customers returning from a payment still land on their order page.",
+    default: false,
+  },
+  {
+    key: "announcement",
+    group: "Visitors",
+    label: "Announcement bar",
+    description: "A slim message bar at the top of every page, for a sale or a delay. Add the wording below.",
+    default: false,
+  },
+  {
+    key: "guestCheckout",
+    group: "Checkout and accounts",
+    label: "Guest checkout",
+    description:
+      "Let people order without an account. They give an email at checkout and can see their order in the same browser. Referral codes and store credit still need an account. OFF means everyone must sign in first.",
+    default: false,
+  },
+  {
+    key: "reviewsOpen",
+    group: "Checkout and accounts",
+    label: "Accept new reviews",
+    description: "Turn off to pause new and edited reviews. Existing reviews stay visible.",
+    default: true,
+  },
+  {
+    key: "signUpsOpen",
+    group: "Checkout and accounts",
+    label: "Accept new accounts",
+    description: "Turn off to pause sign-ups (email and Google/Microsoft). People who already have an account can still sign in.",
+    default: true,
+  },
+  {
     key: "chatbot",
     group: "Features",
     label: "Support chatbot",
@@ -78,12 +115,32 @@ export const SETTING_DEFS = [
   },
 ] as const;
 
+/** Wording the owner types in, shown next to a switch. */
+export const TEXT_DEFS = [
+  {
+    key: "announcementText",
+    forSwitch: "announcement",
+    label: "Announcement wording",
+    placeholder: "Free delivery in Addis Ababa this week",
+    max: 160,
+  },
+  {
+    key: "maintenanceMessage",
+    forSwitch: "maintenance",
+    label: "Message on the maintenance page",
+    placeholder: "We are updating the shop and will be back soon.",
+    max: 300,
+  },
+] as const;
+
+export type TextKey = (typeof TEXT_DEFS)[number]["key"];
 export type SettingKey = (typeof SETTING_DEFS)[number]["key"];
-export type SiteSettings = Record<SettingKey, boolean>;
+export type SiteSettings = Record<SettingKey, boolean> & Record<TextKey, string>;
 
 function defaults(): SiteSettings {
   const out = {} as SiteSettings;
   for (const d of SETTING_DEFS) out[d.key] = d.default;
+  for (const t of TEXT_DEFS) out[t.key] = "";
   return out;
 }
 
@@ -98,7 +155,12 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     const rows = await db.select().from(siteSettings);
     for (const row of rows) {
       const def = SETTING_DEFS.find((d) => d.key === row.key);
-      if (def) result[def.key] = row.value === "true";
+      if (def) {
+        result[def.key] = row.value === "true";
+        continue;
+      }
+      const text = TEXT_DEFS.find((t) => t.key === row.key);
+      if (text) result[text.key] = row.value;
     }
   } catch (error) {
     console.error("Couldn't read the site settings, using defaults:", error);

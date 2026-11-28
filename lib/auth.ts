@@ -1,3 +1,5 @@
+import { APIError } from "better-auth/api";
+import { getSiteSettings } from "@/lib/site-settings";
 import { betterAuth } from "better-auth";
 import { captcha } from "better-auth/plugins";
 import { turnstileSecretKey } from "@/lib/turnstile-keys";
@@ -212,6 +214,16 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        // Admin > Settings > "Accept new accounts". Refuses a brand-new
+        // account (email or social) while sign-ups are paused. People who
+        // already have an account are unaffected: this only runs on creation.
+        before: async () => {
+          if (!(await getSiteSettings()).signUpsOpen) {
+            throw new APIError("FORBIDDEN", {
+              message: "New accounts are paused right now. Please check back soon.",
+            });
+          }
+        },
         after: async (user) => {
           try {
             if (!user.emailVerified) return;

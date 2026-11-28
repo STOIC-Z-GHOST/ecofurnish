@@ -1,3 +1,4 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import { and, eq, ne } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
@@ -116,7 +117,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductReviews
         productId={id}
         reviews={productReviews}
-        canReview={canReview}
+        canReview={canReview && (await getSiteSettings()).reviewsOpen}
         myExistingReview={
           myExistingReview ? { rating: myExistingReview.rating, comment: myExistingReview.comment } : null
         }

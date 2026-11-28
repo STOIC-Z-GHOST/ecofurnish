@@ -51,10 +51,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/404", request.url), { status: 404 });
   }
 
-  const ref = request.nextUrl.searchParams.get("ref");
-  if (!ref) return NextResponse.next();
+  // Hand the page's address to the server components below (the root layout
+  // uses it to decide whether maintenance mode applies to this page).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
 
-  const response = NextResponse.next();
+  const ref = request.nextUrl.searchParams.get("ref");
+  if (!ref) return NextResponse.next({ request: { headers: requestHeaders } });
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
   // Don't clobber a code that's already been captured this visit — the
   // first referral link someone actually clicked is the one that should
   // get credit, not whatever ?ref= happens to be on a later page they land on.

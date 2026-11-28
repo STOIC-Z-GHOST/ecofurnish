@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/app/admin/settings/actions";
 
 interface Def {
@@ -12,25 +13,40 @@ interface Def {
   description: string;
 }
 
+interface TextDef {
+  key: string;
+  forSwitch: string;
+  label: string;
+  placeholder: string;
+  max: number;
+}
+
 export default function SettingsForm({
   defs,
+  texts,
   initial,
+  initialTexts,
 }: {
   defs: Def[];
+  texts: TextDef[];
   initial: Record<string, boolean>;
+  initialTexts: Record<string, string>;
 }) {
   const [values, setValues] = useState<Record<string, boolean>>(initial);
-  const [saved, setSaved] = useState<Record<string, boolean>>(initial);
+  const [textValues, setTextValues] = useState<Record<string, string>>(initialTexts);
+  const [saved, setSaved] = useState({ values: initial, texts: initialTexts });
   const [pending, startTransition] = useTransition();
-  const dirty = defs.some((d) => values[d.key] !== saved[d.key]);
+  const dirty =
+    defs.some((d) => values[d.key] !== saved.values[d.key]) ||
+    texts.some((t) => (textValues[t.key] ?? "") !== (saved.texts[t.key] ?? ""));
 
   const groups = Array.from(new Set(defs.map((d) => d.group)));
 
   function save() {
     startTransition(async () => {
-      const result = await saveSiteSettings(values);
+      const result = await saveSiteSettings(values, textValues);
       if (result.success) {
-        setSaved(values);
+        setSaved({ values, texts: textValues });
         toast.success("Settings saved");
       } else {
         toast.error(result.error);
@@ -50,28 +66,45 @@ export default function SettingsForm({
               .filter((d) => d.group === group)
               .map((d) => {
                 const on = values[d.key];
+                const extra = texts.filter((t) => t.forSwitch === d.key);
                 return (
-                  <div key={d.key} className="flex items-start justify-between gap-4 p-4">
-                    <div>
-                      <p className="font-medium">{d.label}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{d.description}</p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={on}
-                      aria-label={d.label}
-                      onClick={() => setValues((v) => ({ ...v, [d.key]: !on }))}
-                      className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
-                        on ? "bg-emerald-700" : "bg-muted-foreground/30"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${
-                          on ? "translate-x-5" : ""
+                  <div key={d.key} className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium">{d.label}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{d.description}</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={on}
+                        aria-label={d.label}
+                        onClick={() => setValues((v) => ({ ...v, [d.key]: !on }))}
+                        className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
+                          on ? "bg-emerald-700" : "bg-muted-foreground/30"
                         }`}
-                      />
-                    </button>
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${
+                            on ? "translate-x-5" : ""
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {extra.map((t) => (
+                      <div key={t.key} className="mt-3">
+                        <label htmlFor={t.key} className="mb-1 block text-xs font-medium text-muted-foreground">
+                          {t.label}
+                        </label>
+                        <Input
+                          id={t.key}
+                          value={textValues[t.key] ?? ""}
+                          maxLength={t.max}
+                          placeholder={t.placeholder}
+                          onChange={(e) => setTextValues((v) => ({ ...v, [t.key]: e.target.value }))}
+                        />
+                      </div>
+                    ))}
                   </div>
                 );
               })}

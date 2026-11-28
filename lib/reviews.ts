@@ -1,5 +1,6 @@
 "use server";
 
+import { getSiteSettings } from "@/lib/site-settings";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -15,6 +16,9 @@ const MAX_COMMENT_LENGTH = 2000;
 export async function submitReview(productId: string, rating: number, comment: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) throw new Error("You need to be signed in to leave a review.");
+  if (!(await getSiteSettings()).reviewsOpen) {
+    throw new Error("Reviews are paused right now. Please try again later.");
+  }
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     throw new Error("Rating must be between 1 and 5.");

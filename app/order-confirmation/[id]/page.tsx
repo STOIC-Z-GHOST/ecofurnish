@@ -13,7 +13,7 @@ import { ReorderButton, type ReorderItem } from "@/components/order/ReorderButto
 import { OrderTimeline } from "@/components/order/OrderTimeline";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { canViewOrder } from "@/lib/order-access";
+import { canAccessOrder, hasGuestOrderAccess } from "@/lib/guest-orders";
 import { restockExpectedFor } from "@/lib/stock";
 import { variantBasePrice, variantLabel } from "@/lib/variant-utils";
 import { SoldOutChoice } from "@/components/order/SoldOutChoice";
@@ -37,7 +37,10 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   // check (it only does anything when tx_ref matches this order AND Chapa
   // confirms the payment), so the order gets marked paid. Then send them to
   // sign in. The response is identical whether or not the order exists.
-  if (!session?.user) {
+  // A guest who placed this order in this browser may stay (their signed
+  // cookie, see lib/guest-orders.ts); everyone else logged out is sent to sign in.
+  const isGuestOwner = !session?.user && (await hasGuestOrderAccess(id));
+  if (!session?.user && !isGuestOwner) {
     if (tx_ref) {
       try {
         await confirmPayment(id, tx_ref);
@@ -51,7 +54,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
   let [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
   // Not found and not-yours look exactly the same, so this page can't be
   // used to find out which order IDs exist.
-  if (!order || !canViewOrder(order, session.user)) notFound();
+  if (!order || !(await canAccessOrder(order, session?.user ?? null))) notFound();
 
   // Just landed back from Chapa — verify with their servers before
   // trusting the redirect (the callback route may also be racing this).
@@ -136,7 +139,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pr
 
   const restock = onHold ? await restockExpectedFor(productIds) : { expected: false, at: null };
 
-  const preferredCurrency = (session.user.preferredCurrency as Currency | undefined) || "ETB";
+  const preferredCurrency = (session?.user?.preferredCurrency as Currency | undefined) || "ETB";
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-16">

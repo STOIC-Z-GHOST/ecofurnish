@@ -1,5 +1,7 @@
 "use server";
 
+import { allowRequest, isPlausibleEmail } from "@/lib/rate-limit";
+import { canAccessOrder, grantGuestOrderAccess } from "@/lib/guest-orders";
 import { getSiteSettings } from "@/lib/site-settings";
 import { headers } from "next/headers";
 import { and, eq, inArray } from "drizzle-orm";
@@ -15,7 +17,6 @@ import { issueStoreCredit, refundOrder } from "@/lib/refunds";
 import { restockExpectedFor, sweepWaitingOrders, takeStock } from "@/lib/stock";
 import { applyReferralRewards, qualifyReferralIfFirstPurchase, reverseOrderRewardUsages } from "@/lib/referrals";
 import { getEffectivePrice } from "@/lib/pricing";
-import { canViewOrder } from "@/lib/order-access";
 import { getVariantsForProducts } from "@/lib/variants";
 import { variantBasePrice, variantLabel, type ProductVariant } from "@/lib/variant-utils";
 
@@ -84,12 +85,31 @@ export async function createOrder(input: PlaceOrderInput) {
 
   const session = await auth.api.getSession({ headers: await headers() });
   // The checkout page already gates this in the UI, but that's only a
-  // convenience — enforce it here too, since a server action is directly
+  // convenience, enforce it here too, since a server action is directly
   // callable and the UI check alone wouldn't stop that.
+  //
+  // Signed in: the order belongs to the account. Not signed in: only when
+  // the owner has switched on guest checkout (Admin > Settings), and then
+  // with a real email address and a limit on how fast one connection can
+  // place orders.
+  let guestEmail: string | null = null;
   if (!session?.user) {
-    return { success: false as const, error: "Please sign in to check out." };
+    if (!(await getSiteSettings()).guestCheckout) {
+      return { success: false as const, error: "Please sign in to check out." };
+    }
+    if (!(await allowRequest("guest-order", 5, 15 * 60 * 1000))) {
+      return { success: false as const, error: "Too many orders from this connection, please wait a few minutes and try again." };
+    }
+    const email = typeof input.customerEmail === "string" ? input.customerEmail.trim().toLowerCase() : "";
+    if (!isPlausibleEmail(email) || email.length > 200) {
+      return { success: false as const, error: "Please enter a valid email address." };
+    }
+    if (input.promoCode?.trim() || input.useStoreCredit) {
+      return { success: false as const, error: "Sign in to use a referral code or store credit." };
+    }
+    guestEmail = email;
   }
-  const userId = session.user.id;
+  const userId: string | null = session?.user?.id ?? null;
 
   // Re-price every line from the database rather than trusting whatever
   // the client sent. The cart is a client-side context, so its prices —
@@ -229,7 +249,7 @@ export async function createOrder(input: PlaceOrderInput) {
         // From the signed-in account, never from the request: otherwise anyone
         // with an account could put another person's address on an order and
         // have your confirmation / delivery-PIN emails sent to them.
-        customerEmail: session.user.email,
+        customerEmail: session?.user?.email ?? guestEmail!,
         customerPhone: input.customerPhone,
         shippingAddress: input.shippingAddress,
         city: input.city,
@@ -248,7 +268,7 @@ export async function createOrder(input: PlaceOrderInput) {
   let discountAmount = "0.00";
   let discountNote: string | null = null;
   try {
-    if (input.promoCode || input.useStoreCredit) {
+    if (userId && (input.promoCode || input.useStoreCredit)) {
       const result = await applyReferralRewards(
         userId,
         subtotal,
@@ -280,6 +300,10 @@ export async function createOrder(input: PlaceOrderInput) {
     return { success: false as const, error: "Couldn't apply your discount, please try again." };
   }
 
+  // A guest's key to this order: lets this browser pay for it and see the
+  // confirmation page (see lib/guest-orders.ts).
+  if (!userId) await grantGuestOrderAccess(orderId);
+
   return { success: true as const, orderId };
 }
 
@@ -290,15 +314,16 @@ export async function createCheckoutSession(orderId: string) {
   // would no longer match and wouldn't be confirmed) and returns a Chapa
   // checkout page that shows the customer's name, email and phone.
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return { success: false as const, error: "Please sign in to continue to payment." };
-  }
 
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   // Same answer whether the order doesn't exist or just isn't theirs.
   // role is blanked so even an admin can't open a payment on a customer's behalf.
-  if (!order || !canViewOrder(order, { ...session.user, role: null })) {
-    return { success: false as const, error: "Order not found." };
+  // A guest order is also open to the browser that placed it.
+  if (!order || !(await canAccessOrder(order, session?.user ?? null, { ignoreAdmin: true }))) {
+    return {
+      success: false as const,
+      error: session?.user ? "Order not found." : "Please sign in to continue to payment.",
+    };
   }
   if (order.paymentStatus === "paid") {
     return { success: false as const, error: "This order has already been paid." };
@@ -509,11 +534,20 @@ export async function resolveSoldOutOrder(orderId: string, choice: "refund" | "w
     return { success: false as const, error: "Unknown option." };
   }
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) return { success: false as const, error: "Please sign in first." };
 
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-  if (!order || !canViewOrder(order, { ...session.user, role: null })) {
-    return { success: false as const, error: "Order not found." };
+  if (!order || !(await canAccessOrder(order, session?.user ?? null, { ignoreAdmin: true }))) {
+    return {
+      success: false as const,
+      error: session?.user ? "Order not found." : "Please sign in first.",
+    };
+  }
+  // Store credit is added to an account, which a guest order doesn't have.
+  if (!order.userId && choice === "credit") {
+    return {
+      success: false as const,
+      error: "Store credit needs an account. Please choose a refund or wait for the restock.",
+    };
   }
 
   const [hold] = await db

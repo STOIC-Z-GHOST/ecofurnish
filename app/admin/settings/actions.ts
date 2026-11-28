@@ -4,25 +4,37 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
-import { SETTING_DEFS } from "@/lib/site-settings";
+import { SETTING_DEFS, TEXT_DEFS } from "@/lib/site-settings";
 
 type Result = { success: true } | { success: false; error: string };
 
-export async function saveSiteSettings(values: Record<string, boolean>): Promise<Result> {
+export async function saveSiteSettings(
+  values: Record<string, boolean>,
+  texts: Record<string, string>
+): Promise<Result> {
   // Real admins only. Read-only guests can't reach this.
   const session = await requireAdmin();
   const by = session.user.email ?? session.user.id;
 
+  const rows: { key: string; value: string }[] = [];
+  for (const def of SETTING_DEFS) {
+    if (typeof values?.[def.key] === "boolean") {
+      rows.push({ key: def.key, value: values[def.key] ? "true" : "false" });
+    }
+  }
+  for (const def of TEXT_DEFS) {
+    const raw = texts?.[def.key];
+    if (typeof raw === "string") rows.push({ key: def.key, value: raw.trim().slice(0, def.max) });
+  }
+
   try {
-    for (const def of SETTING_DEFS) {
-      if (typeof values[def.key] !== "boolean") continue;
-      const value = values[def.key] ? "true" : "false";
+    for (const row of rows) {
       await db
         .insert(siteSettings)
-        .values({ key: def.key, value, updatedBy: by })
+        .values({ ...row, updatedBy: by })
         .onConflictDoUpdate({
           target: siteSettings.key,
-          set: { value, updatedAt: new Date(), updatedBy: by },
+          set: { value: row.value, updatedAt: new Date(), updatedBy: by },
         });
     }
   } catch (error) {
@@ -34,7 +46,7 @@ export async function saveSiteSettings(values: Record<string, boolean>): Promise
     };
   }
 
-  // The switches affect the layout, the homepage and the footer.
+  // The switches affect the layout, the homepage, the footer and checkout.
   revalidatePath("/", "layout");
   return { success: true };
 }

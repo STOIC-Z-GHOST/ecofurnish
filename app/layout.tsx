@@ -16,6 +16,10 @@ import { siteConfig } from '@/config/site'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import InstallAppBanner from '@/components/pwa/InstallAppBanner'
 import MobileBottomNav from '@/components/layout/navbar/MobileBottomNav'
+import AnnouncementBar from '@/components/AnnouncementBar'
+import MaintenanceScreen from '@/components/MaintenanceScreen'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 import SiteModeSync from '@/components/SiteModeSync'
 import { getSiteSettings } from '@/lib/site-settings'
 import SupportChatWidget from '@/components/support/SupportChatWidget'
@@ -122,10 +126,27 @@ export default async function RootLayout({
   const categories = categoryRows.map((r) => r.category)
   const settings = await getSiteSettings()
 
+  // Maintenance mode: visitors get a "back soon" page. Left alone on purpose:
+  // /admin and sign-in (so the owner can always get in), and the page a
+  // customer lands on after paying (it confirms their payment).
+  const requestHeaders = await headers()
+  const pathname = (requestHeaders.get('x-pathname') ?? '/').toLowerCase()
+  const maintenanceExempt = /^\/(admin|sign-in|forgot-password|reset-password|reset-cache|order-confirmation)(\/|$)/.test(pathname)
+  let showMaintenance = false
+  let adminSeesMaintenance = false
+  if (settings.maintenance && !maintenanceExempt) {
+    const session = await auth.api.getSession({ headers: requestHeaders })
+    if (session?.user?.role === 'admin') adminSeesMaintenance = true
+    else showMaintenance = true
+  }
+
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {showMaintenance ? (
+            <MaintenanceScreen message={settings.maintenanceMessage} />
+          ) : (
           <CurrencyProvider>
             <CartProvider>
               <WishlistProvider>
@@ -133,6 +154,14 @@ export default async function RootLayout({
                   {/* A slim bar in the normal page flow: when it shows, it
                       pushes the navbar and everything below it down. */}
                   {settings.installBanner && <InstallAppBanner />}
+                  {settings.announcement && settings.announcementText.trim() && (
+                    <AnnouncementBar text={settings.announcementText} />
+                  )}
+                  {adminSeesMaintenance && (
+                    <div className="bg-destructive px-4 py-1.5 text-center text-sm font-medium text-white">
+                      Maintenance mode is ON: visitors see a &quot;back soon&quot; page. You can see the site because you are signed in as admin.
+                    </div>
+                  )}
                   <SiteModeSync realStock={settings.realStock} />
                   <Navbar categories={categories} />
                   <div className="flex-1">{children}</div>
@@ -144,6 +173,7 @@ export default async function RootLayout({
               </WishlistProvider>
             </CartProvider>
           </CurrencyProvider>
+          )}
         </ThemeProvider>
         <ServiceWorkerRegister />
         {process.env.NODE_ENV === 'production' && <Analytics />}
