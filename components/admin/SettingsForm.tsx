@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,55 +23,13 @@ interface TextDef {
   max: number;
 }
 
-const GUEST_GROUP = "Guest settings";
-
-// The Guest settings group has ten switches, so it folds away to keep the
-// page short. Every other group is always open.
-function GroupShell({
-  group,
-  count,
-  total,
-  children,
-}: {
-  group: string;
-  count: number;
-  total: number;
-  children: React.ReactNode;
-}) {
-  if (group !== GUEST_GROUP) {
-    return (
-      <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{group}</h3>
-        {children}
-      </section>
-    );
-  }
-  return (
-    <details className="group rounded-lg border border-border/60 p-4">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-        <span>
-          <span className="block text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {group}
-          </span>
-          <span className="mt-1 block text-sm text-muted-foreground">
-            What a temporary read-only guest can open. They only ever see made-up sample data, and
-            nothing they try touches the real store. {count} of {total} on.
-          </span>
-        </span>
-        <span className="text-xs text-muted-foreground group-open:hidden">Show</span>
-        <span className="hidden text-xs text-muted-foreground group-open:inline">Hide</span>
-      </summary>
-      <div className="mt-4">{children}</div>
-    </details>
-  );
-}
-
 export default function SettingsForm({
   defs,
   texts,
   initial,
   initialTexts,
   demo = false,
+  guestLink,
 }: {
   defs: Def[];
   texts: TextDef[];
@@ -77,6 +37,8 @@ export default function SettingsForm({
   initialTexts: Record<string, string>;
   /** A guest's view: Save only pretends, nothing is sent to the server. */
   demo?: boolean;
+  /** Shows a card that opens the Guest settings page, e.g. { count: 3, total: 10 }. */
+  guestLink?: { count: number; total: number };
 }) {
   const [values, setValues] = useState<Record<string, boolean>>(initial);
   const [textValues, setTextValues] = useState<Record<string, string>>(initialTexts);
@@ -108,12 +70,10 @@ export default function SettingsForm({
   return (
     <div className="max-w-2xl space-y-8">
       {groups.map((group) => (
-        <GroupShell
-          key={group}
-          group={group}
-          count={defs.filter((d) => d.group === group && values[d.key]).length}
-          total={defs.filter((d) => d.group === group).length}
-        >
+        <section key={group}>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {group}
+          </h3>
           <div className="divide-y divide-border/60 rounded-lg border border-border/60">
             {defs
               .filter((d) => d.group === group)
@@ -162,8 +122,26 @@ export default function SettingsForm({
                 );
               })}
           </div>
-        </GroupShell>
+        </section>
       ))}
+
+      {guestLink && (
+        <Link
+          href="/admin/settings/guests"
+          className="flex items-center justify-between gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/40"
+        >
+          <span>
+            <span className="block text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Guest settings
+            </span>
+            <span className="mt-1 block text-sm text-muted-foreground">
+              Choose which admin pages a temporary read-only guest can open. {guestLink.count} of{" "}
+              {guestLink.total} on.
+            </span>
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </Link>
+      )}
 
       <div className="flex items-center gap-3">
         <Button onClick={save} disabled={!dirty || pending}>

@@ -1,6 +1,6 @@
 import { requireAdminViewPage } from "@/lib/require-admin";
 import { demoSettings } from "@/lib/demo-data";
-import { SETTING_DEFS, TEXT_DEFS, getSiteSettings } from "@/lib/site-settings";
+import { GUEST_GROUP, SETTING_DEFS, TEXT_DEFS, getSiteSettings } from "@/lib/site-settings";
 import SettingsForm from "@/components/admin/SettingsForm";
 
 export default async function AdminSettingsPage() {
@@ -10,8 +10,13 @@ export default async function AdminSettingsPage() {
   // A guest sees built-in sample values, never the real switches.
   const current = isGuest ? demoSettings() : await getSiteSettings();
 
+  // The guest switches live on their own page (Settings > Guest settings), so
+  // they are left out here. A guest never sees them at all.
+  const mainDefs = SETTING_DEFS.filter((d) => d.group !== GUEST_GROUP);
+  const guestDefs = SETTING_DEFS.filter((d) => d.group === GUEST_GROUP);
+
   const initial: Record<string, boolean> = {};
-  for (const d of SETTING_DEFS) initial[d.key] = current[d.key];
+  for (const d of mainDefs) initial[d.key] = current[d.key];
   const initialTexts: Record<string, string> = {};
   for (const t of TEXT_DEFS) initialTexts[t.key] = current[t.key];
 
@@ -24,11 +29,16 @@ export default async function AdminSettingsPage() {
           : "Switch parts of the site on and off. Changes apply to every visitor right after you save."}
       </p>
       <SettingsForm
-        defs={SETTING_DEFS.map((d) => ({ key: d.key, group: d.group, label: d.label, description: d.description }))}
+        defs={mainDefs.map((d) => ({ key: d.key, group: d.group, label: d.label, description: d.description }))}
         texts={TEXT_DEFS.map((t) => ({ key: t.key, forSwitch: t.forSwitch, label: t.label, placeholder: t.placeholder, max: t.max }))}
         initial={initial}
         initialTexts={initialTexts}
         demo={isGuest}
+        guestLink={
+          isGuest
+            ? undefined
+            : { count: guestDefs.filter((d) => current[d.key]).length, total: guestDefs.length }
+        }
       />
     </div>
   );

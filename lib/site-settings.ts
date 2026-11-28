@@ -195,6 +195,9 @@ export const SETTING_DEFS = [
   },
 ] as const;
 
+/** The group name of the switches that decide what a guest may open. */
+export const GUEST_GROUP = "Guest settings";
+
 /** Wording the owner types in, shown next to a switch. */
 export const TEXT_DEFS = [
   {
