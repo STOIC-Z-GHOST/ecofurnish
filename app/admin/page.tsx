@@ -3,24 +3,37 @@ import { orders, products } from "@/db/schema";
 import { formatPrice } from "@/lib/currency";
 import { Package, ShoppingBag, TriangleAlert, Wallet } from "lucide-react";
 import { requireAdminViewPage } from "@/lib/require-admin";
+import { demoDashboard } from "@/lib/demo-data";
 
 export default async function AdminDashboardPage() {
-  // Read-only for guests too — it only shows counts and totals.
-  await requireAdminViewPage();
-  const [allOrders, allProducts] = await Promise.all([
-    db.select().from(orders),
-    db.select().from(products),
-  ]);
+  // Read-only for guests too. A guest gets made-up numbers and the database
+  // is never queried for them (see lib/demo-data.ts).
+  const { isGuest } = await requireAdminViewPage("guestDashboard");
 
-  const revenue = allOrders
-    .filter((o) => o.paymentStatus === "paid")
-    .reduce((sum, o) => sum + parseFloat(o.totalAmount), 0);
-  const lowStock = allProducts.filter((p) => p.stock <= 3);
+  let orderCount: number;
+  let productCount: number;
+  let revenue: number;
+  let lowStock: { id: string; name: string; stock: number }[];
+  if (isGuest) {
+    const demo = demoDashboard();
+    ({ orderCount, productCount, revenue, lowStock } = demo);
+  } else {
+    const [allOrders, allProducts] = await Promise.all([
+      db.select().from(orders),
+      db.select().from(products),
+    ]);
+    orderCount = allOrders.length;
+    productCount = allProducts.length;
+    revenue = allOrders
+      .filter((o) => o.paymentStatus === "paid")
+      .reduce((sum, o) => sum + parseFloat(o.totalAmount), 0);
+    lowStock = allProducts.filter((p) => p.stock <= 3);
+  }
 
   const stats = [
-    { label: "Total orders", value: allOrders.length, icon: ShoppingBag },
+    { label: "Total orders", value: orderCount, icon: ShoppingBag },
     { label: "Revenue", value: formatPrice(revenue.toFixed(2), "ETB"), icon: Wallet },
-    { label: "Products", value: allProducts.length, icon: Package },
+    { label: "Products", value: productCount, icon: Package },
     { label: "Low stock (≤3)", value: lowStock.length, icon: TriangleAlert },
   ];
 

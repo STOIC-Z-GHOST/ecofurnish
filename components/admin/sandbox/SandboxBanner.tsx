@@ -13,8 +13,9 @@ export function SandboxBanner({ expiresAtIso }: { expiresAtIso: string | null })
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
       <p>
-        <strong>Guest view.</strong> Customer details are masked. Go ahead and try changing things -
-        your edits are saved <strong>only in this browser</strong> and never touch the real store.
+        <strong>Guest view.</strong> For security purposes, everything you see here is{" "}
+        <strong>dummy data, not real store data</strong>. Go ahead and try changing things: your
+        edits are saved <strong>only in this browser</strong> and never touch the real store.
         {ends && <> Your access ends {ends}.</>}
       </p>
       {changes > 0 && (

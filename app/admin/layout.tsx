@@ -1,4 +1,5 @@
-import { requireAdminShell } from "@/lib/require-admin";
+import { requireAdminShell, type GuestFeature } from "@/lib/require-admin";
+import { getSiteSettings } from "@/lib/site-settings";
 import { SandboxBanner } from "@/components/admin/sandbox/SandboxBanner";
 import { APP_VERSION } from "@/lib/version";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -20,10 +21,12 @@ const ADMIN_LINKS: GlowNavLink[] = [
 
 // What a read-only guest sees in the menu. Their other admin URLs 404
 // anyway (those pages check for a real admin themselves).
-const GUEST_LINKS: GlowNavLink[] = [
-  { href: "/admin", label: "Dashboard", exact: true },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/orders", label: "Orders" },
+// Which of them show is up to the owner (Admin > Settings > Guest admin access).
+const GUEST_LINKS: (GlowNavLink & { feature: GuestFeature })[] = [
+  { href: "/admin", label: "Dashboard", exact: true, feature: "guestDashboard" },
+  { href: "/admin/products", label: "Products", feature: "guestProducts" },
+  { href: "/admin/orders", label: "Orders", feature: "guestOrders" },
+  { href: "/admin/settings", label: "Settings", feature: "guestSettings" },
 ];
 
 // An access manager (someone allowed to invite guests) sees only this.
@@ -40,13 +43,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // decides for itself who may see it (guests only reach the read-only
   // ones, managers only the Guests page).
   const { level, isGuest, guestExpiresAt, delegate } = await requireAdminShell();
+  const settings = await getSiteSettings();
+  const guestLinks: GlowNavLink[] = GUEST_LINKS.filter((l) => settings[l.feature]).map(
+    ({ feature, ...link }) => {
+      void feature;
+      return link;
+    }
+  );
   const links =
     level === "admin"
       ? ADMIN_LINKS
       : level === "guest"
         ? delegate
-          ? [...GUEST_LINKS, GUESTS_LINK]
-          : GUEST_LINKS
+          ? [...guestLinks, GUESTS_LINK]
+          : guestLinks
         : [GUESTS_LINK];
 
   return (

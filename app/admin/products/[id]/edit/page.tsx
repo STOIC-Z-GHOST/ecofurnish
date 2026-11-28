@@ -5,6 +5,7 @@ import { products } from "@/db/schema";
 import { ProductForm } from "@/components/admin/product-form";
 import { getVariantsForProduct } from "@/lib/variants";
 import { requireAdminViewPage } from "@/lib/require-admin";
+import { demoCategories, getDemoProduct } from "@/lib/demo-data";
 import { SandboxProductForm } from "@/components/admin/sandbox/SandboxProductForm";
 
 interface Props {
@@ -12,8 +13,26 @@ interface Props {
 }
 
 export default async function EditProductPage({ params }: Props) {
-  const { isGuest } = await requireAdminViewPage();
+  const { isGuest } = await requireAdminViewPage("guestProducts");
   const { id } = await params;
+
+  // A guest edits a MADE-UP product, found without the database.
+  if (isGuest) {
+    const demo = getDemoProduct(id);
+    if (!demo) notFound();
+    const { id: demoId, ...initial } = demo;
+    return (
+      <div>
+        <h2 className="mb-6 text-lg font-semibold">Edit {demo.name}</h2>
+        <SandboxProductForm
+          productId={demoId}
+          existingCategories={demoCategories()}
+          initial={{ ...initial, description: initial.description ?? "" }}
+        />
+      </div>
+    );
+  }
+
   const [product] = await db.select().from(products).where(eq(products.id, id)).limit(1);
   if (!product) notFound();
 

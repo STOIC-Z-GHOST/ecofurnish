@@ -26,11 +26,14 @@ export default function SettingsForm({
   texts,
   initial,
   initialTexts,
+  demo = false,
 }: {
   defs: Def[];
   texts: TextDef[];
   initial: Record<string, boolean>;
   initialTexts: Record<string, string>;
+  /** A guest's view: Save only pretends, nothing is sent to the server. */
+  demo?: boolean;
 }) {
   const [values, setValues] = useState<Record<string, boolean>>(initial);
   const [textValues, setTextValues] = useState<Record<string, string>>(initialTexts);
@@ -43,6 +46,11 @@ export default function SettingsForm({
   const groups = Array.from(new Set(defs.map((d) => d.group)));
 
   function save() {
+    if (demo) {
+      setSaved({ values, texts: textValues });
+      toast.success("Saved on this screen only. The real site is unchanged.");
+      return;
+    }
     startTransition(async () => {
       const result = await saveSiteSettings(values, textValues);
       if (result.success) {

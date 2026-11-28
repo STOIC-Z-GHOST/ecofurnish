@@ -6,18 +6,19 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
 import { requireAdminViewPage } from "@/lib/require-admin";
+import { DEMO_PRODUCTS } from "@/lib/demo-data";
 import { SandboxProductsTable } from "@/components/admin/sandbox/SandboxProductsTable";
 
 export default async function AdminProductsPage() {
-  const { isGuest } = await requireAdminViewPage();
-  const allProducts = await db.select().from(products);
+  const { isGuest } = await requireAdminViewPage("guestProducts");
 
-  // A read-only guest gets the same list with a browser-only sandbox laid
-  // over it: Edit / New / Delete work for them, but only on their own screen.
+  // A read-only guest gets a list of MADE-UP products (the database is not
+  // touched for them) with a browser-only sandbox laid over it: Edit / New /
+  // Delete work for them, but only on their own screen.
   if (isGuest) {
     return (
       <SandboxProductsTable
-        rows={allProducts.map((p) => ({
+        rows={DEMO_PRODUCTS.map((p) => ({
           id: p.id,
           name: p.name,
           category: p.category,
@@ -27,6 +28,8 @@ export default async function AdminProductsPage() {
       />
     );
   }
+
+  const allProducts = await db.select().from(products);
 
   return (
     <div>

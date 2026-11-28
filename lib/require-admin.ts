@@ -5,6 +5,10 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { adminDelegates, adminGuests } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { getSiteSettings } from "@/lib/site-settings";
+
+/** The Settings switches that decide what a read-only guest may open. */
+export type GuestFeature = "guestDashboard" | "guestProducts" | "guestOrders" | "guestSettings";
 
 // One session lookup per request, shared by the admin layout and the page
 // under it (they both call requireAdminPage below), so guarding every page
@@ -158,10 +162,14 @@ export async function requireAdminShell() {
  * page keeps requireAdminPage, so guests get "Page not found" there: new
  * pages are admin-only unless someone deliberately opts them in.
  */
-export async function requireAdminViewPage() {
+export async function requireAdminViewPage(feature?: GuestFeature) {
   const access = await getAdminAccess();
   // An access manager with no guest grant is NOT a viewer.
   if (!access || access.level === "delegate") notFound();
+  // The owner chooses which admin pages guests may open (Admin > Settings >
+  // Guest admin access). A page that is switched off is "not found" for
+  // guests. Real admins are never affected.
+  if (access.level === "guest" && feature && !(await getSiteSettings())[feature]) notFound();
   return {
     session: access.session,
     isGuest: access.level === "guest",

@@ -2,12 +2,17 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { ProductForm } from "@/components/admin/product-form";
 import { requireAdminViewPage } from "@/lib/require-admin";
+import { demoCategories } from "@/lib/demo-data";
 import { SandboxProductForm } from "@/components/admin/sandbox/SandboxProductForm";
 
 export default async function NewProductPage() {
-  const { isGuest } = await requireAdminViewPage();
-  const rows = await db.selectDistinct({ category: products.category }).from(products);
-  const existingCategories = rows.map((r) => r.category).sort();
+  const { isGuest } = await requireAdminViewPage("guestProducts");
+  // Guests never touch the database: their category list is made up too.
+  const existingCategories = isGuest
+    ? demoCategories()
+    : (await db.selectDistinct({ category: products.category }).from(products))
+        .map((r) => r.category)
+        .sort();
 
   return (
     <div>

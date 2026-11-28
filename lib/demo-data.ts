@@ -1,0 +1,100 @@
+import type { ProductInput } from "@/app/admin/actions";
+import { SETTING_DEFS, TEXT_DEFS, type SiteSettings } from "@/lib/site-settings";
+
+/**
+ * Made-up data for the read-only GUEST view of the admin area.
+ *
+ * Guests never see real products, orders, counts or settings. Every admin
+ * page a guest can open builds its screen from this file instead, and does
+ * so BEFORE any database query runs, so there is nothing real to leak. The
+ * names, emails and numbers below are invented, and nothing in this file
+ * ever queries the database.
+ */
+
+function product(
+  n: number,
+  name: string,
+  category: string,
+  price: string,
+  stock: number,
+  image: string,
+  description: string
+): ProductInput & { id: string } {
+  return {
+    id: `demo-product-${n}`,
+    name,
+    description,
+    price,
+    imageUrl: image,
+    images: [],
+    category,
+    rooms: ["Living Room"],
+    stock,
+    plasticWeightKg: "2.50",
+    featured: n <= 4,
+    discountPercent: 0,
+    discountReason: "",
+    dealEndsAt: null,
+    restockAt: null,
+    variants: [],
+  };
+}
+
+export const DEMO_PRODUCTS: (ProductInput & { id: string })[] = [
+  product(1, "Sample Lounge Chair", "Chairs", "9500.00", 12, "/images/products/eco-lounge-chair.jpg", "A sample product used for the guest preview."),
+  product(2, "Sample Coffee Table", "Tables", "7200.00", 8, "/images/products/recycled-coffee-table.jpg", "A sample product used for the guest preview."),
+  product(3, "Sample Work Desk", "Desks", "11000.00", 3, "/images/products/work-desk.jpg", "A sample product used for the guest preview."),
+  product(4, "Sample Garden Bench", "Benches", "6000.00", 5, "/images/products/garden-bench.jpg", "A sample product used for the guest preview."),
+  product(5, "Sample Shelf", "Storage", "5400.00", 20, "/images/products/modular-shelf.jpg", "A sample product used for the guest preview."),
+  product(6, "Sample Bar Stool", "Chairs", "3500.00", 2, "/images/products/eco-bar-stool.jpg", "A sample product used for the guest preview."),
+  product(7, "Sample Plant Stand", "Storage", "1800.00", 30, "/images/products/plant-stand.jpg", "A sample product used for the guest preview."),
+  product(8, "Sample Sofa", "Sofas", "24000.00", 4, "/images/products/sofa.jpg", "A sample product used for the guest preview."),
+];
+
+export function getDemoProduct(id: string) {
+  return DEMO_PRODUCTS.find((p) => p.id === id) ?? null;
+}
+
+export function demoCategories(): string[] {
+  return [...new Set(DEMO_PRODUCTS.map((p) => p.category))].sort();
+}
+
+const STATUSES = ["pending", "processing", "ready_for_delivery", "on_the_road", "delivered", "delivered", "cancelled", "pending", "delivered", "processing"];
+
+export const DEMO_ORDERS = STATUSES.map((status, i) => {
+  const n = i + 1;
+  const paid = status !== "cancelled" && status !== "pending";
+  return {
+    id: `demo-order-${String(n).padStart(3, "0")}`,
+    customerName: `Sample Customer ${n}`,
+    customerEmail: `customer${n}@example.com`,
+    createdAtIso: new Date(Date.UTC(2026, 10, 1 + n, 9, 30)).toISOString(),
+    totalAmount: (3500 + n * 1250).toFixed(2),
+    paymentStatus: paid ? "paid" : "unpaid",
+    status,
+  };
+});
+
+/** The numbers on the guest dashboard, worked out from the made-up data. */
+export function demoDashboard() {
+  const revenue = DEMO_ORDERS.filter((o) => o.paymentStatus === "paid").reduce(
+    (sum, o) => sum + parseFloat(o.totalAmount),
+    0
+  );
+  return {
+    orderCount: DEMO_ORDERS.length,
+    productCount: DEMO_PRODUCTS.length,
+    revenue,
+    lowStock: DEMO_PRODUCTS.filter((p) => p.stock <= 3).map((p) => ({ id: p.id, name: p.name, stock: p.stock })),
+  };
+}
+
+/** The Settings screen for a guest: built-in defaults, never the real values. */
+export function demoSettings(): SiteSettings {
+  const out = {} as SiteSettings;
+  for (const d of SETTING_DEFS) out[d.key] = d.default;
+  for (const t of TEXT_DEFS) out[t.key] = "";
+  out.announcementText = "Free delivery in Addis Ababa this week (sample text)";
+  out.maintenanceMessage = "We are updating the shop and will be back soon. (sample text)";
+  return out;
+}
